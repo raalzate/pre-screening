@@ -1,0 +1,11 @@
+{
+  "id": "react-opportunity-123",
+  "title": "Requisitos Cliente DeUna - Frontend React",
+  "requirements": {
+    "jsx": 3,
+    "hooks": 4,
+    "context": 3,
+    "redux": 4,
+    "testing": 4
+  }
+}

@@ -1,0 +1,162 @@
+{
+  "id": "java-backend-semi-senior",
+  "title": "Evaluación Backend (Java) - Nivel Semi Senior",
+  "categories": [
+    {
+      "id": "java-fundamentals",
+      "title": "Fundamentos de Java",
+      "questions": [
+        {
+          "id": "oop",
+          "question": "¿Qué tan cómodo te sientes con los principios de la Programación Orientada a Objetos (OOP) en Java (herencia, polimorfismo, encapsulamiento)?",
+          "type": "scale",
+          "scaleMax": 4,
+          "example": "Implementar una clase abstracta y varias clases concretas que heredan de ella."
+        },
+        {
+          "id": "collections",
+          "question": "¿Qué nivel de dominio tienes en la API de colecciones de Java (List, Set, Map)?",
+          "type": "scale",
+          "scaleMax": 4,
+          "example": "Elegir la implementación de `Map` más adecuada (ej. `HashMap` vs `TreeMap`) para un escenario de uso específico."
+        },
+        {
+          "id": "streams",
+          "question": "¿Qué experiencia tienes con las Streams API de Java 8 para procesamiento de colecciones?",
+          "type": "scale",
+          "scaleMax": 4,
+          "example": "Usar Streams para filtrar y mapear una lista de objetos de forma concisa."
+        },
+        {
+          "id": "concurrency",
+          "question": "¿Qué tan familiar estás con los conceptos de concurrencia y multihilo en Java?",
+          "type": "scale",
+          "scaleMax": 4,
+          "example": "Usar `synchronized` o un `ExecutorService` para manejar una tarea en segundo plano."
+        }
+      ]
+    },
+    {
+      "id": "spring-framework",
+      "title": "Frameworks y Spring Boot",
+      "questions": [
+        {
+          "id": "spring-boot",
+          "question": "¿Qué experiencia tienes desarrollando aplicaciones backend con Spring Boot?",
+          "type": "scale",
+          "scaleMax": 4,
+          "example": "Configurar una nueva aplicación de Spring Boot con las dependencias necesarias a través de Spring Initializr."
+        },
+        {
+          "id": "dependency-injection",
+          "question": "¿Qué tanto dominas el sistema de Inyección de Dependencias de Spring (autowiring, beans)?",
+          "type": "scale",
+          "scaleMax": 4,
+          "example": "Usar la anotación `@Autowired` para inyectar un servicio en un controlador."
+        },
+        {
+          "id": "annotations",
+          "question": "¿Qué tan cómodo te sientes usando anotaciones de Spring Boot como `@RestController`, `@Service`, `@Repository`?",
+          "type": "scale",
+          "scaleMax": 4,
+          "example": "Definir un controlador REST para un endpoint de la API usando `@RestController`."
+        },
+        {
+          "id": "profiles",
+          "question": "¿Cómo manejas la configuración específica de entornos (ej. desarrollo, producción) usando perfiles de Spring?",
+          "type": "scale",
+          "scaleMax": 4,
+          "example": "Crear un archivo `application-prod.properties` para configurar la base de datos de producción."
+        }
+      ]
+    },
+    {
+      "id": "database-and-orm",
+      "title": "Bases de Datos y ORM",
+      "questions": [
+        {
+          "id": "jpa-hibernate",
+          "question": "¿Qué experiencia tienes con JPA y el uso de un ORM como Hibernate?",
+          "type": "scale",
+          "scaleMax": 4,
+          "example": "Definir una entidad JPA con anotaciones como `@Entity`, `@Table` y `@Id`."
+        },
+        {
+          "id": "spring-data",
+          "question": "¿Qué tan familiar estás con Spring Data JPA para la abstracción de la base de datos?",
+          "type": "scale",
+          "scaleMax": 4,
+          "example": "Usar una interfaz de `JpaRepository` para realizar operaciones de CRUD sin escribir código de implementación."
+        },
+        {
+          "id": "queries",
+          "question": "¿Qué tanto dominas la creación de consultas personalizadas con JPQL o consultas nativas?",
+          "type": "scale",
+          "scaleMax": 4,
+          "example": "Escribir una consulta JPQL para buscar usuarios por nombre de usuario y correo electrónico."
+        }
+      ]
+    },
+    {
+      "id": "api-and-microservices",
+      "title": "APIs y Microservicios",
+      "questions": [
+        {
+          "id": "rest-api",
+          "question": "¿Qué experiencia tienes diseñando e implementando APIs RESTful?",
+          "type": "scale",
+          "scaleMax": 4,
+          "example": "Diseñar los verbos HTTP y códigos de estado para un endpoint que crea un nuevo recurso."
+        },
+        {
+          "id": "api-security",
+          "question": "¿Cómo manejas la seguridad de las APIs (JWT, OAuth2)?",
+          "type": "scale",
+          "scaleMax": 4,
+          "example": "Configurar Spring Security para proteger los endpoints de la API con JWT."
+        },
+        {
+          "id": "microservices",
+          "question": "¿Qué experiencia tienes con el diseño de arquitecturas de microservicios con Java/Spring?",
+          "type": "scale",
+          "scaleMax": 4,
+          "example": "Usar `Spring Cloud` para implementar un servicio de descubrimiento (ej. Eureka) y un API Gateway (ej. Zuul/Gateway)."
+        }
+      ]
+    },
+    {
+      "id": "best-practices-and-testing",
+      "title": "Buenas Prácticas, Testing y Despliegue",
+      "questions": [
+        {
+          "id": "unit-testing",
+          "question": "¿Qué nivel de experiencia tienes escribiendo pruebas unitarias con JUnit y Mockito?",
+          "type": "scale",
+          "scaleMax": 4,
+          "example": "Escribir una prueba unitaria para un servicio, mockeando las dependencias del repositorio."
+        },
+        {
+          "id": "integration-testing",
+          "question": "¿Qué experiencia tienes con las pruebas de integración con Spring Boot?",
+          "type": "scale",
+          "scaleMax": 4,
+          "example": "Usar `@SpringBootTest` para probar un controlador REST y verificar el estado HTTP de la respuesta."
+        },
+        {
+          "id": "deployment",
+          "question": "¿Qué experiencia tienes desplegando aplicaciones Java en un entorno de producción (Docker, Kubernetes)?",
+          "type": "scale",
+          "scaleMax": 4,
+          "example": "Crear un Dockerfile para una aplicación de Spring Boot."
+        },
+        {
+          "id": "documentation",
+          "question": "¿Qué tan cómodo te sientes generando documentación de API (OpenAPI/Swagger)?",
+          "type": "scale",
+          "scaleMax": 4,
+          "example": "Configurar Springdoc OpenAPI para generar documentación de la API de forma automática."
+        }
+      ]
+    }
+  ]
+}

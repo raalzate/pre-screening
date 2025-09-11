@@ -1,0 +1,170 @@
+{
+  "id": "react-nestjs-semi-senior",
+  "title": "Evaluación Full Stack (React + NestJS) - Nivel Semi Senior",
+  "categories": [
+    {
+      "id": "react-fundamentals",
+      "title": "Fundamentos de React (Frontend)",
+      "questions": [
+        {
+          "id": "components",
+          "question": "¿Qué tan cómodo te sientes creando componentes funcionales y de clase, y cuál prefieres?",
+          "type": "scale",
+          "scaleMax": 4,
+          "example": "Crear un componente de formulario reutilizable que acepte props para su configuración."
+        },
+        {
+          "id": "hooks",
+          "question": "¿Qué nivel de dominio tienes en el uso de hooks como useState, useEffect, useContext y custom hooks?",
+          "type": "scale",
+          "scaleMax": 4,
+          "example": "Crear un custom hook para manejar el estado de una API y su ciclo de vida (loading, data, error)."
+        },
+        {
+          "id": "state-management",
+          "question": "¿Qué experiencia tienes en la gestión de estado con Context API, Redux o librerías modernas (Zustand, Recoil)?",
+          "type": "scale",
+          "scaleMax": 4,
+          "example": "Configurar un store de Redux Toolkit para gestionar el estado de un carrito de compras en una aplicación web."
+        },
+        {
+          "id": "data-fetching",
+          "question": "¿Qué tanto dominas el fetching de datos con librerías como `Axios` o `Fetch`, y cómo lo manejas en diferentes estados (loading, error, data)?",
+          "type": "scale",
+          "scaleMax": 4,
+          "example": "Utilizar `useEffect` para llamar a una API y mostrar un estado de carga mientras se espera la respuesta."
+        },
+        {
+          "id": "routing",
+          "question": "¿Qué experiencia tienes con librerías de enrutamiento como `React Router`?",
+          "type": "scale",
+          "scaleMax": 4,
+          "example": "Configurar rutas anidadas para la navegación en un dashboard de administración."
+        }
+      ]
+    },
+    {
+      "id": "nestjs-fundamentals",
+      "title": "Fundamentos de NestJS (Backend)",
+      "questions": [
+        {
+          "id": "architecture",
+          "question": "¿Qué tan familiar estás con la arquitectura de NestJS (módulos, controladores, servicios)?",
+          "type": "scale",
+          "scaleMax": 4,
+          "example": "Diseñar la estructura de un microservicio, separando la lógica de negocio en servicios y la capa de peticiones en controladores."
+        },
+        {
+          "id": "dependency-injection",
+          "question": "¿Qué nivel de dominio tienes en el sistema de inyección de dependencias de NestJS?",
+          "type": "scale",
+          "scaleMax": 4,
+          "example": "Inyectar un servicio de base de datos en un controlador para realizar operaciones de CRUD."
+        },
+        {
+          "id": "database-integration",
+          "question": "¿Qué experiencia tienes integrando bases de datos con NestJS (TypeORM, Mongoose)?",
+          "type": "scale",
+          "scaleMax": 4,
+          "example": "Configurar TypeORM para conectar NestJS con una base de datos PostgreSQL y definir entidades."
+        },
+        {
+          "id": "data-validation",
+          "question": "¿Cómo manejas la validación de datos en las peticiones (pipes, DTOs)?",
+          "type": "scale",
+          "scaleMax": 4,
+          "example": "Utilizar `class-validator` y `ValidationPipe` para validar el cuerpo de una petición `POST`."
+        },
+        {
+          "id": "middleware",
+          "question": "¿Qué tan cómodo te sientes usando guards, interceptors y middlewares?",
+          "type": "scale",
+          "scaleMax": 4,
+          "example": "Crear un `AuthGuard` para proteger rutas que requieren autenticación del usuario."
+        }
+      ]
+    },
+    {
+      "id": "fullstack-integration",
+      "title": "Integración Full Stack",
+      "questions": [
+        {
+          "id": "api-design",
+          "question": "¿Qué tanto dominas el diseño y la implementación de APIs RESTful o GraphQL?",
+          "type": "scale",
+          "scaleMax": 4,
+          "example": "Diseñar los endpoints de una API REST para gestionar usuarios (`/users`, `/users/:id`)."
+        },
+        {
+          "id": "auth",
+          "question": "¿Qué experiencia tienes implementando autenticación y autorización (JWT, Passport) en un stack React-NestJS?",
+          "type": "scale",
+          "scaleMax": 4,
+          "example": "Implementar un flujo de autenticación JWT en NestJS y almacenar el token en el frontend de React."
+        },
+        {
+          "id": "cors",
+          "question": "¿Cómo manejas la configuración de CORS y otros problemas de seguridad entre el frontend y el backend?",
+          "type": "scale",
+          "scaleMax": 4,
+          "example": "Configurar las opciones de CORS en NestJS para permitir peticiones desde el dominio del frontend de React."
+        },
+        {
+          "id": "error-handling",
+          "question": "¿Qué tanto dominas el manejo de errores en el backend de NestJS y su comunicación al frontend de React?",
+          "type": "scale",
+          "scaleMax": 4,
+          "example": "Implementar un `ExceptionFilter` global en NestJS para centralizar el manejo de errores y devolver respuestas consistentes."
+        },
+        {
+          "id": "deployment",
+          "question": "¿Qué experiencia tienes desplegando aplicaciones Full Stack (React + NestJS) en un entorno de producción (Heroku, AWS, Vercel)?",
+          "type": "scale",
+          "scaleMax": 4,
+          "example": "Desplegar un proyecto de NestJS en Heroku y el frontend de React en Vercel."
+        }
+      ]
+    },
+    {
+      "id": "best-practices-and-testing",
+      "title": "Buenas Prácticas y Testing",
+      "questions": [
+        {
+          "id": "react-testing",
+          "question": "¿Qué nivel de experiencia tienes escribiendo pruebas unitarias y de integración para React (Jest, React Testing Library)?",
+          "type": "scale",
+          "scaleMax": 4,
+          "example": "Escribir una prueba unitaria para un componente de botón que verifica si se ejecuta un evento `onClick`."
+        },
+        {
+          "id": "nestjs-testing",
+          "question": "¿Qué experiencia tienes con las pruebas de NestJS (unitarias, de integración, end-to-end)?",
+          "type": "scale",
+          "scaleMax": 4,
+          "example": "Usar `Test.createTestingModule` para probar un servicio de forma aislada sin depender del controlador."
+        },
+        {
+          "id": "code-style",
+          "question": "¿Qué tan importante consideras las convenciones de estilo y el uso de linters en un proyecto Full Stack (ESLint, Prettier)?",
+          "type": "scale",
+          "scaleMax": 4,
+          "example": "Configurar las reglas de `ESLint` para garantizar que el código cumpla con los estándares de la empresa."
+        },
+        {
+          "id": "monorepo",
+          "question": "¿Qué experiencia tienes organizando proyectos Full Stack en un monorepo (Nx, Lerna)?",
+          "type": "scale",
+          "scaleMax": 4,
+          "example": "Crear un monorepo con `Nx` para gestionar la aplicación de React y la API de NestJS en un mismo repositorio."
+        },
+        {
+          "id": "documentation",
+          "question": "¿Qué tan cómodo te sientes generando documentación de API (Swagger/OpenAPI) para un proyecto NestJS?",
+          "type": "scale",
+          "scaleMax": 4,
+          "example": "Configurar `SwaggerModule` en NestJS para documentar automáticamente los endpoints de la API."
+        }
+      ]
+    }
+  ]
+}

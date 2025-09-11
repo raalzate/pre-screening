@@ -3,9 +3,10 @@
 import { useEffect, useState } from 'react';
 import DynamicForm from '@/components/DynamicForm';
 import { FormConfig } from '@/types/InputConfig';
+import React from 'react';
 
-export default function FormPage({ params }: { params: { id: string } }) {
-  const { id } = params;
+export default function FormPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = React.use(params); 
   const [form, setForm] = useState<FormConfig | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -45,7 +46,7 @@ export default function FormPage({ params }: { params: { id: string } }) {
   return (
     <div className="container mx-auto p-4">
       <h1 className="text-2xl font-bold mb-4">{form.title}</h1>
-      <DynamicForm categories={form.categories} formId={form.id} />
+      <DynamicForm form={form} />
     </div>
   );
 }

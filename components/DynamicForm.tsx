@@ -1,20 +1,20 @@
-"use client";
+'use client';
 
-import { FormConfig } from "@/types/InputConfig";
-import axios from "axios";
-import { useState } from "react";
-import ResultChart from "./ResultChart";
-import DynamicMCQForm from "./DynamicMCQForm";
-import { FormJson } from "@/types/outputConfig";
+import { FormConfig } from '@/types/InputConfig';
+import axios from 'axios';
+import { useState } from 'react';
+import ResultChart from './ResultChart';
+import DynamicMCQForm from './DynamicMCQForm';
+import { FormJson } from '@/types/outputConfig';
 
-type FormStep = "initial" | "evaluated" | "certified";
+type FormStep = 'initial' | 'evaluated' | 'certified';
 
 function DynamicForm({ form }: { form: FormConfig }) {
-  const [step, setStep] = useState<FormStep>("initial");
+  const [step, setStep] = useState<FormStep>('initial');
   const [answers, setAnswers] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{
-    type: "success" | "error";
+    type: 'success' | 'error';
     text: string;
   } | null>(null);
   const [result, setResult] = useState<any | null>(null);
@@ -35,10 +35,10 @@ function DynamicForm({ form }: { form: FormConfig }) {
         { formId: form.id, answers }
       );
       setResult(response.data);
-      setStep("evaluated");
-      setMessage({ type: "success", text: "✅ Respuestas enviadas con éxito" });
+      setStep('evaluated');
+      setMessage({ type: 'success', text: '✅ Respuestas enviadas con éxito' });
     } catch (error) {
-      setMessage({ type: "error", text: "❌ Error al enviar respuestas" });
+      setMessage({ type: 'error', text: '❌ Error al enviar respuestas' });
     } finally {
       setLoading(false);
     }
@@ -53,13 +53,13 @@ function DynamicForm({ form }: { form: FormConfig }) {
         { formId: form.id, answers, gaps: result?.gaps ?? [] }
       );
       setAnswersValidation(response.data);
-      setStep("certified");
+      setStep('certified');
       setMessage({
-        type: "success",
-        text: "✅ Certificación generada con éxito",
+        type: 'success',
+        text: '✅ Certificación generada con éxito',
       });
     } catch (error) {
-      setMessage({ type: "error", text: "❌ Error en certificación" });
+      setMessage({ type: 'error', text: '❌ Error en certificación' });
     } finally {
       setLoading(false);
     }
@@ -74,15 +74,15 @@ function DynamicForm({ form }: { form: FormConfig }) {
         { formId: form.id, answers, gaps: result?.gaps ?? [] }
       );
       setMessage({
-        type: "success",
+        type: 'success',
         text: `✅ Reto técnico generado con éxito: ${
-          response.data.challengeId || "ID no disponible"
+          response.data.challengeId || 'ID no disponible'
         }`,
       });
     } catch (error) {
       setMessage({
-        type: "error",
-        text: "❌ Error al generar el reto técnico",
+        type: 'error',
+        text: '❌ Error al generar el reto técnico',
       });
     } finally {
       setLoading(false);
@@ -90,99 +90,101 @@ function DynamicForm({ form }: { form: FormConfig }) {
   };
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-2xl font-bold">{form.title}</h1>
+    <div className="min-h-screen bg-gray-50 flex flex-col justify-center items-center p-4">
+      <div className="w-full max-w-2xl bg-white rounded-lg shadow-lg p-8 space-y-6">
+        <h1 className="text-3xl font-bold text-center text-gray-800">{form.title}</h1>
 
-      {message && (
-        <div
-          className={`p-3 rounded ${
-            message.type === "success"
-              ? "bg-green-100 text-green-700"
-              : "bg-red-100 text-red-700"
-          }`}
-        >
-          {message.text}
-        </div>
-      )}
-
-      {step === "initial" && (
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            handleEvaluation();
-          }}
-          className="space-y-6"
-        >
-          {form.categories.map((category) => (
-            <div key={category.id} className="border p-4 rounded-lg shadow-sm">
-              <h2 className="text-xl font-semibold mb-4">{category.title}</h2>
-              {category.questions.map((q) => (
-                <div key={q.id} className="mb-4">
-                  <label className="block font-medium mb-2">{q.question}                  
-                     <span className="mt-2 text-sm text-gray-500"> Ej. {q.example}</span>
-</label>
-                  <select
-                    className="border rounded p-2 w-full"
-                    value={answers[q.id] ?? ""}
-                    onChange={(e) => handleChange(q.id, Number(e.target.value))}
-                    required
-                  >
-                    <option value="">Seleccione...</option>
-                    {Array.from({ length: q.scaleMax + 1 }).map((_, i) => (
-                      <option key={i} value={i}>
-                        {i} - {scaleText(i)}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              ))}
-            </div>
-          ))}
-
-          <button
-            type="submit"
-            className="bg-blue-600 text-white px-4 py-2 rounded disabled:opacity-50"
-            disabled={loading}
+        {message && (
+          <div
+            className={`p-4 rounded-md text-center font-semibold ${
+              message.type === 'success'
+                ? 'bg-green-100 text-green-800'
+                : 'bg-red-100 text-red-800'
+            }`}
           >
-            {loading ? "Enviando..." : "Enviar evaluación"}
-          </button>
-        </form>
-      )}
+            {message.text}
+          </div>
+        )}
 
-      {step === "evaluated" && result && (
-        <div>
-          <ResultChart
-            opportunityTitle={result.opportunityTitle}
-            gaps={result.gaps}
-          />
+        {step === 'initial' && (
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleEvaluation();
+            }}
+            className="space-y-8"
+          >
+            {form.categories.map((category) => (
+              <div key={category.id} className="p-6 border rounded-lg bg-gray-50 shadow-sm transition-shadow duration-300 hover:shadow-md">
+                <h2 className="text-2xl font-semibold mb-4 text-gray-700">{category.title}</h2>
+                {category.questions.map((q) => (
+                  <div key={q.id} className="mb-6">
+                    <label className="block font-medium mb-2 text-gray-600">{q.question}
+                       <span className="mt-2 text-sm text-gray-500 block"> Ej. {q.example}</span>
+                    </label>
+                    <select
+                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-300"
+                      value={answers[q.id] ?? ''}
+                      onChange={(e) => handleChange(q.id, Number(e.target.value))}
+                      required
+                    >
+                      <option value="">Seleccione un nivel...</option>
+                      {Array.from({ length: q.scaleMax + 1 }).map((_, i) => (
+                        <option key={i} value={i}>
+                          {i} - {scaleText(i)}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                ))}
+              </div>
+            ))}
 
-          <div className="flex space-x-4 mt-6">
             <button
-              onClick={handleCertification}
-              className="bg-blue-600 text-white px-4 py-2 rounded disabled:opacity-50"
+              type="submit"
+              className="w-full bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-transform duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
               disabled={loading}
             >
-              {loading ? "Certificando..." : "Certificar habilidades"}
+              {loading ? 'Enviando...' : 'Enviar Evaluación'}
             </button>
+          </form>
+        )}
 
-            {!result.valid && (
+        {step === 'evaluated' && result && (
+          <div className="text-center">
+            <ResultChart
+              opportunityTitle={result.opportunityTitle}
+              gaps={result.gaps}
+            />
+
+            <div className="flex justify-center space-x-4 mt-8">
               <button
-                onClick={handleGenerateChallenge}
-                className="bg-orange-600 text-white px-4 py-2 rounded disabled:opacity-50"
+                onClick={handleCertification}
+                className="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-transform duration-300 transform hover:scale-105 disabled:opacity-50"
                 disabled={loading}
               >
-                {loading ? "Generando reto..." : "Generar reto técnico"}
+                {loading ? 'Certificando...' : 'Certificar Habilidades'}
               </button>
-            )}
-          </div>
-        </div>
-      )}
 
-      {step === "certified" && answersValidation && (
-        <div className="mt-6 p-4 border rounded bg-green-50 shadow-sm">
-          <DynamicMCQForm form={answersValidation} />
-        </div>
-      )}
+              {!result.valid && (
+                <button
+                  onClick={handleGenerateChallenge}
+                  className="bg-orange-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-orange-700 transition-transform duration-300 transform hover:scale-105 disabled:opacity-50"
+                  disabled={loading}
+                >
+                  {loading ? 'Generando Reto...' : 'Generar Reto Técnico'}
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+
+        {step === 'certified' && answersValidation && (
+          <div className="mt-6 p-6 border rounded-lg bg-green-50 shadow-lg">
+            <DynamicMCQForm form={answersValidation} />
+          </div>
+        )}
+      </div>
     </div>
   );
 }
@@ -190,19 +192,19 @@ function DynamicForm({ form }: { form: FormConfig }) {
 function scaleText(value: number): string {
   switch (value) {
     case 0:
-      return "No conoce";
+      return 'No conoce';
     case 1:
-      return "Conocimiento muy básico o teórico mínimo";
+      return 'Conocimiento muy básico o teórico mínimo';
     case 2:
-      return "Conocimiento teórico y algo de práctica limitada";
+      return 'Conocimiento teórico y algo de práctica limitada';
     case 3:
-      return "Experiencia práctica en proyectos";
+      return 'Experiencia práctica en proyectos';
     case 4:
-      return "Experiencia sólida y autónoma en proyectos";
+      return 'Experiencia sólida y autónoma en proyectos';
     case 5:
-      return "Dominio profundo y liderazgo/innovación";
+      return 'Dominio profundo y liderazgo/innovación';
     default:
-      return "";
+      return '';
   }
 }
 

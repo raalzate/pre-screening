@@ -1,30 +1,51 @@
-import DynamicForm from "@/components/DynamicForm";
-import { FormConfig } from "@/types/InputConfig";
+'use client';
 
-// Página Next.js con SSR
-export default async function FormPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
-  const { id } = await params;
+import { useEffect, useState } from 'react';
+import DynamicForm from '@/components/DynamicForm';
+import { FormConfig } from '@/types/InputConfig';
 
-  const res = await fetch(
-    `${process.env.NEXT_PUBLIC_BASE_URL}/api/forms/${id}`,
-    {
-      cache: "no-store",
+export default function FormPage({ params }: { params: { id: string } }) {
+  const { id } = params;
+  const [form, setForm] = useState<FormConfig | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (id) {
+      fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/forms/${id}`)
+        .then((res) => {
+          if (!res.ok) {
+            throw new Error('Error cargando el formulario');
+          }
+          return res.json();
+        })
+        .then((data: FormConfig) => {
+          setForm(data);
+          setLoading(false);
+        })
+        .catch((err) => {
+          setError(err.message);
+          setLoading(false);
+        });
     }
-  );
+  }, [id]);
 
-  if (!res.ok) {
-    throw new Error("Error cargando el formulario");
+  if (loading) {
+    return <div className="min-h-screen bg-gray-900 text-white flex flex-col items-center justify-center">Cargando...</div>;
   }
 
-  const form: FormConfig = await res.json();
+  if (error) {
+    return <div className="min-h-screen bg-gray-900 text-white flex flex-col items-center justify-center">Error: {error}</div>;
+  }
+
+  if (!form) {
+    return null;
+  }
 
   return (
-    <div className="max-w-3xl mx-auto p-6">
-      <DynamicForm form={form} />
+    <div className="container mx-auto p-4">
+      <h1 className="text-2xl font-bold mb-4">{form.title}</h1>
+      <DynamicForm categories={form.categories} formId={form.id} />
     </div>
   );
 }

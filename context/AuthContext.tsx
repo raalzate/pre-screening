@@ -8,7 +8,7 @@ interface User {
   name: string;
 }
 
-interface AuthContextType {
+export interface AuthContextType {
   user: User | null;
   isLoading: boolean;
   login: (code: string) => Promise<void>;

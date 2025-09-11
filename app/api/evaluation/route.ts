@@ -11,8 +11,8 @@ export async function POST(req: Request) {
         const opportunityId = "deuna"
         const { formId, answers, } = (await req.json()) as EvaluationInput;;
 
-        //const generator = new EvaluationGenerator();
-        //const result = await generator.generate(body);
+        const generator = new EvaluationGenerator();
+        const result = await generator.generate({ formId, answers });
 
         // Ruta al archivo de requerimientos
         const filePath = path.join(
@@ -28,14 +28,15 @@ export async function POST(req: Request) {
 
         const clientRequirements = clientConfig.requirements;
 
-        const result = compareAnswers(answers, clientRequirements);
+        const comparisonResult = compareAnswers(answers, clientRequirements);
 
         return NextResponse.json({
             formId,
             answers,
             opportunityId,
             opportunityTitle: clientConfig.title,
-            ...result,
+            ...comparisonResult,
+            ...result
         });
     } catch (error: any) {
         console.error("❌ Error en evaluate API:", error);

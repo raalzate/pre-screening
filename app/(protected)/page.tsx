@@ -1,22 +1,22 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
+import { useAuth } from '@/context/AuthContext';
+import createApiClient from '@/lib/apiClient';
 
 export default function Home() {
   const [formIds, setFormIds] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const auth = useAuth();
+  const api = useMemo(() => createApiClient(auth), [auth]);
 
   useEffect(() => {
     async function fetchFormIds() {
       try {
-        const response = await fetch('/api/forms');
-        if (!response.ok) {
-          throw new Error('Failed to fetch form IDs');
-        }
-        const data = await response.json();
-        setFormIds(data);
+        const response = await api.get('/forms');
+        setFormIds(response.data);
       } catch (error: any) {
         setError(error.message);
       } finally {
@@ -24,8 +24,10 @@ export default function Home() {
       }
     }
 
-    fetchFormIds();
-  }, []);
+    if (auth.user) { // Ensure user is available before fetching
+      fetchFormIds();
+    }
+  }, [api, auth.user]);
 
   return (
     <div className="min-h-screen bg-gray-50">

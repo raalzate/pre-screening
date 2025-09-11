@@ -1,6 +1,4 @@
-// src/lib/evaluationGenerator.ts
-import OpenAI from "openai";
-
+import { getLLMProvider, LLMProvider } from './LLMProvider';
 
 export type EvaluationInput = { formId: string; answers: Record<string, number>, gaps?: string[] };
 export type EvaluationResult = {
@@ -9,30 +7,26 @@ export type EvaluationResult = {
   questions: Array<{ id: string; question: string; relatedTo: string; expectedEvidence: string }>;
 };
 
-
 export class EvaluationGenerator {
-  private client: any;
-
+  private llmProvider: LLMProvider;
 
   constructor() {
-    this.client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+    this.llmProvider = getLLMProvider();
   }
 
-
-  private buildMessages(input: EvaluationInput) {
+  private buildPrompt(input: EvaluationInput): string {
     const answers = JSON.stringify(
       input.answers,
       null,
       2
     );
     const formId = input.formId;
-    const system = `Eres un evaluador técnico experto en escenarios o casos de usos reales. Tu tarea es generar exactamente 3 preguntas de opción múltiple (MCQ) de estilo de un caso de uso basadas en las respuestas de un formulario técnico con escalas (0–5). 
+    
+    return `Eres un evaluador técnico experto en escenarios o casos de usos reales. Tu tarea es generar exactamente 3 preguntas de opción múltiple (MCQ) de estilo de un caso de uso basadas en las respuestas de un formulario técnico con escalas (0–5). 
 Las preguntas deben ser realistas, y con 4 opciones: 1 correcta y 3 distractores plausibles. 
 Siempre responde únicamente con JSON válido y nada más, siguiendo exactamente el esquema especificado.
-`;
 
-
-    const user = `Quiero generar un cuestionario de opción múltiple con base en un formulario identificado como ${formId}.
+Quiero generar un cuestionario de opción múltiple con base en un formulario identificado como ${formId}.
 
 Input:
 Un objeto JSON donde las keys representan categorías técnicas (questionId) y los values son enteros de 0 a 5 que indican el nivel de dominio declarado por el candidato.
@@ -72,44 +66,22 @@ Reglas de salida:
   ]
 }
 `;
-
-
-    return [
-      { role: "system", content: system },
-      { role: "user", content: user },
-    ];
   }
 
-
   async generate(input: EvaluationInput): Promise<EvaluationResult> {
-    const messages = this.buildMessages(input);
+    const prompt = this.buildPrompt(input);
+    const raw = await this.llmProvider.createCompletion(prompt);
 
-
-    const resp = await this.client.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages,
-      temperature: 0,
-      max_tokens: 800,
-    });
-
-
-    const raw = resp.choices?.[0]?.message?.content ?? "";
-
-    // Intentar extraer JSON puro
     const first = raw.indexOf("{");
     const last = raw.lastIndexOf("}");
     if (first === -1 || last === -1) throw new Error("No se obtuvo JSON válido del modelo");
 
-
     const jsonStr = raw.slice(first, last + 1);
     const parsed = JSON.parse(jsonStr);
 
-
-    // Validaciones mínimas
     if (!parsed.questions || parsed.questions.length !== 3) {
       throw new Error("El modelo no devolvió 3 preguntas exactamente");
     }
-
 
     return parsed as EvaluationResult;
   }

@@ -1,36 +1,39 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import DynamicForm from '@/components/DynamicForm';
 import { FormConfig } from '@/types/InputConfig';
 import React from 'react';
 import Link from 'next/link';
+import { useAuth } from '@/context/AuthContext';
+import createApiClient from '@/lib/apiClient';
 
-export default function FormPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = React.use(params); 
+export default function FormPage({ params }: { params: { id: string } }) {
+  const { id } = params;
   const [form, setForm] = useState<FormConfig | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const auth = useAuth();
+  const api = useMemo(() => createApiClient(auth), [auth]);
 
   useEffect(() => {
-    if (id) {
-      fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/forms/${id}`)
-        .then((res) => {
-          if (!res.ok) {
-            throw new Error('Error cargando el formulario');
-          }
-          return res.json();
-        })
-        .then((data: FormConfig) => {
-          setForm(data);
-          setLoading(false);
-        })
-        .catch((err) => {
+    async function fetchForm() {
+      if (id) {
+        try {
+          const response = await api.get(`/forms/${id}`);
+          setForm(response.data);
+        } catch (err: any) {
           setError(err.message);
+        } finally {
           setLoading(false);
-        });
+        }
+      }
     }
-  }, [id]);
+
+    if (auth.user) {
+      fetchForm();
+    }
+  }, [id, api, auth.user]);
 
   if (loading) {
     return <div className="min-h-screen bg-gray-900 text-white flex flex-col items-center justify-center">Cargando...</div>;
@@ -46,7 +49,7 @@ export default function FormPage({ params }: { params: Promise<{ id: string }> }
 
   return (
     <div className="container mx-auto p-4">
-      <Link href="/forms" className="text-blue-500 hover:underline mb-4 block">
+      <Link href="/" className="text-blue-500 hover:underline mb-4 block">
         &larr; Volver a los formularios
       </Link>
       <h1 className="text-2xl font-bold mb-4">{form.title}</h1>

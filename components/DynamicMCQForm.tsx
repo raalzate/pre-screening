@@ -1,7 +1,9 @@
 'use client';
 
 import { FormJson } from '@/types/outputConfig';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
+import { useAuth } from '@/context/AuthContext';
+import createApiClient from '@/lib/apiClient';
 
 interface ResultDetail {
   questionId: string;
@@ -20,52 +22,22 @@ export default function DynamicMCQForm({ form }: { form: FormJson }) {
     details: ResultDetail[];
     analysis: string;
   } | null>(null);
+  const auth = useAuth();
+  const api = useMemo(() => createApiClient(auth), [auth]);
 
   const handleChange = (questionId: string, value: string) => {
     setAnswers((prev) => ({ ...prev, [questionId]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    let correct = 0;
-    const details: ResultDetail[] = [];
-
-    form.questions.forEach((q) => {
-      const chosen = answers[q.id] ?? null;
-      const isCorrect = chosen === q.correctAnswer;
-      if (isCorrect) correct++;
-
-      details.push({
-        questionId: q.id,
-        correct: isCorrect,
-        chosen,
-        correctAnswer: q.correctAnswer,
-        rationale: q.rationale,
-        relatedTo: q.relatedTo,
-      });
-    });
-
-    const wrongTopics: string[] = [];
-    details.forEach((d) => {
-      if (!d.correct) {
-        wrongTopics.push(...d.relatedTo);
-      }
-    });
-
-    const analysis =
-      wrongTopics.length === 0
-        ? 'Excelente, el candidato respondió correctamente todas las preguntas.'
-        : `El candidato mostró debilidades en las áreas: ${[
-            ...new Set(wrongTopics),
-          ].join(', ')}.`;
-
-    setResult({
-      score: correct,
-      total: form.questions.length,
-      details,
-      analysis,
-    });
+    try {
+      const response = await api.post(`/mcq-evaluation`, { formId: form.formId, answers });
+      setResult(response.data);
+    } catch (error) {
+      console.error("Error submitting MCQ answers:", error);
+    }
   };
 
   return (

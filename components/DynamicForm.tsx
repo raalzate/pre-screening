@@ -1,11 +1,12 @@
 'use client';
 
 import { FormConfig } from '@/types/InputConfig';
-import axios from 'axios';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import ResultChart from './ResultChart';
 import DynamicMCQForm from './DynamicMCQForm';
 import { FormJson } from '@/types/outputConfig';
+import { useAuth } from '@/context/AuthContext';
+import createApiClient from '@/lib/apiClient';
 
 type FormStep = 'initial' | 'evaluated' | 'certified';
 
@@ -21,6 +22,8 @@ function DynamicForm({ form }: { form: FormConfig }) {
   const [answersValidation, setAnswersValidation] = useState<FormJson | null>(
     null
   );
+  const auth = useAuth();
+  const api = useMemo(() => createApiClient(auth), [auth]);
 
   const handleChange = (questionId: string, value: number) => {
     setAnswers((prev) => ({ ...prev, [questionId]: value }));
@@ -30,10 +33,10 @@ function DynamicForm({ form }: { form: FormConfig }) {
     setLoading(true);
     setMessage(null);
     try {
-      const response = await axios.post(
-        `${process.env.NEXT_PUBLIC_BASE_URL}/api/evaluation`,
-        { formId: form.id, answers }
-      );
+      const response = await api.post('/evaluation', {
+        formId: form.id,
+        answers,
+      });
       setResult(response.data);
       setStep('evaluated');
       setMessage({ type: 'success', text: '✅ Respuestas enviadas con éxito' });
@@ -48,10 +51,11 @@ function DynamicForm({ form }: { form: FormConfig }) {
     setLoading(true);
     setMessage(null);
     try {
-      const response = await axios.post(
-        `${process.env.NEXT_PUBLIC_BASE_URL}/api/certification`,
-        { formId: form.id, answers, gaps: result?.gaps ?? [] }
-      );
+      const response = await api.post('/certification', {
+        formId: form.id,
+        answers,
+        gaps: result?.gaps ?? [],
+      });
       setAnswersValidation(response.data);
       setStep('certified');
       setMessage({
@@ -69,10 +73,11 @@ function DynamicForm({ form }: { form: FormConfig }) {
     setLoading(true);
     setMessage(null);
     try {
-      const response = await axios.post(
-        `${process.env.NEXT_PUBLIC_BASE_URL}/api/challenge`,
-        { formId: form.id, answers, gaps: result?.gaps ?? [] }
-      );
+      const response = await api.post('/challenge', {
+        formId: form.id,
+        answers,
+        gaps: result?.gaps ?? [],
+      });
       setMessage({
         type: 'success',
         text: `✅ Reto técnico generado con éxito: ${

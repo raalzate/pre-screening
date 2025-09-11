@@ -91,7 +91,7 @@ function DynamicForm({ form }: { form: FormConfig }) {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center items-center p-4">
-      <div className="w-full max-w-2xl bg-white rounded-lg shadow-lg p-8 space-y-6">
+      <div className="w-full max-w-4xl bg-white rounded-lg shadow-lg p-8 space-y-6">
         <h1 className="text-3xl font-bold text-center text-gray-800">{form.title}</h1>
 
         {message && (

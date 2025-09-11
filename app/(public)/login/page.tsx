@@ -26,8 +26,8 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white flex flex-col items-center justify-center p-4">
-      <div className="w-full max-w-md bg-gray-800 rounded-lg shadow-xl p-8 space-y-6">
+    <div className="min-h-screen  flex flex-col items-center justify-center p-4">
+      <div className="w-full max-w-md rounded-lg shadow-xl p-8 space-y-6">
         <div className="text-center">
           {/* Add a placeholder for the logo */}
           <div className="mx-auto h-12 w-auto">
@@ -61,17 +61,11 @@ export default function LoginPage() {
               onChange={(e) => setCode(e.target.value)}
               placeholder="Enter your secret code"
               required
-              className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-300"
+              className="w-full px-4 py-3 border  rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-300"
             />
           </div>
 
-          <div className="flex items-center justify-between">
-            <div className="text-sm">
-              <a href="/forgot-password" className="font-medium text-blue-600 hover:text-blue-500">
-                Forgot your password?
-              </a>
-            </div>
-          </div>
+  
 
           <button
             type="submit"

@@ -1,4 +1,4 @@
-import { EvaluationGenerator, EvaluationInput } from "@/lib/LLMClient";
+import { EvaluationGenerator, EvaluationInput } from "@/lib/EvaluationGenerator";
 import { NextResponse } from "next/server";
 
 

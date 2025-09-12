@@ -1,11 +1,10 @@
 import { compareAnswers } from "@/lib/Comparator";
-import { EvaluationGenerator, EvaluationInput } from "@/lib/LLMClient";
+import { EvaluationGenerator, EvaluationInput } from "@/lib/EvaluationGenerator";
 import { NextResponse } from "next/server";
 import fs from "fs/promises";
 import path from "path";
 
 
-// Ejemplo de POST opcional para guardar datos de un formulario
 export async function POST(req: Request) {
     try {
         const opportunityId = "deuna"

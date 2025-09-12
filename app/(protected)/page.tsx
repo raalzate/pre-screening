@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useEffect, useState, useMemo } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import createApiClient from '@/lib/apiClient';
+import createApiClient from '@/lib/APIClient';
 
 export default function Home() {
   const [formIds, setFormIds] = useState<string[]>([]);
@@ -33,7 +33,7 @@ export default function Home() {
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white shadow-sm">
         <div className="container mx-auto px-4 py-6">
-          <h1 className="text-3xl font-bold text-gray-800">🚀 Dynamic Forms para Entrevistas</h1>
+          <h1 className="text-3xl font-bold text-gray-800">🚀 Evaluación de conocimientos</h1>
           <p className="mt-2 text-gray-600">Seleccione un formulario para comenzar una evaluación.</p>
         </div>
       </header>

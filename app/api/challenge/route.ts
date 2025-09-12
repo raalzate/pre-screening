@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { ChallengeGenerator } from "@/lib/challengeGenerator";
+import { ChallengeGenerator } from "@/lib/ChallengeGenerator";
 
 export async function POST(req: Request) {
   const body = await req.json();

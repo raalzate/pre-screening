@@ -6,7 +6,7 @@ import ResultChart from './ResultChart';
 import DynamicMCQForm from './DynamicMCQForm';
 import { FormJson } from '@/types/outputConfig';
 import { useAuth } from '@/context/AuthContext';
-import createApiClient from '@/lib/apiClient';
+import createApiClient from '@/lib/APIClient';
 
 type FormStep = 'initial' | 'evaluated' | 'certified';
 

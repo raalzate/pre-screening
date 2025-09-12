@@ -6,10 +6,10 @@ import { FormConfig } from '@/types/InputConfig';
 import React from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
-import createApiClient from '@/lib/apiClient';
+import createApiClient from '@/lib/APIClient';
 
-export default function FormPage({ params }: { params: { id: string } }) {
-  const { id } = params;
+export default function FormPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = React.use(params); // 
   const [form, setForm] = useState<FormConfig | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -50,7 +50,7 @@ export default function FormPage({ params }: { params: { id: string } }) {
   return (
     <div className="container mx-auto p-4">
       <Link href="/" className="text-blue-500 hover:underline mb-4 block">
-        &larr; Volver a los formularios
+        🚀 Volver a los formularios
       </Link>
       <h1 className="text-2xl font-bold mb-4">{form.title}</h1>
       <DynamicForm form={form} />

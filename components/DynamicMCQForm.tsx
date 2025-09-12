@@ -1,11 +1,9 @@
 'use client';
 
 import { FormJson } from '@/types/outputConfig';
-import { useState, useMemo } from 'react';
-import { useAuth } from '@/context/AuthContext';
-import createApiClient from '@/lib/apiClient';
+import { useState } from 'react';
 
-interface ResultDetail {
+  interface ResultDetail {
   questionId: string;
   correct: boolean;
   chosen: string | null;
@@ -15,33 +13,64 @@ interface ResultDetail {
 }
 
 export default function DynamicMCQForm({ form }: { form: FormJson }) {
-  const [answers, setAnswers] = useState<Record<string, string>>({});
+const [answers, setAnswers] = useState<Record<string, string>>({});
   const [result, setResult] = useState<{
     score: number;
     total: number;
     details: ResultDetail[];
     analysis: string;
   } | null>(null);
-  const auth = useAuth();
-  const api = useMemo(() => createApiClient(auth), [auth]);
 
   const handleChange = (questionId: string, value: string) => {
     setAnswers((prev) => ({ ...prev, [questionId]: value }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    try {
-      const response = await api.post(`/mcq-evaluation`, { formId: form.formId, answers });
-      setResult(response.data);
-    } catch (error) {
-      console.error("Error submitting MCQ answers:", error);
-    }
+    let correct = 0;
+    const details: ResultDetail[] = [];
+
+    form.questions.forEach((q) => {
+      const chosen = answers[q.id] ?? null;
+      const isCorrect = chosen === q.correctAnswer;
+      if (isCorrect) correct++;
+
+      details.push({
+        questionId: q.id,
+        correct: isCorrect,
+        chosen,
+        correctAnswer: q.correctAnswer,
+        rationale: q.rationale,
+        relatedTo: q.relatedTo,
+      });
+    });
+
+    // Análisis breve: detectar debilidades por categorías
+    const wrongTopics: string[] = [];
+    details.forEach((d) => {
+      if (!d.correct) {
+        wrongTopics.push(...d.relatedTo);
+      }
+    });
+
+    const analysis =
+      wrongTopics.length === 0
+        ? "Excelente, el candidato respondió correctamente todas las preguntas."
+        : `El candidato mostró debilidades en las áreas: ${[
+            ...new Set(wrongTopics),
+          ].join(", ")}.`;
+
+    setResult({
+      score: correct,
+      total: form.questions.length,
+      details,
+      analysis,
+    });
   };
 
   return (
-    <div className="w-full max-w-2xl bg-white rounded-lg shadow-lg p-8 space-y-6">
+    <div className="w-full max-w-4xl bg-white rounded-lg shadow-lg p-8 space-y-6">
       <form onSubmit={handleSubmit} className="space-y-8">
         <h2 className="text-3xl font-bold text-center text-gray-800">Formulario: {form.formId}</h2>
         <p className="text-center text-gray-600">{form.scoreExplanation}</p>

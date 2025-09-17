@@ -9,8 +9,8 @@ api.interceptors.request.use(
   (config) => {
     // In a real application, you would get the user from your authentication state.
     const user = JSON.parse(localStorage.getItem('user'));
-    if (user && user.id) {
-      config.headers['X-User-Id'] = user.id;
+    if (user && user.code) {
+      config.headers['X-User-Code'] = user.code;
     }
     return config;
   },

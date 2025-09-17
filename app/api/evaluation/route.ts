@@ -3,22 +3,18 @@ import { EvaluationGenerator, EvaluationInput } from "@/lib/EvaluationGenerator"
 import { NextResponse } from "next/server";
 import fs from "fs/promises";
 import path from "path";
-
+import db from '@/lib/db';
 
 export async function POST(req: Request) {
     try {
-        const opportunityId = "deuna"
-        const { formId, answers, } = (await req.json()) as EvaluationInput;;
-
+        const { formId, answers, requirements } = (await req.json()) as EvaluationInput;
         const generator = new EvaluationGenerator();
-        const result = await generator.generate({ formId, answers });
-
         // Ruta al archivo de requerimientos
         const filePath = path.join(
             process.cwd(),
             "data",
             "requirements",
-            `${opportunityId}.json`
+            `${requirements}.json`
         );
 
         // Leer JSON del cliente
@@ -28,15 +24,28 @@ export async function POST(req: Request) {
         const clientRequirements = clientConfig.requirements;
 
         const comparisonResult = compareAnswers(answers, clientRequirements);
-
-        return NextResponse.json({
+        const result = {
             formId,
             answers,
-            opportunityId,
+            requirements,
             opportunityTitle: clientConfig.title,
             ...comparisonResult,
-            ...result
-        });
+        }
+        // Obtener el código de usuario del header
+        const userCode = req.headers.get('x-user-code');
+
+        // Si hay código de usuario, actualiza evaluation_result
+        if (userCode) {
+            const questions = await generator.generate({formId, answers});
+            const stmt = db.prepare(`
+                UPDATE users
+                SET evaluation_result = ?, questions = ?
+                WHERE code = ?
+            `);
+            stmt.run(JSON.stringify(result), JSON.stringify(questions), userCode);
+        }
+
+        return NextResponse.json(result);
     } catch (error: any) {
         console.error("❌ Error en evaluate API:", error);
         return NextResponse.json(

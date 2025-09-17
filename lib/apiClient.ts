@@ -8,8 +8,9 @@ const createApiClient = (authContext: AuthContextType | null) => {
 
   api.interceptors.request.use(
     (config) => {
-      if (authContext?.user?.id) {
-        config.headers['X-User-ID'] = authContext.user.id;
+      if (authContext?.user?.code) {
+        //TODO: encrypt this header
+        config.headers['X-User-Code'] = authContext.user.code;
       }
       return config;
     },

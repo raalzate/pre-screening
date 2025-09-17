@@ -1,6 +1,6 @@
 import { getLLMProvider, LLMProvider } from './LLMProvider';
 
-export type EvaluationInput = { formId: string; answers: Record<string, number>, gaps?: string[] };
+export type EvaluationInput = { formId: string; answers: Record<string, number>, gaps?: string[], requirements?: string };
 export type EvaluationResult = {
   validityScore: number;
   scoreExplanation: string;

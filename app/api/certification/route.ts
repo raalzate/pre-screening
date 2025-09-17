@@ -1,6 +1,6 @@
 
 import { NextResponse } from 'next/server';
-import db from '@/lib/db';
+import { db } from '@/lib/db';
 
 export async function GET(req: Request) {
   try {
@@ -8,15 +8,14 @@ export async function GET(req: Request) {
     // Obtener el código de usuario del header
     const code = req.headers.get('x-user-code');
 
-    const stmt = db.prepare('SELECT questions FROM users WHERE code = ?');
-    const user = stmt.get(code) as { questions: string } | undefined;
+    const user = (await db.execute('SELECT questions FROM users WHERE code = ?', [code])).rows[0];
 
     if (!user) {
       return NextResponse.json({ message: 'Invalid code' }, { status: 401 });
     }
-
  // Filtrar solo el formulario asignado al usuario
-    return NextResponse.json({ ...JSON.parse(user.questions) });
+    const questions = user.questions ? user.questions : null;
+    return NextResponse.json({ ...JSON.parse(questions as string) });
   } catch (error) {
     console.error('Error reading forms directory:', error);
     return NextResponse.json({ error: 'Failed to load forms' }, { status: 500 });

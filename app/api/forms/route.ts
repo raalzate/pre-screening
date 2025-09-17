@@ -2,7 +2,7 @@
 import { NextResponse } from 'next/server';
 import fs from 'fs/promises';
 import path from 'path';
-import db from '@/lib/db';
+import { db } from '@/lib/db';
 
 export async function GET(req: Request) {
   try {
@@ -13,8 +13,7 @@ export async function GET(req: Request) {
     // Obtener el código de usuario del header
     const code = req.headers.get('x-user-code');
 
-    const stmt = db.prepare('SELECT form_id FROM users WHERE code = ?');
-    const user = stmt.get(code) as { form_id: string } | undefined;
+    const user = (await db.execute('SELECT form_id FROM users WHERE code = ?', [code])).rows[0];
 
     if (!user) {
       return NextResponse.json({ message: 'Invalid code' }, { status: 401 });

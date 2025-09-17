@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import db from "@/lib/db";
+import { db, initDb } from '@/lib/db';
 
 /*
 curl -X POST http://localhost:3000/api/user \
@@ -8,13 +8,15 @@ curl -X POST http://localhost:3000/api/user \
 */
 export async function POST(request: Request) {
   try {
+    await initDb();
+
     const { name, code, requirements, step, form_id } = await request.json();
 
     if (!name || !code || !requirements || !step || !form_id) {
       return NextResponse.json({ message: "Missing fields" }, { status: 400 });
     }
 
-    const stmt = db.prepare(`
+    await db.execute(`
       INSERT INTO users (name, code, requirements, step, form_id)
       VALUES (?, ?, ?, ?, ?)
       ON CONFLICT(code) DO UPDATE SET
@@ -22,9 +24,8 @@ export async function POST(request: Request) {
         requirements=excluded.requirements,
         step=excluded.step,
         form_id=excluded.form_id
-    `);
+    `, [name, code, requirements, step, form_id]);
 
-    stmt.run(name, code, requirements, step, form_id);
 
     return NextResponse.json({ message: "Usuario guardado o actualizado correctamente" });
   } catch (error: any) {
@@ -44,20 +45,18 @@ export async function GET(request: Request) {
 
     if (code) {
       // Buscar usuario por code
-      const stmt = db.prepare("SELECT * FROM users WHERE code = ?");
-      const user = stmt.get(code);
+      const user = await db.execute("SELECT * FROM users WHERE code = ?", [code]);
 
       if (!user) {
         return NextResponse.json({ message: "Usuario no encontrado" }, { status: 404 });
       }
 
-      return NextResponse.json(user);
+      return NextResponse.json(user.rows[0]);
     } else {
       // Listar todos los usuarios
-      const stmt = db.prepare("SELECT * FROM users");
-      const users = stmt.all();
+      const users = await db.execute("SELECT * FROM users");
 
-      return NextResponse.json(users);
+      return NextResponse.json(users.rows);
     }
   } catch (error: any) {
     console.error("Error en user API (GET):", error);

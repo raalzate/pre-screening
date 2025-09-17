@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import db from '@/lib/db';
+import { db } from '@/lib/db';
 /*
 curl -X POST http://localhost:3000/api/auth/login \
   -H "Content-Type: application/json" \
@@ -14,22 +14,12 @@ export async function POST(request: Request) {
     }
 
     // Consulta el usuario en la base de datos
-    const stmt = db.prepare('SELECT  name, code, requirements, step, evaluation_result, form_id, certification_result, challenge_result FROM users WHERE code = ?');
-    const user = stmt.get(code) as { 
-      name: string; 
-      code: string; 
-      requirements: string; 
-      step: number, 
-      evaluation_result: string, 
-      certification_result: string,
-      challenge_result: string,
-      form_id: string
-    } | undefined;
-
+    const stmt = await db.execute('SELECT  name, code, requirements, step, evaluation_result, form_id, certification_result, challenge_result FROM users WHERE code = ?', [code]);
+    const user = stmt.rows.length ? stmt.rows[0] : null;
     if (!user) {
       return NextResponse.json({ message: 'Invalid code' }, { status: 401 });
     }
-    return NextResponse.json({ ...user });
+    return NextResponse.json(user);
   } catch (error) {
     console.error('Error in login API:', error);
     return NextResponse.json({ message: 'Internal server error' }, { status: 500 });

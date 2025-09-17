@@ -3,7 +3,7 @@ import { EvaluationGenerator, EvaluationInput } from "@/lib/EvaluationGenerator"
 import { NextResponse } from "next/server";
 import fs from "fs/promises";
 import path from "path";
-import db from '@/lib/db';
+import { db } from '@/lib/db';
 
 export async function POST(req: Request) {
     try {
@@ -37,12 +37,11 @@ export async function POST(req: Request) {
         // Si hay código de usuario, actualiza evaluation_result
         if (userCode) {
             const questions = await generator.generate({formId, answers});
-            const stmt = db.prepare(`
+            await db.execute(`
                 UPDATE users
                 SET evaluation_result = ?, questions = ?
                 WHERE code = ?
-            `);
-            stmt.run(JSON.stringify(result), JSON.stringify(questions), userCode);
+            `, [JSON.stringify(result), JSON.stringify(questions), userCode]);
         }
 
         return NextResponse.json(result);

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { ChallengeGenerator } from "@/lib/ChallengeGenerator";
-import db from '@/lib/db';
+import { db } from '@/lib/db';
 
 export async function POST(req: Request) {
   const body = await req.json();
@@ -12,12 +12,11 @@ export async function POST(req: Request) {
 
   // Si hay código de usuario, actualiza evaluation_result
   if (userCode) {
-    const stmt = db.prepare(`
+    await db.execute(`
                 UPDATE users
                 SET challenge_result = ?
                 WHERE code = ?
-            `);
-    stmt.run(JSON.stringify(challenge), userCode);
+            `, [JSON.stringify(challenge), userCode]);
   }
 
   return NextResponse.json(challenge);

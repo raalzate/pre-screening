@@ -34,12 +34,11 @@ export async function POST(req: Request) {
 
         // Si hay código de usuario, actualiza evaluation_result
         if (userCode) {
-            const stmt = db.prepare(`
+            await db.execute(`
                 UPDATE users
                 SET certification_result = ?
                 WHERE code = ?
-            `);
-            stmt.run(JSON.stringify(result), userCode);
+            `, [JSON.stringify(result), userCode]);
         }
 
         return NextResponse.json(result);

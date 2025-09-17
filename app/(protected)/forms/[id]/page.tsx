@@ -63,6 +63,7 @@ export default function FormPage({
   }
 
   const defaultStep = auth.user?.step || null;
+  const requirements = auth.user?.requirements || null;
 
   return (
     <div className="container mx-auto p-4">
@@ -78,7 +79,7 @@ export default function FormPage({
               ? JSON.parse(auth.user.evaluation_result)
               : null
           }
-          requirements={auth.user?.requirements || null}
+          requirements={requirements || ""}
         />
       )}
 

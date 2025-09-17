@@ -10,10 +10,9 @@ export async function GET(
     _request: Request,
     { params }: { params: Promise<{ id: string }> }
 ) {
-    try {
-          const { id } = await params; 
-
-        // Ruta a la carpeta donde están los JSON de formularios
+    const { id } = await params; 
+    try { 
+       // Ruta a la carpeta donde están los JSON de formularios
         const formsDir = path.join(process.cwd(), "data", "forms");
         // Leer archivo JSON con el id solicitado
         const filePath = path.join(formsDir, `${id}.json`);

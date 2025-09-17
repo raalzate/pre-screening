@@ -15,6 +15,7 @@ interface User {
   step: string;
   evaluation_result: string;
   certification_result: string;
+  challenge_result: string;
   form_id: string;
 }
 

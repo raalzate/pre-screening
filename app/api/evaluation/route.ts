@@ -46,7 +46,7 @@ export async function POST(req: Request) {
         }
 
         return NextResponse.json(result);
-    } catch (error: any) {
+    } catch (error) {
         console.error("❌ Error en evaluate API:", error);
         return NextResponse.json(
             { error: "Error generando preguntas de evaluación" },

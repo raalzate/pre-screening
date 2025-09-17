@@ -19,6 +19,7 @@ export default function LoginPage() {
       await login(code);
       router.push('/');
     } catch (err) {
+      console.error(err);
       setError('Invalid code. Please try again.');
     } finally {
       setLoading(false);

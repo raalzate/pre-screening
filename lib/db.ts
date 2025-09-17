@@ -1,6 +1,6 @@
 import Database from 'better-sqlite3';
 
-const db = new Database('users.db');
+const db = new Database('/tmp/users.db');
 
 // Crea la tabla si no existe
 db.prepare(`

@@ -128,8 +128,8 @@ export default function DynamicMCQForm({
   const progress = ((currentIndex + 1) / form.questions.length) * 100;
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center items-center p-4">
-      <div className="w-full max-w-3xl bg-white rounded-lg shadow-lg p-8 space-y-6">
+    <div className="min-h-screen  flex-col justify-center items-center ">
+      <div className="w-full  bg-white rounded-lg shadow-lg p-8 space-y-6">
         <h2 className="text-3xl font-bold text-center text-gray-800">
           Certifica tus Conocimientos
         </h2>
@@ -152,7 +152,7 @@ export default function DynamicMCQForm({
             {/* Pregunta actual */}
             <div className="p-6 border rounded-lg bg-gray-50 shadow-sm">
               <QuestionCanvas
-                maxWidth={600}
+                maxWidth={1200}
                 question={`${currentQuestion.id}. ${currentQuestion.question}`}
               />
 

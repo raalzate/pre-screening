@@ -54,10 +54,10 @@ function DynamicForm({
 
   if (result) {
     return (
-      <div className="min-h-screen bg-gray-50 flex flex-col justify-center items-center p-4">
-        <div className="w-full max-w-4xl bg-white rounded-lg shadow-lg p-8 space-y-6 text-center">
+      <div className="min-h-screen flex flex-col justify-center items-center">
+        <div className="w-full  bg-white rounded-lg shadow-lg  space-y-6 text-center p-6">
           <ResultChart
-            opportunityTitle={result.opportunityTitle}
+            opportunityTitle={"Gráfica de oportunidad"}
             gaps={result.gaps}
           />
            <div className="mt-6 text-sm text-gray-600 text-right italic">
@@ -66,7 +66,7 @@ function DynamicForm({
         únicamente un insumo dentro del proceso de evaluación y será considerada
         junto con otros criterios y etapas dentro del proceso.
       </div>
-          <div className="flex justify-center space-x-4 mt-8">
+          <div className="flex justify-center space-x-4 mt-8 p-6">
             <button
               className="w-full bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-transform duration-300 transform hover:scale-105"
               onClick={() => auth.logout()}
@@ -82,8 +82,8 @@ function DynamicForm({
   const currentCategory = form.categories[step];
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center items-center p-4">
-      <div className="w-full max-w-4xl bg-white rounded-lg shadow-lg p-8 space-y-6">
+    <div className="min-h-screen  flex flex-col justify-center items-center ">
+      <div className="w-full bg-white rounded-lg shadow-lg p-8 space-y-6">
         {message && (
           <div
             className={`p-4 rounded-md text-center font-semibold ${

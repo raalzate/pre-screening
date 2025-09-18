@@ -94,7 +94,6 @@ export default function FormPage({
       )}
 
       {defaultStep === "certified" && (
-        <div className="mt-6 p-6 border rounded-lg bg-green-50 shadow-lg">
           <DynamicMCQForm
             defaultResult={
               auth.user?.certification_result
@@ -102,10 +101,8 @@ export default function FormPage({
                 : null
             }
           />
-        </div>
       )}
       {defaultStep === "challenge" && (
-        <div className="mt-6 p-6 border rounded-lg bg-green-50 shadow-lg">
           <ChallengeCard
             defaultResult={
               auth.user?.challenge_result
@@ -113,7 +110,6 @@ export default function FormPage({
                 : null
             }
           />
-        </div>
       )}
     </div>
   );

@@ -40,6 +40,7 @@ Reglas de salida:
   - basada en escenarios reales
   - con opciones plausibles (1 correcta + 3 distractores)
   - debe relacionar al menos dos categorías del objeto (ejemplo: redux y context, o props-state y lifecycle).
+  - evita que el usuario use la técnica de descarte, las opciones deben ser muy similares entre ellas
 3. Cada pregunta debe contener:
   - id (q1..q5)
   - question (enunciado estilo escenario)

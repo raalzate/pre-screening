@@ -29,6 +29,16 @@ export default function FormPage({
         try {
           const response = await api.get(`/forms/${id}`);
           setForm(response.data);
+
+          const handleKeyDown = (e: KeyboardEvent) => {
+            if ((e.ctrlKey || e.metaKey) && (e.key === "c" || e.key === "a")) {
+              e.preventDefault();
+            }
+          };
+          document.addEventListener("keydown", handleKeyDown);
+          return () => {
+            document.removeEventListener("keydown", handleKeyDown);
+          };
         } catch (err: any) {
           setError(err.message);
         } finally {
@@ -68,7 +78,7 @@ export default function FormPage({
   return (
     <div className="container mx-auto p-4">
       <Link href="/" className="text-blue-500 hover:underline mb-4 block">
-        🚀 Volver a los formularios
+        Volver al inicio
       </Link>
       <h1 className="text-2xl font-bold mb-4">{form.title}</h1>
       {defaultStep === "pre-screening" && (

@@ -9,7 +9,7 @@ export type EvaluationResult = {
 
 export class EvaluationGenerator {
   private llmProvider: LLMProvider;
-
+  private readonly numQuestions = 10;
   constructor() {
     this.llmProvider = getLLMProvider();
   }
@@ -22,7 +22,7 @@ export class EvaluationGenerator {
     );
     const formId = input.formId;
     
-    return `Eres un evaluador técnico experto en escenarios o casos de usos reales. Tu tarea es generar exactamente 3 preguntas de opción múltiple (MCQ) de estilo de un caso de uso basadas en las respuestas de un formulario técnico con escalas (0–5). 
+    return `Eres un evaluador técnico experto en escenarios o casos de usos reales. Tu tarea es generar exactamente ${this.numQuestions} preguntas de opción múltiple (MCQ) de estilo de un caso de uso basadas en las respuestas de un formulario técnico con escalas (0–5). 
 Las preguntas deben ser realistas, y con 4 opciones: 1 correcta y 3 distractores plausibles. 
 Siempre responde únicamente con JSON válido y nada más, siguiendo exactamente el esquema especificado.
 
@@ -35,7 +35,7 @@ ${answers}
 
 Reglas de salida:
 
-1. Devuelve exactamente 3 preguntas en el arreglo "questions".
+1. Devuelve exactamente ${this.numQuestions} preguntas en el arreglo "questions".
 2. Cada pregunta debe ser estilo certificación:
   - basada en escenarios reales
   - con opciones plausibles (1 correcta + 3 distractores)
@@ -53,7 +53,7 @@ Reglas de salida:
 
 {
   "validityScore": <1..5>,
-  "scoreExplanation": "frase corta",
+  "scoreExplanation": "frase corta separando por comas las razones del score",
   "questions": [
     {
       "id": "q1",
@@ -79,8 +79,8 @@ Reglas de salida:
     const jsonStr = raw.slice(first, last + 1);
     const parsed = JSON.parse(jsonStr);
 
-    if (!parsed.questions || parsed.questions.length !== 3) {
-      throw new Error("El modelo no devolvió 3 preguntas exactamente");
+    if (!parsed.questions || parsed.questions.length !== this.numQuestions) {
+      throw new Error("El modelo no devolvió preguntas exactamente");
     }
 
     return parsed as EvaluationResult;

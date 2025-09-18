@@ -2,10 +2,21 @@
   "id": "react-opportunity-123",
   "title": "Requisitos Cliente DeUna - Frontend React",
   "requirements": {
-    "jsx": 3,
-    "hooks": 4,
-    "context": 3,
-    "redux": 4,
-    "testing": 4
+    "nestjs-architecture": 4,
+    "dependency-injection": 4,
+    "data-validation": 3,
+    "guards-interceptors": 3,
+    "database-integration": 4,
+    "repository-pattern": 3,
+    "transactions": 3,
+    "authentication-authorization": 4,
+    "password-hashing": 3,
+    "security-cors": 3,
+    "testing": 3,
+    "api-documentation": 3,
+    "error-handling": 3,
+    "microservices": 3,
+    "deployment": 3,
+    "performance-optimization": 3
   }
 }

@@ -19,38 +19,47 @@ const config = {
     },
     extend: {
       colors: {
-        border: "hsl(var(--border))",
-        input: "hsl(var(--input))",
-        ring: "hsl(var(--ring))",
-        background: "hsl(var(--background))",
-        foreground: "hsl(var(--foreground))",
+        // Paleta de colores de Sofka
+        sofka: {
+          'blue': '#002C5E',
+          'light-blue': '#0083B3',
+          'orange': '#FF5C00',
+          'gray': '#F3F4F6',
+          'dark-gray': '#4B5563',
+        },
+        // Colores base de la aplicación mapeados a la paleta de Sofka
+        border: "#E5E7EB", // Un gris muy claro para bordes sutiles
+        input: "#E5E7EB",
+        ring: "#0083B3", // Azul claro de Sofka
+        background: "#F3F4F6", // Gris de Sofka para fondos
+        foreground: "#4B5563", // Gris oscuro de Sofka para texto
         primary: {
-          DEFAULT: "hsl(var(--primary))",
-          foreground: "hsl(var(--primary-foreground))",
+          DEFAULT: "#002C5E", // Azul de Sofka
+          foreground: "#FFFFFF",
         },
         secondary: {
-          DEFAULT: "hsl(var(--secondary))",
-          foreground: "hsl(var(--secondary-foreground))",
+          DEFAULT: "#FF5C00", // Naranja de Sofka
+          foreground: "#FFFFFF",
         },
         destructive: {
-          DEFAULT: "hsl(var(--destructive))",
-          foreground: "hsl(var(--destructive-foreground))",
+          DEFAULT: "#ef4444", // Rojo estándar de Tailwind para destructivo
+          foreground: "#ffffff",
         },
         muted: {
-          DEFAULT: "hsl(var(--muted))",
-          foreground: "hsl(var(--muted-foreground))",
+          DEFAULT: "#d1d5db",
+          foreground: "#6b7280",
         },
         accent: {
-          DEFAULT: "hsl(var(--accent))",
-          foreground: "hsl(var(--accent-foreground))",
+          DEFAULT: "#0083B3", // Azul claro de Sofka
+          foreground: "#FFFFFF",
         },
         popover: {
-          DEFAULT: "hsl(var(--popover))",
-          foreground: "hsl(var(--popover-foreground))",
+          DEFAULT: "#ffffff",
+          foreground: "#4b5563",
         },
         card: {
-          DEFAULT: "hsl(var(--card))",
-          foreground: "hsl(var(--card-foreground))",
+          DEFAULT: "#ffffff",
+          foreground: "#4b5563",
         },
       },
       borderRadius: {

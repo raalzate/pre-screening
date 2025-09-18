@@ -4,6 +4,7 @@ import { useAuth } from "@/context/AuthContext";
 import createApiClient from "@/lib/APIClient";
 import { FormJson } from "@/types/outputConfig";
 import { useEffect, useMemo, useState } from "react";
+import QuestionCanvas from "./QuestionCanvas";
 
 interface ResultDetail {
   questionId: string;
@@ -26,11 +27,15 @@ export default function DynamicMCQForm({
     details: ResultDetail[];
     analysis: string;
   } | null>(defaultResult);
+
   const auth = useAuth();
   const api = useMemo(() => createApiClient(auth), [auth]);
+
   const [form, setForm] = useState<FormJson | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const [currentIndex, setCurrentIndex] = useState(0);
 
   useEffect(() => {
     async function fetchForm() {
@@ -94,7 +99,6 @@ export default function DynamicMCQForm({
       });
     });
 
-    // Análisis breve: detectar debilidades por categorías
     const wrongTopics: string[] = [];
     details.forEach((d) => {
       if (!d.correct) {
@@ -120,54 +124,92 @@ export default function DynamicMCQForm({
     setResult(result);
   };
 
+  const currentQuestion = form.questions[currentIndex];
+  const progress = ((currentIndex + 1) / form.questions.length) * 100;
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center items-center p-4">
-      <div className="w-full max-w-4xl bg-white rounded-lg shadow-lg p-8 space-y-6">
+      <div className="w-full max-w-3xl bg-white rounded-lg shadow-lg p-8 space-y-6">
         <h2 className="text-3xl font-bold text-center text-gray-800">
           Certifica tus Conocimientos
         </h2>
+
         {!result && (
-          <form onSubmit={handleSubmit} className="space-y-8">
-            <p className="text-left text-gray-600">{form.scoreExplanation}</p>
-
-            {form.questions.map((q) => (
-              <div
-                key={q.id}
-                className="p-6 border rounded-lg bg-gray-50 shadow-sm transition-shadow duration-300 hover:shadow-md"
-              >
-                <p className="font-semibold mb-4 text-gray-700">
-                  {q.id}. {q.question}
-                </p>
-                <div className="space-y-3">
-                  {q.options.map((opt) => (
-                    <label
-                      key={opt}
-                      className="flex items-center p-3 border rounded-lg hover:bg-gray-100 transition-colors duration-300"
-                    >
-                      <input
-                        type="radio"
-                        name={q.id}
-                        value={opt}
-                        checked={answers[q.id] === opt}
-                        onChange={() => handleChange(q.id, opt)}
-                        className="mr-3 h-5 w-5 text-blue-600 focus:ring-blue-500 border-gray-300"
-                      />
-                      <span className="text-gray-800">{opt}</span>
-                    </label>
-                  ))}
-                </div>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Progreso */}
+            <div>
+              <div className="w-full bg-gray-200 rounded-full h-3 mb-2">
+                <div
+                  className="bg-blue-600 h-3 rounded-full transition-all duration-300"
+                  style={{ width: `${progress}%` }}
+                />
               </div>
-            ))}
+              <p className="text-sm text-gray-600 text-center">
+                Pregunta {currentIndex + 1} de {form.questions.length}
+              </p>
+            </div>
 
-            <button
-              type="submit"
-              className="w-full bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-transform duration-300 transform hover:scale-105 disabled:opacity-50"
-            >
-              Enviar Respuestas
-            </button>
+            {/* Pregunta actual */}
+            <div className="p-6 border rounded-lg bg-gray-50 shadow-sm">
+              <QuestionCanvas
+                maxWidth={600}
+                question={`${currentQuestion.id}. ${currentQuestion.question}`}
+              />
+
+              <div className="space-y-3 mt-4">
+                {currentQuestion.options.map((opt) => (
+                  <label
+                    key={opt}
+                    className="flex items-center p-3 border rounded-lg hover:bg-gray-100 transition-colors duration-300"
+                  >
+                    <input
+                      type="radio"
+                      name={currentQuestion.id}
+                      value={opt}
+                      checked={answers[currentQuestion.id] === opt}
+                      onChange={() =>
+                        handleChange(currentQuestion.id, opt)
+                      }
+                      className="mr-3 h-5 w-5 text-blue-600 focus:ring-blue-500 border-gray-300"
+                    />
+                    <span className="text-gray-800">{opt}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            {/* Botones navegación */}
+            <div className="flex justify-between">
+              <button
+                type="button"
+                onClick={() => setCurrentIndex((prev) => prev - 1)}
+                disabled={currentIndex === 0}
+                className="px-6 py-3 rounded-lg font-semibold bg-gray-300 text-gray-700 hover:bg-gray-400 disabled:opacity-50"
+              >
+                Anterior
+              </button>
+
+              {currentIndex < form.questions.length - 1 ? (
+                <button
+                  type="button"
+                  onClick={() => setCurrentIndex((prev) => prev + 1)}
+                  className="px-6 py-3 rounded-lg font-semibold bg-blue-600 text-white hover:bg-blue-700"
+                >
+                  Siguiente
+                </button>
+              ) : (
+                <button
+                  type="submit"
+                  className="px-6 py-3 rounded-lg font-semibold bg-green-600 text-white hover:bg-green-700"
+                >
+                  Enviar Respuestas
+                </button>
+              )}
+            </div>
           </form>
         )}
 
+        {/* Resultado final */}
         {result && (
           <div className="mt-8 p-6 bg-gray-100 rounded-lg shadow-inner space-y-6">
             <div className="text-center">
@@ -202,7 +244,8 @@ export default function DynamicMCQForm({
                         {d.chosen ?? "No respondida"}
                       </p>
                       <p>
-                        <strong>Respuesta correcta:</strong> {d.correctAnswer}
+                        <strong>Respuesta correcta:</strong>{" "}
+                        {d.correctAnswer}
                       </p>
                       <p className="text-sm mt-1">
                         <strong>Explicación:</strong> {d.rationale}
@@ -212,13 +255,12 @@ export default function DynamicMCQForm({
                 </div>
               ))}
             </div>
-              <div className="flex justify-center space-x-4 mt-8">
+
+            <div className="flex justify-center space-x-4 mt-8">
               <button
-                type="submit"
-                className="w-full bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-transform duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
-                onClick={() => {
-                  auth.logout();
-                }}
+                type="button"
+                className="w-full bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700"
+                onClick={() => auth.logout()}
               >
                 Finalizar
               </button>

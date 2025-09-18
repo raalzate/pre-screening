@@ -17,6 +17,7 @@ export type ChallengeResult = {
   challengeId: string;
   title: string;
   description: string;
+  mermaid: string;
   coverages: string[];
   evaluationCriteria: string[];
 };
@@ -34,11 +35,17 @@ private buildPrompt(input: ChallengeInput): string {
 
   return `
 Eres un experto en ${formId}.
-Genera una **pregunta práctica, abierta y desafiante** redactada como un **caso de estudio hipotético (use case)**. 
-La salida debe ser una pregunta clara (no un reto ni instrucción), siempre planteada en términos de un escenario o situación.
+Genera una **pregunta práctica, abierta y desafiante** redactada como un **caso de estudio hipotético (use case)**.
+La salida debe ser una **pregunta clara** (no un reto ni instrucción), siempre planteada en términos de un escenario o situación.
+El caso de estudio debe incluir además un **diagrama en Mermaid (sequenceDiagram)** que represente el flujo de interacción entre actores o componentes principales del escenario.
+La persona deberá analizar el gráfico junto con el caso para responder.
 
 ### Reglas
 - La salida debe ser una **pregunta redactada como tal**, dentro de un **caso de estudio hipotético**.
+- La **pregunta debe estar siempre en negrilla usando formato HTML (<b> ... </b>)** dentro de la descripción, para que sea fácil de identificar.
+- La pregunta y el diagrama deben estar **separados**:
+  - La **descripción** contiene el caso y la pregunta en HTML <b> ... </b>.
+  - El **atributo mermaid** contiene únicamente el código del diagrama.
 - La pregunta debe poder resolverse en entrevista en línea.
 - Ajusta la complejidad según el nivel (got vs required):
   - 0 → caso complejo y retador que exija explicar razonamiento y decisiones.
@@ -46,6 +53,8 @@ La salida debe ser una pregunta clara (no un reto ni instrucción), siempre plan
   - 3 → caso práctico que evidencie áreas de mejora.
   - 4–5 → no generar pregunta.
 - La pregunta debe permitir exponer razonamiento, enfoque y trade-offs.
+- El diagrama Mermaid debe ser un **sequenceDiagram válido**, mostrando mensajes, actores y flujos clave que el candidato deba interpretar.
+- **Formatea cada elemento de la lista "gaps" como una pregunta en el nuevo array "coverageQuestions". Ejemplo: si un gap es "arquitectura", el coverageQuestions debe contener una pregunta como "¿Cómo mejoraría la arquitectura?" o "¿Qué cambios propondría a la arquitectura?".**
 
 ### Datos de entrada
 ${gaps}
@@ -55,9 +64,11 @@ Devuelve solo un JSON válido con el siguiente esquema:
 
 {
   "title": "string",
-  "description": "string (la pregunta redactada como caso de estudio)",
+  "description": "string (el caso de estudio con la pregunta redactada en <b>negrilla</b>, sin incluir el diagrama)",
   "coverages": ["string"],
-  "evaluationCriteria": ["string"]
+  "coverageQuestions": ["string"],
+  "evaluationCriteria": ["string"],
+  "mermaid": "string (solo el código del diagrama Mermaid, encerrado en triple backticks \`\`\`mermaid ... \`\`\` y usando sequenceDiagram)"
 }
 `;
 }

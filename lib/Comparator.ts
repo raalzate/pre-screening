@@ -22,13 +22,12 @@ export function compareAnswers(
     const required = requirements[skill];
     const got = candidate[skill] ?? 0;
 
-    if (got < required) {
-      gaps.push({ skill, required, got });
-    }
+    gaps.push({ skill, required, got });
+    
   }
 
   return {
-    valid: gaps.length === 0,
+    valid: gaps.some(g => g.required == g.got),
     gaps,
   };
 }

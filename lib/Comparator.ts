@@ -27,7 +27,7 @@ export function compareAnswers(
   }
 
   return {
-    valid: gaps.some(g => g.required == g.got),
+    valid: gaps.some(g => g.required <= g.got),
     gaps,
   };
 }

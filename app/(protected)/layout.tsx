@@ -23,7 +23,9 @@ const Header = ({ onLogout }: { onLogout: () => void }) => (
         <Image 
           src="https://sofka.com.co/static/logo.svg" 
           alt="Sofka Technologies Logo" 
-          className="h-10" 
+          className="h-10"
+          width={200} 
+          height={100}
         />
       </Link>
       <button

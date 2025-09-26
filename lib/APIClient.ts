@@ -1,6 +1,5 @@
 import axios from 'axios';
-import { AuthContextType } from '@/context/AuthContext'; // Assuming AuthContextType is exported
-
+import { AuthContextType } from '@/context/AuthContext'; 
 const createApiClient = (authContext: AuthContextType | null) => {
   const api = axios.create({
     baseURL: '/api',

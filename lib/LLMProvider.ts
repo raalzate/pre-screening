@@ -18,7 +18,7 @@ class GeminiProvider implements LLMProvider {
   }
 
   async createCompletion(prompt: string): Promise<string> {
-    const model = this.genAI.getGenerativeModel({ model: 'gemini-1.5-pro-latest' }); // Cambia el nombre del modelo aquí
+    const model = this.genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
     const result = await model.generateContent(prompt);
     const response = result.response;
     return response.text();

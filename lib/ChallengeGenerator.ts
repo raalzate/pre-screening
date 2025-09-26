@@ -53,9 +53,8 @@ La persona deberá analizar el gráfico junto con el caso para responder.
   - 3 → caso práctico que evidencie áreas de mejora.
   - 4–5 → no generar pregunta.
 - La pregunta debe permitir exponer razonamiento, enfoque y trade-offs.
-- El diagrama Mermaid debe ser un **sequenceDiagram válido**, mostrando mensajes, actores y flujos clave que el candidato deba interpretar.
+- El diagrama Mermaid debe ser un **sequenceDiagram válido**, mostrando mensajes, actores y flujos clave que el candidato deba interpretar y ademas señala los puntos de enfoque o mejora según la pregunta y asegúrate de que las líneas dentro de los bloques alt, else, opt, y loop no tengan sangría (indentación). Deben estar al mismo nivel que el bloque al que pertenecen.
 - **Formatea cada elemento de la lista "gaps" como una pregunta en el nuevo array "coverageQuestions". Ejemplo: si un gap es "arquitectura", el coverageQuestions debe contener una pregunta como "¿Cómo mejoraría la arquitectura?" o "¿Qué cambios propondría a la arquitectura?".**
-
 ### Datos de entrada
 ${gaps}
 

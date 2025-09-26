@@ -107,6 +107,8 @@ export default function ChallengeContainer({
     );
   }
 
+  console.log(cleanDiagram);
+
   return (
     <div className="border rounded-xl shadow-md p-6 bg-white space-y-6 md:p-8">
       <h2 className="text-3xl font-bold text-blue-700 text-center">

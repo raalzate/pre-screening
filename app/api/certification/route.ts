@@ -17,7 +17,7 @@ export async function GET(req: Request) {
     const questions = user.questions ? user.questions : null;
     return NextResponse.json({ ...JSON.parse(questions as string) });
   } catch (error) {
-    console.error('Error reading forms directory:', error);
+    console.error('Error reading forms :', error);
     return NextResponse.json({ error: 'Failed to load forms' }, { status: 500 });
   }
 }
@@ -32,13 +32,12 @@ export async function POST(req: Request) {
 
         const userCode = req.headers.get('x-user-code');
 
-        // Si hay código de usuario, actualiza evaluation_result
         if (userCode) {
             await db.execute(`
                 UPDATE users
-                SET certification_result = ?
+                SET certification_result = ?, step = ?
                 WHERE code = ?
-            `, [JSON.stringify(result), userCode]);
+            `, [JSON.stringify(result), 'challenge', userCode]);
         }
 
         return NextResponse.json(result);

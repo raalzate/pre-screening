@@ -35,9 +35,9 @@ export async function POST(req: Request) {
           const questions = await generator.generate({ formId, answers });
           await db.execute(
             `UPDATE users
-             SET evaluation_result = ?, questions = ?
+             SET evaluation_result = ?, questions = ?, step = ?
              WHERE code = ?`,
-            [JSON.stringify(result), JSON.stringify(questions), userCode]
+            [JSON.stringify(result), JSON.stringify(questions), 'certified', userCode]
           );
           console.log("✅ Datos guardados en la base de datos del codigo:", userCode);
         } catch (err) {

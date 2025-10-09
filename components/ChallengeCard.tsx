@@ -56,7 +56,7 @@ const ChallengeDisclaimerBlueFullWidth = () => {
             <div className="mt-5 bg-blue-100 p-4 rounded-lg border border-blue-200">
                 <p className="font-semibold text-blue-800">Nuestra recomendación:</p>
                 <p className="text-sm text-blue-700 mt-1 italic">
-                    Concéntrate en explicar el "porqué" de tus decisiones (arquitectura, tecnologías, trade-offs) más que en los detalles de la implementación.
+                    Concéntrate en explicar el &quot;porqué&quot; de tus decisiones (arquitectura, tecnologías, trade-offs) más que en los detalles de la implementación.
                 </p>
             </div>
           </div>

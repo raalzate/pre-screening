@@ -1,7 +1,7 @@
 // Si tu Next.js no soporta after(), puedes hacer:
 
-import { compareAnswers } from "@/lib/Comparator";
-import { EvaluationGenerator, EvaluationInput } from "@/lib/EvaluationGenerator";
+import { compareAnswers } from "@/lib/comparator";
+import { evaluationGenerator, EvaluationInput } from "@/lib/ia/evaluationGenerator";
 import { NextResponse } from "next/server";
 import { waitUntil } from "@vercel/functions";
 import fs from "fs/promises";
@@ -11,7 +11,6 @@ import { db } from "@/lib/db";
 export async function POST(req: Request) {
   try {
     const { formId, answers, requirements } = (await req.json()) as EvaluationInput;
-    const generator = new EvaluationGenerator();
 
     const filePath = path.join(process.cwd(), "data", "requirements", `${requirements}.json`);
     const file = await fs.readFile(filePath, "utf-8");
@@ -32,7 +31,7 @@ export async function POST(req: Request) {
     if (userCode) {
       waitUntil((async () => {
         try {
-          const questions = await generator.generate({ formId, answers });
+          const questions = await evaluationGenerator.generate({ formId, answers });
           await db.execute(
             `UPDATE users
              SET evaluation_result = ?, questions = ?, step = ?

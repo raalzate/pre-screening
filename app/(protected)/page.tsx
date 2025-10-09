@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useEffect, useState, useMemo } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import createApiClient from '@/lib/APIClient';
+import createApiClient from '@/lib/apiClient';
 import { toast } from 'react-hot-toast';
 
 export default function Home() {

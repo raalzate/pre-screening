@@ -1,10 +1,9 @@
 import { NextResponse } from "next/server";
-import { ChallengeGenerator } from "@/lib/ChallengeGenerator";
+import { challengeGenerator } from "@/lib/ia/challengeGenerator";
 import { db } from '@/lib/db';
 
 export async function POST(req: Request) {
   const body = await req.json();
-  const challengeGenerator = new ChallengeGenerator();
   const challenge = await challengeGenerator.generate(body.evaluationResult);
 
   // Obtener el código de usuario del header

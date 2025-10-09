@@ -8,7 +8,7 @@ import { FormConfig } from "@/types/InputConfig";
 import React from "react";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
-import createApiClient from "@/lib/APIClient";
+import createApiClient from "@/lib/apiClient";
 import ChallengeCard from "@/components/ChallengeCard";
 
 export default function FormPage({

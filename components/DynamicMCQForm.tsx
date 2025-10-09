@@ -1,7 +1,7 @@
 "use client";
 
 import { useAuth } from "@/context/AuthContext";
-import createApiClient from "@/lib/APIClient";
+import createApiClient from "@/lib/apiClient";
 import { FormJson } from "@/types/outputConfig";
 import { useEffect, useMemo, useState } from "react";
 import QuestionCanvas from "./QuestionCanvas";

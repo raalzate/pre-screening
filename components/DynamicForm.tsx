@@ -4,7 +4,7 @@ import { FormConfig } from "@/types/InputConfig";
 import { useState, useMemo } from "react";
 import ResultChart from "./ResultChart";
 import { useAuth } from "@/context/AuthContext";
-import createApiClient from "@/lib/APIClient";
+import createApiClient from "@/lib/apiClient";
 
 function DynamicForm({
   form,

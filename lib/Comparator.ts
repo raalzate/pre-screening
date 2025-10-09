@@ -1,4 +1,3 @@
-// src/lib/comparator.ts
 export interface CandidateAnswers {
   [key: string]: number; // ej: { redux: 4, hooks: 3 }
 }

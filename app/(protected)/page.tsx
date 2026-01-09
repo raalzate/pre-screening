@@ -11,7 +11,7 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const auth = useAuth();
-  const api = useMemo(() => createApiClient(auth), [auth]);
+  const api = useMemo(() => createApiClient(), []);
 
   const isEvaluationComplete = useMemo(() => {
     try {
@@ -88,10 +88,76 @@ export default function Home() {
         return "Tu pre-screening ha sido completado. Ahora, selecciona el formulario para validar tus conocimientos.";
       case 'challenge':
         return "Tus conocimientos han sido validados. Selecciona el formulario para el reto técnico.";
+      case 'interview':
+        return "Tus conocimientos han sido validados y el reto técnico ha sido completado. Tu entrevista ha sido realizada.";
       default:
         return "Selecciona un formulario para comenzar tu evaluación.";
     }
   };
+
+  if (auth.user?.step === 'feedback') {
+    return (
+      <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-3xl mx-auto">
+          <header className="text-center mb-12">
+            <h1 className="text-4xl font-extrabold text-gray-900 tracking-tight mb-2">
+              Resultados de tu Proceso
+            </h1>
+            <p className="text-lg text-gray-600">
+              Has completado todas las etapas de evaluación. Aquí tienes el resumen de tu entrevista técnica.
+            </p>
+          </header>
+
+          <div className="bg-white shadow-2xl rounded-2xl overflow-hidden border border-gray-100">
+            <div className="bg-indigo-600 px-8 py-6 text-white">
+              <div className="flex justify-between items-center">
+                <div>
+                  <h2 className="text-2xl font-bold">Resumen de Entrevista</h2>
+                  <p className="text-indigo-100 mt-1 opacity-90">Entrevistador: {auth.user.interviewer_name || 'Comité Técnico'}</p>
+                </div>
+                <div className={`px-4 py-2 rounded-full font-bold text-sm uppercase tracking-wider ${
+                  auth.user.interview_status === 'pasa' ? 'bg-green-400 text-green-900' : 
+                  auth.user.interview_status === 'no_pasa' ? 'bg-red-400 text-red-900' : 'bg-yellow-400 text-yellow-900'
+                }`}>
+                  {auth.user.interview_status === 'pasa' ? 'Aprobado' : 
+                   auth.user.interview_status === 'no_pasa' ? 'No Aprobado' : 'En Espera'}
+                </div>
+              </div>
+            </div>
+
+            <div className="p-8">
+            
+              <div className="space-y-4">
+                <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-indigo-500" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clipRule="evenodd" />
+                  </svg>
+                  Feedback Detallado
+                </h3>
+                <div className="bg-indigo-50 border-l-4 border-indigo-400 p-6 rounded-r-xl">
+                  <p className="text-gray-700 leading-relaxed whitespace-pre-wrap italic font-medium">
+                    "{auth.user.interview_feedback || 'Tu entrevista está siendo procesada. Vuelve pronto para ver el feedback.'}"
+                  </p>
+                </div>
+              </div>
+
+              <div className="mt-10 pt-8 border-t border-gray-100 flex flex-col sm:flex-row justify-between items-center gap-4">
+                <p className="text-sm text-gray-500 text-center sm:text-left">
+                  Gracias por participar en nuestro proceso de selección.
+                </p>
+                <button
+                  onClick={() => auth.logout()}
+                  className="flex items-center gap-2 px-6 py-2 bg-gray-800 text-white rounded-lg font-bold hover:bg-black transition-all shadow-md active:scale-95"
+                >
+                  Cerrar Sesión
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (isEvaluationComplete) {
     return (
@@ -181,8 +247,8 @@ export default function Home() {
                     Se te asignará un reto para que analices y prepares antes de tu entrevista.
                   </p>
                 </li>
-                <li className={getStepStatus('entrevista')}>
-                  <span className="font-semibold">Paso 4: Entrevista</span>
+                <li className={getStepStatus('interview')}>
+                  <span className="font-semibold">Paso 4: Entrevista (Sustentación)</span>
                   <p className="text-sm text-gray-600">
                     Sustentarás tu respuesta al reto. Esta etapa es clave para la decisión técnica.
                   </p>

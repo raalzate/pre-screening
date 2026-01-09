@@ -1,9 +1,10 @@
 'use client';
 
 import { useAuth } from '@/context/AuthContext';
-import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
+import Link from 'next/link'; // <-- 1. Importar Link para el enlace de Admin
 
 const sofkaColors = {
   blue: '#002C5E',
@@ -13,46 +14,136 @@ const sofkaColors = {
   darkGray: '#4B5563',
 };
 
+// Clave para guardar en localStorage
+const RECENT_USERS_KEY = 'sofka_recent_users';
+
+// Interface para el objeto que guardaremos en localStorage
+interface SavedUser {
+  name: string;
+  code: string;
+  formId: string;
+}
+
+// --- Icono de "X" para eliminar ---
+const XIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="18" y1="6" x2="6" y2="18"></line>
+    <line x1="6" y1="6" x2="18" y2="18"></line>
+  </svg>
+);
+
+
 export default function CombinedLoginPage() {
   const [code, setCode] = useState('');
   const { login } = useAuth();
   const router = useRouter();
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [savedUsers, setSavedUsers] = useState<SavedUser[]>([]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  // --- Lógica de Login (CON CORRECCIÓN de parseo JSON) ---
+  const handleLoginAttempt = useCallback(async (loginCode: string) => {
+    if (!loginCode) return;
     setError('');
     setLoading(true);
     try {
-      await login(code);
+      // 1. loginResponse será el JSON string
+      const loginResponse = await login(loginCode);
+
+      // 2. Parsear la respuesta (¡IMPORTANTE!)
+      let userData;
+      if (typeof loginResponse === 'string') {
+        userData = JSON.parse(loginResponse);
+      } else if (typeof loginResponse === 'object' && loginResponse !== null) {
+        userData = loginResponse; // Ya era un objeto
+      } else {
+        throw new Error("Respuesta de login desconocida.");
+      }
+
+      // 3. Validar el objeto parseado
+      if (!userData || !userData.name || !userData.code || !userData.form_id) {
+        throw new Error("El objeto de usuario no tiene 'name', 'code', o 'form_id'.");
+      }
+
+      // 4. Crear el objeto simple para guardar
+      const userToSave: SavedUser = {
+        name: userData.name,
+        code: userData.code,
+        formId: userData.form_id,
+      };
+
+      // 5. Guardar en estado y localStorage
+      setSavedUsers(prevUsers => {
+        const otherUsers = prevUsers.filter(u => u.code !== userToSave.code);
+        const newUsers = [userToSave, ...otherUsers].slice(0, 5);
+        try {
+          localStorage.setItem(RECENT_USERS_KEY, JSON.stringify(newUsers));
+        } catch (e) {
+          console.error("Error al guardar en localStorage:", e);
+        }
+        return newUsers;
+      });
+
+      // 6. Redirigir
       router.push('/');
+
     } catch (err) {
       console.error(err);
-      setError('Invalid code. Please try again.');
+      setError((err as Error).message || 'Código inválido. Por favor, intenta de nuevo.');
+      setCode(loginCode);
     } finally {
       setLoading(false);
     }
+  }, [login, router]);
+
+
+  // --- 2. NUEVA FUNCIÓN para eliminar un usuario reciente ---
+  const handleDeleteRecentUser = useCallback((e: React.MouseEvent, codeToDelete: string) => {
+    e.stopPropagation(); // Previene que se dispare el login
+    
+    // Actualiza el estado de React
+    const newUsers = savedUsers.filter(user => user.code !== codeToDelete);
+    setSavedUsers(newUsers);
+    
+    // Actualiza localStorage
+    try {
+      localStorage.setItem(RECENT_USERS_KEY, JSON.stringify(newUsers));
+    } catch (err) {
+      console.error("Error al actualizar localStorage:", err);
+    }
+  }, [savedUsers]); // Depende del estado 'savedUsers'
+
+
+  // Hook para LEER de localStorage al cargar
+  useEffect(() => {
+    try {
+      const storedUsers = localStorage.getItem(RECENT_USERS_KEY);
+      if (storedUsers) {
+        setSavedUsers(JSON.parse(storedUsers));
+      }
+    } catch (e) {
+      console.error("Error al leer de localStorage:", e);
+      localStorage.removeItem(RECENT_USERS_KEY);
+    }
+  }, []); // Se ejecuta solo al montar
+
+
+  // Hook para leer el parámetro 'code' de la URL
+  const searchParams = useSearchParams();
+  useEffect(() => {
+    const queryCode = searchParams.get('code');
+    if (queryCode) {
+      handleLoginAttempt(queryCode);
+    }
+  }, [searchParams, handleLoginAttempt]);
+
+
+  // Manejador del formulario
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    handleLoginAttempt(code);
   };
 
-  const processSteps = [
-    {
-      title: 'Paso 1: Cuestionario de Pre-screening',
-      description: 'Responde un cuestionario rápido para medir tu afinidad con la oportunidad. Esto nos ayuda a entender tus conocimientos clave.',
-    },
-    {
-      title: 'Paso 2: Validación de Conocimientos (Certified)',
-      description: 'Demuestra las habilidades que indicas dominar a través de preguntas practicas que valida tu experiencia.',
-    },
-    {
-      title: 'Paso 3: Reto Técnico (Challenge)',
-      description: 'Analiza una pregunta retadora antes de la entrevista. Esto te permite mostrar tu razonamiento y capacidad de análisis.',
-    },
-    {
-      title: 'Paso 4: Entrevista de Sustentación',
-      description: 'En esta etapa final, sustentarás tu respuesta al reto. Es el momento de exponer tu enfoque, decisiones y justificar tu razonamiento técnico.',
-    },
-  ];
 
   return (
     <div className="min-h-screen flex flex-col" style={{ backgroundColor: sofkaColors.gray }}>
@@ -66,47 +157,80 @@ export default function CombinedLoginPage() {
             height={30}
             priority
           />
+          {/* Puedes mover el Link de Admin aquí si lo prefieres */}
         </div>
       </header>
 
-      {/* Contenedor principal de 2 columnas */}
+      {/* Contenedor principal */}
       <main className="flex-grow container mx-auto px-4 py-12 md:py-20 flex flex-col md:flex-row gap-12 items-start justify-center">
 
-        {/* Columna Izquierda: Información del Proceso */}
+        {/* Columna Izquierda: Accesos Recientes */}
         <div className="w-full md:w-3/5 lg:w-3/5">
           <h1 className="text-4xl md:text-5xl font-bold mb-4" style={{ color: sofkaColors.blue }}>
             Tu proceso de evaluación en Sofka
           </h1>
           <p className="text-lg md:text-xl max-w-2xl" style={{ color: sofkaColors.darkGray }}>
-            Bienvenido. Nuestro proceso de evaluación está diseñado para conocer tu experiencia y habilidades de manera transparente y eficiente.
+            Bienvenido. Ingresa tu código o selecciona uno de tus accesos recientes para continuar.
           </p>
           
           <div className="mt-12">
             <h2 className="text-3xl font-bold mb-8" style={{ color: sofkaColors.blue }}>
-              Los 4 pasos de nuestro proceso
+              Accesos Recientes
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              {processSteps.map((step, index) => (
-                <div
-                  key={index}
-                  className="p-6 rounded-lg shadow-md flex flex-col"
-                  style={{ backgroundColor: 'white' }}
-                >
-                  <div 
-                    className="w-10 h-10 rounded-full flex items-center justify-center mb-4 font-bold text-xl"
-                    style={{ backgroundColor: sofkaColors.lightBlue, color: 'white' }}
+            
+            {savedUsers.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                
+                {/* --- 3. Tarjeta de Usuario MODIFICADA --- */}
+                {savedUsers.map((user) => (
+                  // Convertido en <div> 'relative' para posicionar el botón de borrar
+                  <div
+                    key={user.code}
+                    className="relative p-6 rounded-lg shadow-md transition-all duration-300 hover:shadow-lg"
+                    style={{ backgroundColor: 'white' }}
                   >
-                    {index + 1}
+                    {/* Botón principal de login */}
+                    <button
+                      onClick={() => handleLoginAttempt(user.code)}
+                      disabled={loading}
+                      className="w-full text-left focus:outline-none disabled:opacity-50 pr-8" // Padding derecho para no solapar con la 'X'
+                      title={`Ingresar como ${user.name}`}
+                    >
+                      <span className="block text-lg font-semibold truncate" style={{ color: sofkaColors.blue }}>
+                        {user.name}
+                      </span>
+                      <span className="block text-base font-mono mt-1" style={{ color: sofkaColors.darkGray }}>
+                        {user.formId}
+                      </span>
+                    </button>
+                    
+                    {/* Botón de eliminar (posicionado absoluto) */}
+                    <button
+                      onClick={(e) => handleDeleteRecentUser(e, user.code)}
+                      disabled={loading}
+                      className="absolute top-3 right-3 w-8 h-8 flex items-center justify-center rounded-full text-gray-400 hover:bg-red-100 hover:text-red-600 focus:outline-none focus:bg-red-100 focus:text-red-600 transition-colors disabled:opacity-50"
+                      title={`Eliminar ${user.name}`}
+                      aria-label={`Eliminar acceso reciente de ${user.name}`}
+                    >
+                      <XIcon />
+                    </button>
                   </div>
-                  <h3 className="text-xl font-semibold mb-2" style={{ color: sofkaColors.blue }}>
-                    {step.title}
-                  </h3>
-                  <p className="text-sm" style={{ color: sofkaColors.darkGray }}>
-                    {step.description}
-                  </p>
-                </div>
-              ))}
-            </div>
+                ))}
+
+              </div>
+            ) : (
+              // Mensaje si no hay usuarios guardados
+              <div 
+                className="p-6 rounded-lg border-l-4"
+                style={{ backgroundColor: 'white', borderColor: sofkaColors.lightBlue }}
+              >
+                <p style={{ color: sofkaColors.darkGray }}>
+                  Aún no tienes accesos guardados. 
+                  <br/>
+                  Inicia sesión una vez y tu código aparecerá aquí para futuros ingresos.
+                </p>
+              </div>
+            )}
           </div>
         </div>
 
@@ -149,7 +273,7 @@ export default function CombinedLoginPage() {
               </button>
               {error && (
                 <p className="text-center text-red-600 font-medium">
-                  Código inválido. Por favor, intenta de nuevo.
+                  {error}
                 </p>
               )}
             </form>
@@ -157,10 +281,15 @@ export default function CombinedLoginPage() {
         </div>
       </main>
 
-      {/* Footer */}
-      <footer className="bg-white border-t border-gray-200 py-4 text-sm" style={{ color: sofkaColors.darkGray }}>
+      {/* --- 4. Footer MODIFICADO con Link a /admin --- */}
+      <footer className="bg-white border-t border-gray-200 py-6 text-sm" style={{ color: sofkaColors.darkGray }}>
         <div className="container mx-auto px-4 text-center">
-          &copy; {new Date().getFullYear()} Sofka Technologies. All Rights Reserved.
+          <p>&copy; {new Date().getFullYear()} Sofka Technologies. All Rights Reserved.</p>
+          <p className="mt-2">
+            <Link href="/admin" className="font-medium text-gray-600 hover:text-sofka-blue transition-colors">
+              Ir al Panel de Administrador
+            </Link>
+          </p>
         </div>
       </footer>
     </div>

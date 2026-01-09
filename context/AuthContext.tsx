@@ -6,7 +6,9 @@ import {
   useEffect,
   useState,
   ReactNode,
+  useCallback,
 } from "react";
+import { useSession, signIn, signOut } from "next-auth/react";
 
 interface User {
   name: string;
@@ -16,57 +18,57 @@ interface User {
   evaluation_result: string;
   certification_result: string;
   challenge_result: string;
+  interview_feedback: string;
+  interview_status: string;
+  technical_level: string;
+  interviewer_name: string;
   form_id: string;
 }
 
 export interface AuthContextType {
   user: User | null;
   isLoading: boolean;
-  login: (code: string) => Promise<void>;
+  login: (code: string) => Promise<User>;
   logout: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
+  const { data: session, status } = useSession();
   const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const isLoading = status === "loading";
 
   useEffect(() => {
-    // Try to load user from localStorage on initial load
-    const storedUser = localStorage.getItem("user");
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
+    if (session?.user) {
+      setUser(session.user as any);
+    } else {
+      setUser(null);
     }
-    setIsLoading(false);
+  }, [session]);
+
+  const login = useCallback(async (code: string) => {
+    const result = await signIn("credentials", {
+      code,
+      redirect: false,
+    });
+
+    if (result?.error) {
+      throw new Error(result.error);
+    }
+
+    // Fetch full user data after successful login to maintain compatibility
+    const response = await fetch(`/api/user?code=${encodeURIComponent(code)}`);
+    if (!response.ok) {
+      throw new Error("No se pudo recuperar la información del usuario tras el inicio de sesión.");
+    }
+    
+    return await response.json();
   }, []);
 
-  const login = async (code: string) => {
-    try {
-      const response = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code }),
-      });
-
-      if (response.ok) {
-        const userData: User = await response.json();
-        setUser(userData);
-        localStorage.setItem("user", JSON.stringify(userData));
-      } else {
-        throw new Error("Login failed");
-      }
-    } catch (error) {
-      localStorage.removeItem("user");
-      setUser(null);
-      throw error;
-    }
-  };
-
-  const logout = () => {
-    localStorage.removeItem("user");
-    setUser(null);
-  };
+  const logout = useCallback(() => {
+    signOut({ redirect: true, callbackUrl: "/login" });
+  }, []);
 
   return (
     <AuthContext.Provider value={{ user, isLoading, login, logout }}>

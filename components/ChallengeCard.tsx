@@ -54,10 +54,10 @@ const ChallengeDisclaimerBlueFullWidth = () => {
               </li>
             </ul>
             <div className="mt-5 bg-blue-100 p-4 rounded-lg border border-blue-200">
-                <p className="font-semibold text-blue-800">Nuestra recomendación:</p>
-                <p className="text-sm text-blue-700 mt-1 italic">
-                    Concéntrate en explicar el &quot;porqué&quot; de tus decisiones (arquitectura, tecnologías, trade-offs) más que en los detalles de la implementación.
-                </p>
+              <p className="font-semibold text-blue-800">Nuestra recomendación:</p>
+              <p className="text-sm text-blue-700 mt-1 italic">
+                Concéntrate en explicar el &quot;porqué&quot; de tus decisiones (arquitectura, tecnologías, trade-offs) más que en los detalles de la implementación.
+              </p>
             </div>
           </div>
         </div>
@@ -69,16 +69,16 @@ const ChallengeDisclaimerBlueFullWidth = () => {
 export default function ChallengeContainer({
   defaultResult,
 }: ChallengeContainerProps) {
-   const auth = useAuth();
+  const auth = useAuth();
   const { user, logout } = auth;
-  const api = useMemo(() => createApiClient(auth), [auth]);
+  const api = useMemo(() => createApiClient(), []);
 
   const [challenge, setChallenge] = useState<Challenge | null>(
     defaultResult ?? null
   );
   const [loading, setLoading] = useState<boolean>(!defaultResult);
   const [error, setError] = useState<string | null>(null);
-  const [showCriteria, setShowCriteria] = useState(true);
+  const [showCriteria, setShowCriteria] = useState(false);
 
   const fetchChallenge = useCallback(async () => {
     // Si ya tenemos un challenge, no hacemos nada más
@@ -202,9 +202,9 @@ export default function ChallengeContainer({
             ))}
           </ul>
 
-            <div className="mt-6 text-sm text-gray-600 text-right italic">
-        Nota: La pregunta desafiante del reto deberá ser sustentada durante la entrevista. El candidato deberá explicar su respuesta con argumentos sólidos y bien estructurados, demostrando claridad en el razonamiento, conocimiento técnico y capacidad de justificar las decisiones tomadas.
-      </div>
+          <div className="mt-6 text-sm text-gray-600 text-right italic">
+            Nota: La pregunta desafiante del reto deberá ser sustentada durante la entrevista. El candidato deberá explicar su respuesta con argumentos sólidos y bien estructurados, demostrando claridad en el razonamiento, conocimiento técnico y capacidad de justificar las decisiones tomadas.
+          </div>
         </div>
       )}
 

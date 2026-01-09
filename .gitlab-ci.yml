@@ -1,0 +1,33 @@
+# Utiliza una imagen de Node.js que incluya npm
+image: node:18
+
+# Define las etapas del pipeline
+stages:
+  - deploy
+
+# Define el trabajo de despliegue
+deploy_production:
+  stage: deploy
+  # Instala la Vercel CLI antes de ejecutar el script
+  before_script:
+    - npm install -g vercel
+  script:
+    # Despliega a producción usando las variables de entorno de GitLab
+    - vercel --prod --token $VERCEL_TOKEN --scope $VERCEL_ORG_ID --yes --confirm
+  # Este trabajo solo se ejecutará cuando se haga push a la rama 'main'
+  only:
+    - main
+
+deploy_preview:
+  stage: deploy
+  before_script:
+    - npm install -g vercel
+  script:
+    # Despliega una vista previa y asigna la URL a una variable de GitLab
+    - VERCEL_URL=$(vercel --token $VERCEL_TOKEN --scope $VERCEL_ORG_ID --yes --confirm)
+    # Comenta en el Merge Request con la URL del despliegue de vista previa
+    - vercel inspect $VERCEL_URL --token $VERCEL_TOKEN | grep -q "production: false"
+    - vercel alias set $VERCEL_URL $(echo $CI_COMMIT_REF_SLUG).$CI_PROJECT_NAME.vercel.app --token $VERCEL_TOKEN --scope $VERCEL_ORG_ID
+  # Este trabajo se ejecutará en todas las ramas excepto 'main'
+  except:
+    - main

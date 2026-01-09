@@ -1,6 +1,4 @@
-### Plantilla de Prompt 
 
-```
 Actúa como un experto en [tecnología/área].
 
 Tu tarea es generar un archivo JSON con una estructura para [propósito del JSON, ej. una evaluación técnica, una guía de configuración, un plan de estudios].
@@ -40,4 +38,4 @@ Ten en cuenta las siguientes especificaciones:
   * **4 = Experiencia sólida y autónoma en proyectos reales:** Ha liderado o participado con autonomía en proyectos de cierta envergadura; comprende la mayoría de los matices y trade-offs; puede explicar cómo resolvió retos.
   * **5 = Dominio profundo y liderazgo/innovación:** Ha liderado equipos o proyectos críticos donde introdujo o mejoró significativamente la práctica, el código o la arquitectura.
 * **Idiomas:** El contenido debe estar en [idioma, ej. español].
-```
+

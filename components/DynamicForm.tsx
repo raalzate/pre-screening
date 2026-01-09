@@ -27,7 +27,7 @@ function DynamicForm({
   const totalSteps = form.categories.length;
 
   const auth = useAuth();
-  const api = useMemo(() => createApiClient(auth), [auth]);
+  const api = useMemo(() => createApiClient(), []);
 
   const handleChange = (questionId: string, value: number) => {
     setAnswers((prev) => ({ ...prev, [questionId]: value }));

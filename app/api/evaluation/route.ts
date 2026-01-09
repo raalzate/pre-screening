@@ -7,6 +7,9 @@ import { waitUntil } from "@vercel/functions";
 import fs from "fs/promises";
 import path from "path";
 import { db } from "@/lib/db";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import { sendEvaluationCompleteEmail } from "@/lib/email";
 
 export async function POST(req: Request) {
   try {
@@ -26,7 +29,8 @@ export async function POST(req: Request) {
       ...comparisonResult,
     };
 
-    const userCode = req.headers.get("x-user-code");
+    const session = await getServerSession(authOptions);
+    const userCode = (session?.user as any)?.code;
 
     if (userCode) {
       waitUntil((async () => {
@@ -39,6 +43,17 @@ export async function POST(req: Request) {
             [JSON.stringify(result), JSON.stringify(questions), 'certified', userCode]
           );
           console.log("✅ Datos guardados en la base de datos del codigo:", userCode);
+
+          // Enviar correo de notificación de fin de evaluación
+          try {
+            const userStmt = await db.execute("SELECT name, email FROM users WHERE code = ?", [userCode]);
+            const user = userStmt.rows[0];
+            if (user && user.email) {
+              await sendEvaluationCompleteEmail(user.name as string, user.email as string, userCode);
+            }
+          } catch (emailErr) {
+            console.error("❌ Error enviando correo de fin de evaluación:", emailErr);
+          }
         } catch (err) {
           console.error("❌ Error guardando con waitUntil():", err);
         }

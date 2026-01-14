@@ -5,7 +5,6 @@ import createApiClient from "@/lib/apiClient";
 import { FormJson } from "@/types/outputConfig";
 import { useEffect, useMemo, useState } from "react";
 import QuestionCanvas from "./QuestionCanvas";
-// Importamos el hook que acabamos de crear
 import useDisableShortcuts from "./hooks/useDisableShortcuts";
 
 interface ResultDetail {

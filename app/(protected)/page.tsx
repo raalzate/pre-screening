@@ -36,7 +36,7 @@ export default function Home() {
         setLoading(false);
         return;
       }
-      
+
       try {
         setLoading(true);
         const response = await api.get('/forms');
@@ -58,7 +58,7 @@ export default function Home() {
     }
     const isActive = auth.user.step === stepName;
     let classes = 'pl-4 py-2 relative transition-all duration-300';
-    
+
     if (isActive) {
       classes += ' font-semibold text-blue-700 bg-blue-50 border-l-4 border-blue-500';
     } else {
@@ -80,7 +80,7 @@ export default function Home() {
     }
 
     const currentStep = auth.user.step;
-    
+
     switch (currentStep) {
       case 'pre-screening':
         return "Para continuar, selecciona el formulario del pre-screening.";
@@ -115,18 +115,17 @@ export default function Home() {
                   <h2 className="text-2xl font-bold">Resumen de Entrevista</h2>
                   <p className="text-indigo-100 mt-1 opacity-90">Entrevistador: {auth.user.interviewer_name || 'Comité Técnico'}</p>
                 </div>
-                <div className={`px-4 py-2 rounded-full font-bold text-sm uppercase tracking-wider ${
-                  auth.user.interview_status === 'pasa' ? 'bg-green-400 text-green-900' : 
-                  auth.user.interview_status === 'no_pasa' ? 'bg-red-400 text-red-900' : 'bg-yellow-400 text-yellow-900'
-                }`}>
-                  {auth.user.interview_status === 'pasa' ? 'Aprobado' : 
-                   auth.user.interview_status === 'no_pasa' ? 'No Aprobado' : 'En Espera'}
+                <div className={`px-4 py-2 rounded-full font-bold text-sm uppercase tracking-wider ${auth.user.interview_status === 'pasa' ? 'bg-green-400 text-green-900' :
+                    auth.user.interview_status === 'no_pasa' ? 'bg-red-400 text-red-900' : 'bg-yellow-400 text-yellow-900'
+                  }`}>
+                  {auth.user.interview_status === 'pasa' ? 'Aprobado' :
+                    auth.user.interview_status === 'no_pasa' ? 'No Aprobado' : 'En Espera'}
                 </div>
               </div>
             </div>
 
             <div className="p-8">
-            
+
               <div className="space-y-4">
                 <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2">
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-indigo-500" viewBox="0 0 20 20" fill="currentColor">
@@ -136,7 +135,7 @@ export default function Home() {
                 </h3>
                 <div className="bg-indigo-50 border-l-4 border-indigo-400 p-6 rounded-r-xl">
                   <p className="text-gray-700 leading-relaxed whitespace-pre-wrap italic font-medium">
-                    "{auth.user.interview_feedback || 'Tu entrevista está siendo procesada. Vuelve pronto para ver el feedback.'}"
+                    &quot;{auth.user.interview_feedback || 'Tu entrevista está siendo procesada. Vuelve pronto para ver el feedback.'}&quot;
                   </p>
                 </div>
               </div>
@@ -206,12 +205,12 @@ export default function Home() {
       <header className="bg-white shadow-sm">
         <div className="container mx-auto px-4 py-6">
           <h1 className="text-3xl font-bold text-gray-800">
-            Hola {auth.user?.name.toUpperCase()}, bienvenido a la plataforma de evaluación 
+            Hola {auth.user?.name.toUpperCase()}, bienvenido a la plataforma de evaluación
           </h1>
           <p className="mt-2 text-gray-600 font-semibold">{getInstructionalHeader()}</p>
         </div>
       </header>
-      
+
       <main className="container mx-auto p-8">
         <div className="flex flex-col md:flex-row gap-8">
           {/* Columna Izquierda: Proceso de Evaluación */}
@@ -256,7 +255,7 @@ export default function Home() {
               </ol>
             </div>
           </div>
-          
+
           {/* Columna Derecha: Formularios de Evaluación */}
           <div className="w-full md:w-1/2">
             <h2 className="text-2xl font-semibold text-gray-800 mb-4">

@@ -1,5 +1,5 @@
 import nodemailer from 'nodemailer';
-require('dotenv').config();
+import 'dotenv/config';
 
 // Configuración del Transporter (Igual que tu original)
 const transporter = nodemailer.createTransport({
@@ -12,7 +12,7 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-transporter.verify(function (error, success) {
+transporter.verify(function (error) {
   if (error) {
     console.log("Error de conexión:", error);
   } else {

@@ -1,10 +1,10 @@
 'use client';
 
+import { useState, useEffect, useCallback, Suspense } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
-import Link from 'next/link'; // <-- 1. Importar Link para el enlace de Admin
+import Link from 'next/link';
 
 const sofkaColors = {
   blue: '#002C5E',
@@ -33,7 +33,7 @@ const XIcon = () => (
 );
 
 
-export default function CombinedLoginPage() {
+function LoginContent() {
   const [code, setCode] = useState('');
   const { login } = useAuth();
   const router = useRouter();
@@ -100,11 +100,11 @@ export default function CombinedLoginPage() {
   // --- 2. NUEVA FUNCIÓN para eliminar un usuario reciente ---
   const handleDeleteRecentUser = useCallback((e: React.MouseEvent, codeToDelete: string) => {
     e.stopPropagation(); // Previene que se dispare el login
-    
+
     // Actualiza el estado de React
     const newUsers = savedUsers.filter(user => user.code !== codeToDelete);
     setSavedUsers(newUsers);
-    
+
     // Actualiza localStorage
     try {
       localStorage.setItem(RECENT_USERS_KEY, JSON.stringify(newUsers));
@@ -172,15 +172,15 @@ export default function CombinedLoginPage() {
           <p className="text-lg md:text-xl max-w-2xl" style={{ color: sofkaColors.darkGray }}>
             Bienvenido. Ingresa tu código o selecciona uno de tus accesos recientes para continuar.
           </p>
-          
+
           <div className="mt-12">
             <h2 className="text-3xl font-bold mb-8" style={{ color: sofkaColors.blue }}>
               Accesos Recientes
             </h2>
-            
+
             {savedUsers.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                
+
                 {/* --- 3. Tarjeta de Usuario MODIFICADA --- */}
                 {savedUsers.map((user) => (
                   // Convertido en <div> 'relative' para posicionar el botón de borrar
@@ -203,7 +203,7 @@ export default function CombinedLoginPage() {
                         {user.formId}
                       </span>
                     </button>
-                    
+
                     {/* Botón de eliminar (posicionado absoluto) */}
                     <button
                       onClick={(e) => handleDeleteRecentUser(e, user.code)}
@@ -220,13 +220,13 @@ export default function CombinedLoginPage() {
               </div>
             ) : (
               // Mensaje si no hay usuarios guardados
-              <div 
+              <div
                 className="p-6 rounded-lg border-l-4"
                 style={{ backgroundColor: 'white', borderColor: sofkaColors.lightBlue }}
               >
                 <p style={{ color: sofkaColors.darkGray }}>
-                  Aún no tienes accesos guardados. 
-                  <br/>
+                  Aún no tienes accesos guardados.
+                  <br />
                   Inicia sesión una vez y tu código aparecerá aquí para futuros ingresos.
                 </p>
               </div>
@@ -293,5 +293,17 @@ export default function CombinedLoginPage() {
         </div>
       </footer>
     </div>
+  );
+}
+
+export default function CombinedLoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <p className="text-gray-500 animate-pulse text-lg">Cargando...</p>
+      </div>
+    }>
+      <LoginContent />
+    </Suspense>
   );
 }

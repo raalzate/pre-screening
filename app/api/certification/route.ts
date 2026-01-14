@@ -4,7 +4,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { sendCertificationCompleteEmail } from '@/lib/email';
 
-export async function GET(req: Request) {
+export async function GET() {
   try {
 
     const session = await getServerSession(authOptions);

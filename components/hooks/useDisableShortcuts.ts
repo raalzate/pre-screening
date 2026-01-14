@@ -47,7 +47,6 @@ const useDisableShortcuts = () => {
             // Solo ejecutar en producción para no molestarte mientras desarrollas
             if (process.env.NODE_ENV === 'production') {
                 const start = performance.now();
-                // eslint-disable-next-line no-debugger
                 debugger;
                 const end = performance.now();
 

@@ -12,13 +12,8 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-transporter.verify(function (error) {
-  if (error) {
-    console.log("Error de conexión:", error);
-  } else {
-    console.log("Servidor listo para enviar mensajes");
-  }
-});
+// Eliminamos el verify del top-level para evitar efectos secundarios durante el build
+// transporter.verify(function (error) { ... });
 
 /**
  * PLANTILLA BASE ESTILO SOFKA
@@ -86,7 +81,7 @@ const getSofkaTemplate = (title: string, bodyContent: string, ctaUrl: string, ct
 // --- FUNCIONES DE ENVÍO ---
 
 export async function sendCandidateWelcomeEmail(name: string, email: string, code: string) {
-  const loginUrl = `${process.env.NEXTAUTH_URL}/login?code=${code}`;
+  const loginUrl = `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/login?code=${code}`;
 
   const title = `¡Hola, ${name}! Bienvenido al reto.`;
   const body = `
@@ -121,7 +116,7 @@ export async function sendCandidateWelcomeEmail(name: string, email: string, cod
 }
 
 export async function sendEvaluationCompleteEmail(name: string, email: string, code: string) {
-  const loginUrl = `${process.env.NEXTAUTH_URL}/login?code=${code}`;
+  const loginUrl = `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/login?code=${code}`;
 
   const title = `¡Excelente trabajo, ${name}!`;
   const body = `
@@ -141,7 +136,7 @@ export async function sendEvaluationCompleteEmail(name: string, email: string, c
 }
 
 export async function sendCertificationCompleteEmail(name: string, email: string, code: string) {
-  const loginUrl = `${process.env.NEXTAUTH_URL}/login?code=${code}`;
+  const loginUrl = `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/login?code=${code}`;
 
   const title = `Certificación Completada`;
   const body = `

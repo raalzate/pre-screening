@@ -51,7 +51,7 @@ curl "http://localhost:3000/api/user?code=12345"
 */
 export async function GET(request: Request) {
   try {
-    const { searchParams } = new URL(request.url);
+    const { searchParams } = new URL(request.url, "http://n");
     const code = searchParams.get("code");
 
     if (code) {

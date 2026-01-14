@@ -1,9 +1,12 @@
 // lib/db.ts
 import { createClient } from '@libsql/client';
 
+const url = process.env.TURSO_DB_URL || "file:local.db";
+const authToken = process.env.TURSO_DB_TOKEN || "";
+
 export const db = createClient({
-  url: process.env.TURSO_DB_URL!,
-  authToken: process.env.TURSO_DB_TOKEN!,
+  url: url,
+  authToken: authToken,
 });
 
 // Inicialización de tabla (solo si no existe)

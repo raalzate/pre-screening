@@ -6,35 +6,19 @@ import React, {
   FormEvent,
   FC,
   ReactNode,
+  useMemo,
+  useCallback,
 } from "react";
 import { GapAnalysisRechart } from "@/components/GapAnalysisChart";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 
+// --- 1. CONSTANTS & TYPES ---
+
 const ALL_REQUIREMENTS = [
   "deuna:nestjs-ssr",
-  "noram-fullstack:netcore-angular-ssr",
   "edi-iris-bank:edi-ssr",
 ] as const;
-
-const ExternalLinkIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    className="w-4 h-4 ml-2"
-  >
-    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
-    <polyline points="15 3 21 3 21 9"></polyline>
-    <line x1="10" y1="14" x2="21" y2="3"></line>
-  </svg>
-);
 
 interface EvaluationGap {
   skill: string;
@@ -72,6 +56,7 @@ interface Question {
 }
 interface UserData {
   name: string;
+  email?: string;
   code: string;
   requirements: string;
   step: string;
@@ -86,595 +71,886 @@ interface UserData {
   interviewer_name?: string;
 }
 
-const Card: FC<{ children: ReactNode; className?: string }> = ({
-  children,
-  className = "",
-}) => (
-  <div
-    className={`bg-white shadow-lg rounded-xl border border-gray-200 p-6 md:p-8 ${className}`}
-  >
-    {children}
-  </div>
+// --- 2. UI LIBRARY (ATOMIC COMPONENTS) ---
+
+const Icons = {
+  ExternalLink: (props: any) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>,
+  User: (props: any) => <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>,
+  Check: (props: any) => <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>,
+  X: (props: any) => <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>,
+  ChevronDown: (props: any) => <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"></path></svg>,
+  Copy: (props: any) => <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>,
+  Sparkles: (props: any) => <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" /></svg>,
+  MessageSquare: (props: any) => <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>,
+  Target: (props: any) => <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg>,
+  Search: (props: any) => <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>,
+  Plus: (props: any) => <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>,
+};
+
+const Spinner = ({ size = "sm" }: { size?: "sm" | "md" }) => (
+  <div className={`animate-spin rounded-full border-2 border-current border-t-transparent ${size === "sm" ? "h-4 w-4" : "h-6 w-6"}`} />
 );
 
-const CardTitle: FC<{ children: ReactNode; icon: ReactNode }> = ({
-  children,
-  icon,
-}) => (
-  <div className="flex items-center">
-    {icon}
-    <h2 className="text-xl md:text-2xl font-bold text-gray-800">{children}</h2>
-  </div>
-);
-
-const InfoRow: FC<{ label: string; value: ReactNode }> = ({ label, value }) => (
-  <div className="flex justify-between items-start py-3 border-b border-gray-100 last:border-b-0">
-    <dt className="text-sm font-semibold text-gray-600 w-1/3 pr-2">{label}</dt>
-    <dd className="text-sm text-gray-800 text-right w-2/3 break-words">
-      {value}
-    </dd>
-  </div>
-);
-
-const InfoList: FC<{ title: string; items: string[] }> = ({ title, items }) => (
-  <div className="mt-4">
-    <h4 className="font-semibold text-gray-700 mb-2">{title}</h4>
-    <ul className="list-disc list-inside space-y-1 pl-2">
-      {items.map((item, index) => (
-        <li key={index} className="text-sm text-gray-600">
-          {item}
-        </li>
-      ))}
-    </ul>
-  </div>
-);
-
-const UserIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    className="w-7 h-7 text-blue-500 mr-3"
-  >
-    <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
-    <circle cx="12" cy="7" r="4"></circle>
-  </svg>
-);
-const UserPlusIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    className="w-7 h-7 text-teal-500 mr-3"
-  >
-    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-    <circle cx="9" cy="7" r="4" />
-    <line x1="19" x2="19" y1="8" y2="14" />
-    <line x1="22" x2="16" y1="11" y2="11" />
-  </svg>
-);
-const CheckCircleIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    className="w-7 h-7 text-green-500 mr-3"
-  >
-    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-    <polyline points="22 4 12 14.01 9 11.01"></polyline>
-  </svg>
-);
-const HelpCircleIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    className="w-7 h-7 text-purple-500 mr-3"
-  >
-    <circle cx="12" cy="12" r="10"></circle>
-    <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
-    <line x1="12" y1="17" x2="12.01" y2="17"></line>
-  </svg>
-);
-const TargetIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    className="w-7 h-7 text-red-500 mr-3"
-  >
-    <circle cx="12" cy="12" r="10"></circle>
-    <circle cx="12" cy="12" r="6"></circle>
-    <circle cx="12" cy="12" r="2"></circle>
-  </svg>
-);
-const MessageSquareIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    className="w-7 h-7 text-indigo-500 mr-3"
-  >
-    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-  </svg>
-);
-const LoadingSpinner = () => (
-  <svg
-    className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
-    xmlns="http://www.w3.org/2000/svg"
-    fill="none"
-    viewBox="0 0 24 24"
-  >
-    <circle
-      className="opacity-25"
-      cx="12"
-      cy="12"
-      r="10"
-      stroke="currentColor"
-      strokeWidth="4"
-    ></circle>
-    <path
-      className="opacity-75"
-      fill="currentColor"
-      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-    ></path>
-  </svg>
-);
-const RefreshCwIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    className="h-5 w-5"
-  >
-    <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" />
-    <path d="M21 3v5h-5" />
-    <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" />
-    <path d="M3 21v-5h5" />
-  </svg>
-);
-const ChevronDownIcon = ({ className = "" }: { className?: string }) => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    className={className}
-  >
-    <path d="m6 9 6 6 6-6"></path>
-  </svg>
-);
-
-// --- NUEVOS ICONOS ---
-const PlusIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    className="w-5 h-5"
-  >
-    <line x1="12" y1="5" x2="12" y2="19"></line>
-    <line x1="5" y1="12" x2="19" y2="12"></line>
-  </svg>
-);
-const XIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    className="w-6 h-6"
-  >
-    <line x1="18" y1="6" x2="6" y2="18"></line>
-    <line x1="6" y1="6" x2="18" y2="18"></line>
-  </svg>
-);
-
-// --- NUEVO COMPONENTE MODAL ---
-const Modal: FC<{
-  isOpen: boolean;
-  onClose: () => void;
-  children: ReactNode;
-  title: string;
-}> = ({ isOpen, onClose, children, title }) => {
-  if (!isOpen) return null;
-
+const Badge: FC<{ children: ReactNode; variant?: "success" | "danger" | "warning" | "neutral" }> = ({ children, variant = "neutral" }) => {
+  const colors = {
+    success: "bg-green-100 text-green-800",
+    danger: "bg-red-100 text-red-800",
+    warning: "bg-yellow-100 text-yellow-800",
+    neutral: "bg-gray-100 text-gray-800",
+  };
   return (
-    <div
-      className="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-50 p-4 transition-opacity duration-300"
-      onClick={onClose} // Click en el fondo para cerrar
-    >
-      <div
-        className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col transform transition-all duration-300 scale-100"
-        onClick={(e) => e.stopPropagation()} // Evita que el click en el contenido cierre el modal
-      >
-        <header className="flex justify-between items-center p-6 border-b border-gray-200">
-          <h2 className="text-2xl font-bold text-gray-800">{title}</h2>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
-          >
-            <XIcon />
-          </button>
+    <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${colors[variant]}`}>
+      {children}
+    </span>
+  );
+};
+
+const Card: FC<{ children: ReactNode; className?: string; title?: ReactNode; icon?: ReactNode; action?: ReactNode }> = ({ children, className = "", title, icon, action }) => (
+  <div className={`bg-white shadow-sm rounded-xl border border-gray-200 overflow-hidden ${className}`}>
+    {(title || icon) && (
+      <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+        <div className="flex items-center gap-3">
+          {icon && <span className="text-gray-500">{icon}</span>}
+          {title && <h3 className="font-bold text-gray-800 text-lg">{title}</h3>}
+        </div>
+        {action && <div>{action}</div>}
+      </div>
+    )}
+    <div className="p-6">{children}</div>
+  </div>
+);
+
+const Modal: FC<{ isOpen: boolean; onClose: () => void; children: ReactNode; title: string }> = ({ isOpen, onClose, children, title }) => {
+  if (!isOpen) return null;
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
+      <div className="absolute inset-0 bg-gray-900/60 backdrop-blur-sm transition-opacity" onClick={onClose} />
+      <div className="relative bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+        <header className="flex justify-between items-center px-6 py-4 border-b border-gray-100 bg-gray-50">
+          <h2 className="text-xl font-bold text-gray-800">{title}</h2>
+          <button onClick={onClose} className="p-1 hover:bg-gray-200 rounded-full transition"><Icons.X className="w-5 h-5 text-gray-500" /></button>
         </header>
-        <div className="p-6 md:p-8 overflow-y-auto">{children}</div>
+        <div className="p-6 overflow-y-auto">{children}</div>
       </div>
     </div>
   );
 };
 
-const AccordionCard: FC<{
-  children: ReactNode;
-  icon: ReactNode;
-  title: ReactNode;
-  startOpen?: boolean;
-}> = ({ children, icon, title, startOpen = false }) => {
-  const [isOpen, setIsOpen] = useState(startOpen);
-
-  return (
-    <Card className="overflow-hidden !p-0">
-      <div className="p-6 md:p-8">
-        <button
-          onClick={() => setIsOpen(!isOpen)}
-          className="w-full flex justify-between items-center text-left"
-          aria-expanded={isOpen}
-        >
-          <CardTitle icon={icon}>{title}</CardTitle>
-          <ChevronDownIcon
-            className={`w-6 h-6 text-gray-500 transition-transform duration-300 ${
-              isOpen ? "rotate-180" : ""
-            }`}
-          />
-        </button>
-        <div
-          className={`transition-all duration-500 ease-in-out grid ${
-            isOpen ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
+const Tabs: FC<{ tabs: { id: string; label: string; icon?: ReactNode }[]; activeTab: string; onChange: (id: string) => void }> = ({ tabs, activeTab, onChange }) => (
+  <div className="flex gap-2 border-b border-gray-200 mb-6 overflow-x-auto pb-1">
+    {tabs.map((tab) => (
+      <button
+        key={tab.id}
+        onClick={() => onChange(tab.id)}
+        className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-t-lg border-b-2 transition-colors whitespace-nowrap ${activeTab === tab.id
+          ? "border-blue-600 text-blue-700 bg-blue-50/50"
+          : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
           }`}
-        >
-          <div className="overflow-hidden">
-            <div className="pt-4 border-t border-gray-200 mt-4">{children}</div>
-          </div>
-        </div>
-      </div>
-    </Card>
-  );
-};
+      >
+        {tab.icon}
+        {tab.label}
+      </button>
+    ))}
+  </div>
+);
 
-// --- MODIFICADO: Acepta prop para abrir modal ---
-const ReviewUserPage: FC<{ onOpenCreateModal: () => void }> = ({
-  onOpenCreateModal,
-}) => {
-  const [code, setCode] = useState("");
-  const [userData, setUserData] = useState<UserData | null>(null);
+const Skeleton: FC<{ className?: string }> = ({ className }) => (
+  <div className={`animate-pulse bg-gray-200 rounded ${className}`} />
+);
+
+// --- 3. LOGIC HOOKS ---
+
+const useCandidate = () => {
+  const [data, setData] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [allUsers, setAllUsers] = useState<UserData[]>([]);
-  const [listLoading, setListLoading] = useState(true);
-  const [listError, setListError] = useState<string | null>(null);
-  const [searchQuery, setSearchQuery] = useState("");
 
-  const safeJsonParse = (jsonString: any) => {
-    if (typeof jsonString !== "string") return null;
+  const fetchCandidate = useCallback(async (code: string) => {
+    if (!code) return;
+    setLoading(true);
+    setError(null);
+    setData(null); // Clear previous data
     try {
-      return JSON.parse(jsonString);
-    } catch (e) {
-      console.error("Failed to parse JSON:", e);
-      return null;
+      const res = await fetch(`/api/user?code=${encodeURIComponent(code)}`);
+      if (!res.ok) throw new Error("No se pudo cargar el candidato");
+      const rawData = await res.json();
+
+      // Helper for safe parsing
+      const parse = (str: any) => (typeof str === 'string' ? JSON.parse(str) : str);
+
+      setData({
+        ...rawData,
+        evaluation_result: parse(rawData.evaluation_result),
+        questions: parse(rawData.questions),
+        certification_result: parse(rawData.certification_result),
+        challenge_result: parse(rawData.challenge_result),
+      });
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  return { data, loading, error, fetchCandidate, setData }; // setData exported for updates
+};
+
+const useUserList = () => {
+  const [users, setUsers] = useState<UserData[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/user")
+      .then((res) => res.json())
+      .then((data) => setUsers(Array.isArray(data) ? data : []))
+      .catch((err) => console.error(err))
+      .finally(() => setLoading(false));
+  }, []);
+
+  return { users, loading };
+};
+
+// --- 4. SUB-COMPONENTS ---
+
+const InfoRow: FC<{ label: string; value: ReactNode; copyable?: boolean }> = ({ label, value, copyable }) => {
+  const [copied, setCopied] = useState(false);
+  const handleCopy = () => {
+    if (typeof value === 'string') {
+      navigator.clipboard.writeText(value);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
     }
   };
 
+  return (
+    <div className="flex justify-between items-center py-3 border-b border-gray-100 last:border-0">
+      <dt className="text-sm font-medium text-gray-500">{label}</dt>
+      <dd className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+        {value}
+        {copyable && typeof value === 'string' && (
+          <button onClick={handleCopy} className="text-gray-400 hover:text-blue-600 transition" title="Copiar">
+            {copied ? <Icons.Check className="w-4 h-4 text-green-500" /> : <Icons.Copy className="w-4 h-4" />}
+          </button>
+        )}
+      </dd>
+    </div>
+  );
+};
+
+const CandidateHeader: FC<{ user: UserData; onRefresh: () => void }> = ({ user, onRefresh }) => (
+  <div className="sticky top-0 z-30 bg-white/80 backdrop-blur-md border-b border-gray-200 -mx-4 px-4 py-4 md:px-8 md:-mx-8 mb-6 shadow-sm flex flex-col md:flex-row justify-between items-center gap-4">
+    <div className="flex items-center gap-4">
+      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold text-xl shadow-lg">
+        {user.name.charAt(0)}
+      </div>
+      <div>
+        <h1 className="text-xl font-bold text-gray-900">{user.name}</h1>
+        <div className="flex items-center gap-2 text-sm text-gray-500">
+          <Icons.Target className="w-4 h-4" />
+          {user.requirements}
+          <span className="text-gray-300">|</span>
+          <span className="font-mono bg-gray-100 px-2 py-0.5 rounded text-xs">{user.code}</span>
+        </div>
+      </div>
+    </div>
+    <div className="flex gap-3">
+      <a
+        href={`/login?code=${user.code}`}
+        target="_blank"
+        rel="noreferrer"
+        className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition"
+      >
+        <Icons.ExternalLink className="w-4 h-4" /> Link Candidato
+      </a>
+    </div>
+  </div>
+);
+
+// --- 5. PAGE LOGIC (MAIN COMPONENT) ---
+
+export default function App() {
+  const { status } = useSession();
+  const router = useRouter();
+
+  // Hooks
+  const { users, loading: listLoading } = useUserList();
+  const { data: userData, loading: userLoading, error: userError, fetchCandidate, setData: updateUserData } = useCandidate();
+
+  // State
+  const [selectedCode, setSelectedCode] = useState("");
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState("profile");
+  const [searchQuery, setSearchQuery] = useState("");
+
+  // Auth Guard
   useEffect(() => {
-    const fetchAllUsers = async () => {
-      setListLoading(true);
-      setListError(null);
-      try {
-        const response = await fetch("/api/user");
-        if (!response.ok) {
-          const errorData = await response
-            .json()
-            .catch(() => ({ message: response.statusText }));
-          throw new Error(
-            `Error ${response.status}: ${
-              errorData.message || "No se pudieron cargar los candidatos."
-            }`
-          );
-        }
-        const data: UserData[] = await response.json();
-        setAllUsers(data);
-      } catch (err) {
-        setListError(
-          (err as Error).message ||
-            "Ocurrió un error al cargar la lista de candidatos."
-        );
-      } finally {
-        setListLoading(false);
-      }
-    };
+    if (status === "unauthenticated") router.push("/admin/sign-in");
+  }, [status, router]);
 
-    fetchAllUsers();
-  }, []);
-
-  const filteredUsers = React.useMemo(() => {
-    const query = searchQuery.toLowerCase();
-    if (!query) {
-      return allUsers;
-    }
-    return allUsers.filter(
-      (user) =>
-        user.name.toLowerCase().includes(query) ||
-        user.code.toLowerCase().includes(query) ||
-        user.requirements.toLowerCase().includes(query) ||
-        user.form_id.toLowerCase().includes(query)
+  // Derived State
+  const filteredUsers = useMemo(() => {
+    const q = searchQuery.toLowerCase();
+    return users.filter(u =>
+      u.name.toLowerCase().includes(q) || u.code.toLowerCase().includes(q)
     );
-  }, [allUsers, searchQuery]);
+  }, [users, searchQuery]);
 
-  const handleFetchUser = async () => {
-    if (!code) {
-      setError("Por favor, selecciona un candidato de la lista.");
-      return;
-    }
+  const handleSearch = () => fetchCandidate(selectedCode);
+
+  if (status === "loading") return <div className="min-h-screen bg-gray-50 flex items-center justify-center"><Spinner size="md" /></div>;
+
+  return (
+    <div className="bg-gray-50 min-h-screen pb-20">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+        {/* --- TOP BAR: SEARCH & ACTIONS --- */}
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-4 mb-8 flex flex-col md:flex-row gap-4 items-center justify-between">
+          <div className="flex-1 w-full flex flex-col md:flex-row gap-3">
+            <div className="relative flex-1">
+              <Icons.Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <input
+                className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition outline-none"
+                placeholder="Filtrar candidatos..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+            <select
+              value={selectedCode}
+              onChange={(e) => setSelectedCode(e.target.value)}
+              className="flex-[2] py-2.5 px-4 rounded-xl border border-gray-200 bg-white focus:ring-2 focus:ring-blue-500 outline-none"
+            >
+              <option value="">-- Seleccionar Candidato --</option>
+              {filteredUsers.map(u => (
+                <option key={u.code} value={u.code}>{u.name} — {u.requirements}</option>
+              ))}
+            </select>
+            <button
+              onClick={handleSearch}
+              disabled={userLoading || !selectedCode}
+              className="bg-blue-600 text-white px-6 py-2.5 rounded-xl font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition shadow-md hover:shadow-lg flex items-center justify-center gap-2"
+            >
+              {userLoading ? <Spinner /> : "Consultar"}
+            </button>
+          </div>
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="bg-teal-600 text-white px-5 py-2.5 rounded-xl font-bold hover:bg-teal-700 transition flex items-center gap-2 shadow-md hover:shadow-lg whitespace-nowrap w-full md:w-auto justify-center"
+          >
+            <Icons.Plus className="w-5 h-5" /> Nuevo Candidato
+          </button>
+        </div>
+
+        {/* --- ERROR STATE --- */}
+        {userError && (
+          <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-xl mb-6 flex items-center gap-3">
+            <Icons.X className="w-5 h-5" />
+            {userError}
+          </div>
+        )}
+
+        {/* --- EMPTY STATE --- */}
+        {!userData && !userLoading && !userError && (
+          <div className="text-center py-20 text-gray-400">
+            <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Icons.Search className="w-10 h-10 opacity-50" />
+            </div>
+            <p className="text-lg font-medium">Selecciona un candidato para comenzar la revisión.</p>
+          </div>
+        )}
+
+        {/* --- MAIN CONTENT --- */}
+        {userData && (
+          <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <CandidateHeader user={userData} onRefresh={() => fetchCandidate(userData.code)} />
+
+            <Tabs
+              activeTab={activeTab}
+              onChange={setActiveTab}
+              tabs={[
+                { id: "profile", label: "Perfil & Pre-Screening", icon: <Icons.User className="w-4 h-4" /> },
+                { id: "technical", label: "Prueba Técnica", icon: <Icons.Target className="w-4 h-4" /> },
+                { id: "interview", label: "Entrevista & Feedback", icon: <Icons.MessageSquare className="w-4 h-4" /> }
+              ]}
+            />
+
+            <div className="grid grid-cols-1 gap-8">
+              {/* TAB 1: PROFILE */}
+              {activeTab === "profile" && (
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <Card title="Datos Generales" icon={<Icons.User className="w-5 h-5" />}>
+                    <dl className="space-y-1">
+                      <InfoRow label="Nombre" value={userData.name} />
+                      <InfoRow label="Email" value={userData.email || "N/A"} />
+                      <InfoRow label="Código" value={userData.code} copyable />
+                      <InfoRow label="Requisito" value={<Badge>{userData.requirements}</Badge>} />
+                      <InfoRow label="Etapa" value={userData.step} />
+                    </dl>
+                  </Card>
+
+                  {userData.evaluation_result && (
+                    <Card title="Resultados Screening" icon={<Icons.Target className="w-5 h-5" />}>
+                      <div className="mb-4 flex justify-between items-center">
+                        <span className="text-sm text-gray-500">Estado:</span>
+                        {userData.evaluation_result.valid ? <Badge variant="success">Aprobado</Badge> : <Badge variant="danger">Rechazado</Badge>}
+                      </div>
+                      {userData.evaluation_result.gaps?.length > 0 && (
+                        <div className="h-64 mt-4">
+                          <GapAnalysisRechart gaps={userData.evaluation_result.gaps} />
+                        </div>
+                      )}
+                    </Card>
+                  )}
+                </div>
+              )}
+
+              {/* TAB 2: TECHNICAL */}
+              {activeTab === "technical" && (
+                <div className="space-y-8">
+                  {userData.certification_result && (
+                    <CertificationAnalysisCard
+                      result={userData.certification_result}
+                      gaps={userData.evaluation_result?.gaps || []}
+                      questionsData={userData.questions}
+                    />
+                  )}
+
+                  {userData.challenge_result && (
+                    <ChallengeResultCard
+                      challenge={userData.challenge_result}
+                      certificationResult={userData.certification_result}
+                    />
+                  )}
+                </div>
+              )}
+
+              {/* TAB 3: INTERVIEW */}
+              {activeTab === "interview" && (
+                <InterviewFeedbackCard
+                  userData={userData}
+                  onUpdate={() => fetchCandidate(userData.code)}
+                  challenge={userData.challenge_result}
+                />
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* CREATE MODAL */}
+      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Crear Nuevo Candidato">
+        <CreateUserForm onClose={() => setIsModalOpen(false)} />
+      </Modal>
+
+    </div>
+  );
+}
+
+// --- 6. FEATURE COMPONENTS (Extracted for cleaner Main Page) ---
+
+const CreateUserForm: FC<{ onClose: () => void }> = ({ onClose }) => {
+  const [formData, setFormData] = useState({ name: "", email: "", requirements: "" });
+  const [code, setCode] = useState(() => Math.random().toString(16).substring(2, 10).toUpperCase());
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState<string | null>(null);
+
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    if (!formData.requirements) return alert("Selecciona un requisito");
+
     setLoading(true);
-    setUserData(null);
-    setError(null);
+    const [req, formId] = formData.requirements.split(":");
+
     try {
-      const response = await fetch(
-        `/api/user?code=${encodeURIComponent(code)}`
-      );
-      if (!response.ok) {
-        const errorData = await response
-          .json()
-          .catch(() => ({ message: response.statusText }));
-        throw new Error(
-          `Error ${response.status}: ${
-            errorData.message || "No se pudo obtener el usuario."
-          }`
-        );
-      }
-      const data = await response.json();
-      setUserData({
-        ...data,
-        evaluation_result: safeJsonParse(data.evaluation_result),
-        questions: safeJsonParse(data.questions),
-        certification_result: safeJsonParse(data.certification_result),
-        challenge_result: safeJsonParse(data.challenge_result),
+      const res = await fetch("/api/user", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...formData,
+          code,
+          step: "pre-screening",
+          requirements: req.toLowerCase(),
+          form_id: formId.toLowerCase()
+        })
       });
-    } catch (err) {
-      setError(
-        (err as Error).message || "Ocurrió un error al realizar la consulta."
-      );
+      if (!res.ok) throw new Error("Error creando usuario");
+
+      setSuccess(code);
+    } catch (e) {
+      alert("Error al crear candidato");
     } finally {
       setLoading(false);
     }
   };
 
+  if (success) {
+    return (
+      <div className="text-center py-8">
+        <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <Icons.Check className="w-8 h-8 text-green-600" />
+        </div>
+        <h3 className="text-xl font-bold text-gray-900 mb-2">¡Candidato Creado!</h3>
+        <p className="text-gray-500 mb-6">Comparte este código con el candidato:</p>
+        <div className="bg-gray-100 p-4 rounded-xl font-mono text-2xl font-bold tracking-wider mb-6 select-all">
+          {success}
+        </div>
+        <button onClick={onClose} className="w-full bg-gray-900 text-white py-3 rounded-xl font-bold">Cerrar</button>
+      </div>
+    );
+  }
+
   return (
-    <>
-      <header className="text-center mb-8 md:mb-12">
-        {/* --- MODIFICADO: Contenedor para título y botón --- */}
-        <div className="flex flex-col sm:flex-row justify-center items-center gap-4 mb-3">
-          <h1 className="text-4xl md:text-5xl font-extrabold text-gray-900 tracking-tight">
-            Portal de Revisión
-          </h1>
-          <button
-            onClick={onOpenCreateModal}
-            className="bg-teal-600 text-white font-bold px-5 py-3 rounded-lg hover:bg-teal-700 transition flex items-center gap-2 text-sm shadow-md"
-          >
-            <PlusIcon />
-            <span className="sm:inline">Nuevo Candidato</span>
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">Nombre</label>
+        <input required className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-teal-500 outline-none"
+          value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} />
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+        <input required type="email" className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-teal-500 outline-none"
+          value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} />
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Perfil Técnico</label>
+        <div className="grid grid-cols-1 gap-2">
+          {ALL_REQUIREMENTS.map(req => (
+            <button type="button" key={req} onClick={() => setFormData({ ...formData, requirements: req })}
+              className={`px-4 py-3 rounded-lg border text-left text-sm font-medium transition ${formData.requirements === req ? "border-teal-500 bg-teal-50 text-teal-700 ring-1 ring-teal-500" : "border-gray-200 hover:bg-gray-50"}`}>
+              {req}
+            </button>
+          ))}
+        </div>
+      </div>
+      <div className="pt-4">
+        <button disabled={loading} className="w-full bg-teal-600 text-white py-3 rounded-xl font-bold hover:bg-teal-700 transition flex justify-center">
+          {loading ? <Spinner /> : "Crear Candidato"}
+        </button>
+      </div>
+    </form>
+  );
+};
+
+// --- 4. SUB-COMPONENTS ---
+// ... (Previous sub-components like InfoRow, CandidateHeader can stay, but I'll redefine them to be sure or just assume they are there if I don't touch them. Wait, I am replacing from line 561? No, I should replace large chunks to ensure everything is back).
+
+// Let's redefine the missing types first
+type InterviewQuestion = {
+  id: string;
+  text: string;
+  guide: string;
+};
+
+type InterviewSection = {
+  id: string;
+  topic: string;
+  questions: InterviewQuestion[];
+};
+
+type InterviewPlan = {
+  sections: InterviewSection[];
+};
+
+// ... Restoring InterviewWizard ...
+const InterviewWizard: FC<{
+  plan: InterviewPlan;
+  onClose: () => void;
+  onSave: (history: any[]) => void;
+}> = ({ plan, onClose, onSave }) => {
+  const [currentSectionIndex, setCurrentSectionIndex] = useState(0);
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [history, setHistory] = useState<any[]>([]);
+
+  const currentSection = plan.sections[currentSectionIndex];
+  const currentQuestion = currentSection?.questions[currentQuestionIndex];
+
+  // Helper to finish interview
+  const finishInterview = (finalHistory: any[]) => {
+    onSave(finalHistory);
+  };
+
+  const handleDecision = (correct: boolean) => {
+    if (!currentSection || !currentQuestion) return;
+
+    // 1. Record Result
+    const stepRecord = {
+      section: currentSection.topic,
+      questionId: currentQuestion.id,
+      question: currentQuestion.text,
+      guide: currentQuestion.guide,
+      result: correct ? "Correcto" : "Incorrecto",
+      timestamp: new Date().toISOString(),
+    };
+
+    const newHistory = [...history, stepRecord];
+    setHistory(newHistory);
+
+    // 2. Logic Flow
+    if (correct) {
+      // If Correct -> Next Question in SAME Section
+      const nextQIndex = currentQuestionIndex + 1;
+      if (nextQIndex < currentSection.questions.length) {
+        setCurrentQuestionIndex(nextQIndex);
+      } else {
+        // Section Completed (All Correct or Mixed) -> Next Section
+        const nextSectionIndex = currentSectionIndex + 1;
+        if (nextSectionIndex < plan.sections.length) {
+          setCurrentSectionIndex(nextSectionIndex);
+          setCurrentQuestionIndex(0);
+        } else {
+          finishInterview(newHistory);
+        }
+      }
+    } else {
+      // If Incorrect -> Skip rest of section -> Next Section directly
+      const nextSectionIndex = currentSectionIndex + 1;
+      if (nextSectionIndex < plan.sections.length) {
+        setCurrentSectionIndex(nextSectionIndex);
+        setCurrentQuestionIndex(0);
+      } else {
+        finishInterview(newHistory);
+      }
+    }
+  };
+
+  if (!currentSection || !currentQuestion) {
+    return null; // Should trigger onSave/Close before this renders
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
+      <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full flex flex-col max-h-[90vh] overflow-hidden">
+        {/* Header */}
+        <div className="flex justify-between items-center p-6 border-b bg-gray-50">
+          <div>
+            <h2 className="text-xl font-bold text-gray-800">Modo Entrevista Interactiva</h2>
+            <div className="flex items-center gap-2 text-sm text-gray-500 mt-1">
+              <span className="font-semibold text-indigo-600 uppercase tracking-wider">{currentSection.topic}</span>
+              <span>•</span>
+              <span>Pregunta {currentQuestionIndex + 1} de {currentSection.questions.length}</span>
+            </div>
+          </div>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition">
+            ✕
           </button>
         </div>
-        <p className="mt-3 text-lg text-gray-500 max-w-2xl mx-auto">
-          Busca y selecciona un candidato para ver sus resultados.
-        </p>
-      </header>
-      <main>
-        <div className="max-w-6xl mx-auto mb-8">
-          <div className="flex flex-col sm:flex-row items-center gap-3 bg-white p-2 rounded-xl shadow-md border">
-            <div className="w-full space-y-2">
-              <input
-                type="text"
-                placeholder="Buscar por nombre o código..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full px-4 py-3 text-base border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition"
-                aria-label="Buscar candidato"
-                disabled={listLoading}
-              />
 
-              <select
-                value={code}
-                onChange={(e) => {
-                  setCode(e.target.value);
-                  setUserData(null);
-                  setError(null);
-                }}
-                disabled={listLoading}
-                className="w-full px-4 py-3 text-lg border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition disabled:bg-gray-100 disabled:cursor-not-allowed"
-                aria-label="Seleccionar candidato"
-              >
-                {/* Tu opción de placeholder (se mantiene igual) */}
-                <option value="">
-                  {listLoading
-                    ? "Cargando..."
-                    : "-- Selecciona un candidato --"}
-                </option>
+        {/* Content */}
+        <div className="p-8 flex-1 overflow-y-auto">
+          {/* Progress Bar within Section */}
+          <div className="w-full bg-gray-200 rounded-full h-1.5 mb-6">
+            <div
+              className="bg-indigo-600 h-1.5 rounded-full transition-all duration-300"
+              style={{ width: `${((currentQuestionIndex + 1) / currentSection.questions.length) * 100}%` }}
+            ></div>
+          </div>
 
-                {Object.entries(
-                  filteredUsers.reduce((acc: Record<string, UserData[]>, user) => {
-                    const key =
-                      user.requirements || "Sin Requerimiento Asignado";
+          <div className="mb-8">
+            <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
+              Pregunta Actual
+            </h3>
+            <p className="text-2xl font-medium text-gray-900 leading-snug">
+              {currentQuestion.text}
+            </p>
+          </div>
 
-                    if (!acc[key]) {
-                      acc[key] = [];
-                    }
-                    acc[key].push(user);
-
-                    return acc;
-                  }, {})
-                )
-                  .sort((a, b) => a[0].localeCompare(b[0])) // Opcional: ordena los grupos alfabéticamente
-                  .map(([requirement, usersInGroup]) => (
-                    <optgroup key={requirement} label={requirement}>
-                      {usersInGroup.map((user) => (
-                        <option key={user.code} value={user.code}>
-                          {user.name} [{user.requirements} {"->"} {user.form_id}
-                          ]
-                        </option>
-                      ))}
-                    </optgroup>
-                  ))}
-                {/* FIN DEL CAMBIO */}
-
-                {/* Tu lógica para 'no hay resultados' (se mantiene igual) */}
-                {!listLoading && filteredUsers.length === 0 && (
-                  <option value="" disabled>
-                    {searchQuery
-                      ? "No se encontraron coincidencias."
-                      : "No hay candidatos."}
-                  </option>
-                )}
-              </select>
-            </div>
-
-            <button
-              type="button"
-              onClick={handleFetchUser}
-              disabled={loading || listLoading || !code}
-              className="w-full sm:w-auto bg-blue-600 text-white font-bold px-6 py-3 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:bg-blue-300 disabled:cursor-not-allowed transition flex items-center justify-center"
-            >
-              {loading ? (
-                <>
-                  <LoadingSpinner /> Buscando...
-                </>
-              ) : (
-                "Consultar"
-              )}
-            </button>
+          <div className="bg-indigo-50 p-5 rounded-xl border border-indigo-100">
+            <h4 className="text-xs font-bold text-indigo-800 uppercase mb-2">Guía para el Entrevistador</h4>
+            <p className="text-sm text-indigo-900 leading-relaxed">{currentQuestion.guide}</p>
           </div>
         </div>
 
-        {listError && (
-          <div
-            className="max-w-2xl mx-auto bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-lg"
-            role="alert"
+        {/* Footer / Controls */}
+        <div className="p-6 border-t bg-gray-50 flex gap-4">
+          <button
+            onClick={() => handleDecision(false)}
+            className="flex-1 py-4 bg-white border-2 border-red-100 hover:border-red-400 hover:bg-red-50 text-red-700 font-bold rounded-xl transition flex flex-col items-center gap-1 group shadow-sm hover:shadow-md"
           >
-            <p className="font-bold">Error al Cargar Lista</p>
-            <p>{listError}</p>
-          </div>
-        )}
-        {error && (
-          <div
-            className="max-w-2xl mx-auto bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-lg mt-4"
-            role="alert"
-          >
-            <p className="font-bold">Error</p>
-            <p>{error}</p>
-          </div>
-        )}
+            <span className="text-2xl mb-1">❌</span>
+            <span className="text-sm">Incorrecto / No Sabe</span>
+            <span className="text-xs text-red-400 font-normal group-hover:text-red-600">(Salta al siguiente tema)</span>
+          </button>
 
-        {userData && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-6 max-w-6xl mx-auto">
-            <div className="space-y-8">
-              <UserProfileCard data={userData} />
-              {userData.evaluation_result && (
-                <EvaluationResultCard result={userData.evaluation_result} />
-              )}
-              {userData.challenge_result && (
-                <InterviewFeedbackCard userData={userData} onUpdate={handleFetchUser} />
-              )}
-            </div>
-            <div className="space-y-8">
-              {userData.questions?.questions?.length && (
-                <QuestionsCard
-                  questionsData={userData.questions}
-                  certificationResult={userData.certification_result}
-                />
-              )}
-              {userData.certification_result && (
-                <CertificationAnalysisCard
-                  result={userData.certification_result}
-                />
-              )}
-              {userData.challenge_result && (
-                <ChallengeResultCard result={userData.challenge_result} />
+          <button
+            onClick={() => handleDecision(true)}
+            className="flex-1 py-4 bg-white border-2 border-green-100 hover:border-green-400 hover:bg-green-50 text-green-700 font-bold rounded-xl transition flex flex-col items-center gap-1 group shadow-sm hover:shadow-md"
+          >
+            <span className="text-2xl mb-1">✅</span>
+            <span className="text-sm">Correcto / Satisfactorio</span>
+            <span className="text-xs text-green-400 font-normal group-hover:text-green-600">(Profundizar en tema)</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ... Restoring MarkdownRenderer (Simpler version) ...
+const MarkdownRenderer: FC<{ content: string }> = ({ content }) => {
+  const htmlContent = content
+    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\n/g, '<br />')
+    .replace(/- (.*?)<br \/>/g, '<li>$1</li>');
+
+  return <div dangerouslySetInnerHTML={{ __html: htmlContent }} />;
+};
+
+
+// ... Restoring CertificationAnalysisCard ...
+const CertificationAnalysisCard: FC<{
+  result: CertificationResult;
+  gaps: EvaluationGap[];
+  questionsData?: { questions: Question[] };
+}> = ({ result, gaps, questionsData }) => {
+  const [analyzing, setAnalyzing] = useState(false);
+  const [analysis, setAnalysis] = useState<string | null>(null);
+  const [showDetails, setShowDetails] = useState(false);
+
+  const handleAnalyze = async () => {
+    setAnalyzing(true);
+    try {
+      const response = await fetch("/api/certification/analysis", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ result: { ...result, gaps } }),
+      });
+      const data = await response.json();
+      if (data.analysis) {
+        setAnalysis(data.analysis);
+      }
+    } catch (error) {
+      console.error("Error analyzing certification:", error);
+      alert("Error generando el análisis.");
+    } finally {
+      setAnalyzing(false);
+    }
+  };
+
+  return (
+    <>
+      <Card title="Certificación Técnica" icon={<Icons.Target className="w-5 h-5 text-indigo-500" />} className="border-t-4 border-t-indigo-500">
+        <div className="flex flex-col md:flex-row gap-8 items-center justify-between mb-6">
+          <div className="text-center md:text-left">
+            <p className="text-gray-500 text-sm font-bold uppercase tracking-wide">Puntaje Final</p>
+            <p className="text-5xl font-black text-indigo-600 my-2">
+              {result.score} <span className="text-2xl text-gray-300 font-normal">/ {result.total}</span>
+            </p>
+          </div>
+          <div className="flex-1 bg-indigo-50 p-4 rounded-lg text-indigo-900 text-sm leading-relaxed border border-indigo-100">
+            {result.analysis || "Sin análisis preliminar automático."}
+          </div>
+        </div>
+
+        {/* Actions & Analysis */}
+        <div className="flex flex-col gap-2 border-t pt-4">
+          <div className="flex justify-between items-center">
+            <h4 className="font-bold text-gray-700">Análisis y Detalles</h4>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setShowDetails(true)}
+                className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors shadow-sm"
+              >
+                <Icons.Search className="w-4 h-4" /> Ver Detalles
+              </button>
+
+              {!analysis && (
+                <button
+                  onClick={handleAnalyze}
+                  disabled={analyzing}
+                  className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 disabled:opacity-50 transition-colors shadow-sm"
+                >
+                  {analyzing ? <Spinner /> : <><Icons.Sparkles className="w-4 h-4" /> Analizar Brechas</>}
+                </button>
               )}
             </div>
           </div>
-        )}
-      </main>
+
+          {analysis && (
+            <div className="mt-4 bg-slate-50 p-4 rounded-xl border border-slate-200 animate-in fade-in">
+              <div className="flex items-center gap-2 mb-2">
+                <Icons.Sparkles className="text-indigo-600 w-4 h-4" />
+                <h5 className="font-bold text-gray-800 text-sm">Resumen Ejecutivo de Brechas</h5>
+              </div>
+              <div className="prose prose-sm max-w-none text-gray-700">
+                <MarkdownRenderer content={analysis} />
+              </div>
+            </div>
+          )}
+        </div>
+      </Card>
+
+      {/* Details Modal */}
+      <Modal isOpen={showDetails} onClose={() => setShowDetails(false)} title="Detalle de Respuestas">
+        <div className="space-y-4">
+          {questionsData?.questions.map((q) => {
+            // Find the result matching this question ID
+            const detail = result.details.find(d => d.questionId === q.id);
+            const isCorrect = detail?.correct;
+
+            return (
+              <div key={q.id} className={`p-4 rounded-lg border ${isCorrect ? 'bg-green-50 border-green-100' : 'bg-red-50 border-red-100'}`}>
+                <p className="font-bold text-gray-800 text-sm mb-2">{q.question}</p>
+
+                {detail ? (
+                  <div className="text-xs space-y-1">
+                    <div className="flex gap-2">
+                      <span className="font-semibold text-gray-500">Respuesta:</span>
+                      <span className={isCorrect ? "text-green-700 font-bold" : "text-red-700 font-bold"}>
+                        {detail.chosen || "Sin responder"}
+                      </span>
+                    </div>
+                    {!isCorrect && (
+                      <div className="flex gap-2">
+                        <span className="font-semibold text-gray-500">Correcta:</span>
+                        <span className="text-green-700 font-bold">{q.correctAnswer}</span>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <p className="text-xs text-gray-400 italic">No se encontró respuesta registrada.</p>
+                )}
+              </div>
+            );
+          })}
+          {!questionsData && <p className="text-center text-gray-500">No hay datos de preguntas disponibles.</p>}
+        </div>
+        <div className="mt-6 flex justify-end">
+          <button onClick={() => setShowDetails(false)} className="bg-gray-800 text-white px-4 py-2 rounded-lg font-bold">Cerrar</button>
+        </div>
+      </Modal>
     </>
   );
 };
 
-const InterviewFeedbackCard: FC<{ userData: UserData; onUpdate: () => void }> = ({
-  userData,
-  onUpdate,
-}) => {
+// --- New ChallengeResultCard with AI Context Logic ---
+const ChallengeResultCard: FC<{
+  challenge: ChallengeResult;
+  certificationResult?: CertificationResult;
+}> = ({ challenge, certificationResult }) => {
+  const [aiData, setAiData] = useState<{
+    technicalContext: string;
+    successIndicators: string[];
+    suggestedQuestions: string[];
+  } | null>(null);
+  const [aiLoading, setAiLoading] = useState(false);
+
+  const handleAskAI = async () => {
+    setAiLoading(true);
+    try {
+      const response = await fetch("/api/challenge/assistant", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          challenge: challenge,
+          certification: certificationResult,
+        }),
+      });
+      if (!response.ok) throw new Error("Error fetching AI data");
+      const data = await response.json();
+      setAiData(data);
+    } catch (error) {
+      console.error("Failed to fetch AI assistant data", error);
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
+  return (
+    <Card title="Reto (Question Challenge)" icon={<Icons.Sparkles className="w-5 h-5 text-purple-500" />}
+      action={
+        !aiData && (
+          <button
+            onClick={handleAskAI}
+            disabled={aiLoading}
+            className="bg-purple-600 text-white text-xs font-bold px-3 py-2 rounded hover:bg-purple-700 transition disabled:bg-purple-300 flex items-center gap-2 shadow-sm"
+          >
+            {aiLoading ? <Spinner /> : "Analizar Contexto"}
+          </button>
+        )
+      }
+    >
+      <h3 className="text-lg font-bold mb-2">{challenge.title}</h3>
+      <div className="prose prose-sm max-w-none bg-gray-50 p-4 rounded-lg border mb-4" dangerouslySetInnerHTML={{ __html: challenge.description }} />
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <h4 className="font-bold text-xs uppercase text-gray-500 mb-2">Criterios</h4>
+          <ul className="list-disc list-inside text-sm text-gray-700 space-y-1">
+            {challenge.evaluationCriteria.map((c, i) => <li key={i}>{c}</li>)}
+          </ul>
+        </div>
+        <div>
+          <h4 className="font-bold text-xs uppercase text-gray-500 mb-2">Cobertura Técnica</h4>
+          <div className="flex flex-wrap gap-2 mb-4">
+            {challenge.coverages.map((c, i) => <Badge key={i} variant="neutral">{c}</Badge>)}
+          </div>
+
+          {challenge.coverageQuestions && challenge.coverageQuestions.length > 0 && (
+            <>
+              <h4 className="font-bold text-xs uppercase text-indigo-500 mb-2">Preguntas Sugeridas (IA)</h4>
+              <ul className="list-disc list-inside text-sm text-indigo-900 space-y-1 bg-indigo-50 p-3 rounded-lg border border-indigo-100">
+                {challenge.coverageQuestions.map((q, i) => <li key={i}>{q}</li>)}
+              </ul>
+            </>
+          )}
+        </div>
+      </div>
+
+      {/* AI Context Display (Moved Here) */}
+      {aiData && (
+        <div className="mt-6 border-t pt-4 animate-in fade-in duration-300">
+          <h4 className="font-bold text-gray-800 text-sm mb-4 flex items-center gap-2">
+            <span className="text-xl">🤖</span> Análisis de Contexto & IA
+          </h4>
+          <div className="bg-purple-50 p-4 rounded-lg border border-purple-100 space-y-4">
+            <div>
+              <h5 className="font-semibold text-purple-900 text-sm mb-1 uppercase tracking-wider">Contexto Técnico</h5>
+              <p className="text-sm text-purple-800 leading-relaxed">{aiData.technicalContext}</p>
+            </div>
+            <div>
+              <h5 className="font-semibold text-green-800 text-sm mb-2 uppercase tracking-wider">Indicadores de Éxito</h5>
+              <ul className="space-y-1">
+                {aiData.successIndicators?.map((indicator, idx) => (
+                  <li key={idx} className="text-sm text-purple-900 flex items-start gap-2">
+                    <span className="text-green-600 font-bold">✓</span> {indicator}
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div>
+              <h5 className="font-semibold text-purple-900 text-sm mb-2 uppercase tracking-wider">Preguntas de Profundización</h5>
+              <ul className="list-disc list-inside space-y-1">
+                {aiData.suggestedQuestions.map((q, idx) => (
+                  <li key={idx} className="text-sm text-purple-800">{q}</li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </div>
+      )}
+    </Card>
+  );
+};
+
+
+// ... Restoring Full InterviewFeedbackCard (UPDATED: Removed AI Context) ...
+const InterviewFeedbackCard: FC<{
+  userData: UserData;
+  onUpdate: () => void;
+  challenge?: ChallengeResult;
+  certificationResult?: CertificationResult;
+}> = ({ userData, onUpdate, challenge, certificationResult }) => {
   const [feedback, setFeedback] = useState(userData.interview_feedback || "");
   const [status, setStatus] = useState(userData.interview_status || "");
   const [technicalLevel, setTechnicalLevel] = useState(userData.technical_level || "");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
-  // Sincronizar estado local si userData cambia
+  // Interview Plan State
+  const [interviewPlan, setInterviewPlan] = useState<InterviewPlan | null>(null);
+  const [generatingPlan, setGeneratingPlan] = useState(false);
+
+  // Sync state
   useEffect(() => {
     setFeedback(userData.interview_feedback || "");
     setStatus(userData.interview_status || "");
@@ -709,364 +985,55 @@ const InterviewFeedbackCard: FC<{ userData: UserData; onUpdate: () => void }> = 
     }
   };
 
-  return (
-    <AccordionCard title="Feedback de Entrevista" icon={<MessageSquareIcon />} startOpen={!!userData.interview_feedback}>
-      <form onSubmit={handleSubmit} className="space-y-4">
-        {userData.interviewer_name && (
-          <div className="text-xs text-gray-400 mb-2 italic">
-            Último feedback por: {userData.interviewer_name}
-          </div>
-        )}
-        
-        <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-1">Feedback de la Entrevista</label>
-          <textarea
-            value={feedback}
-            onChange={(e) => setFeedback(e.target.value)}
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 min-h-[120px] text-sm"
-            placeholder="Escribe el feedback detallado de la entrevista técnica..."
-            required
-          />
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1">Estado Final</label>
-            <select
-              value={status}
-              onChange={(e) => setStatus(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 text-sm"
-              required
-            >
-              <option value="">-- Selecciona --</option>
-              <option value="pasa">✅ Pasa</option>
-              <option value="no_pasa">❌ No Pasa</option>
-              <option value="en_espera">⏳ En Espera</option>
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1">Nivel Técnico Asignado</label>
-            <select
-              value={technicalLevel}
-              onChange={(e) => setTechnicalLevel(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 text-sm"
-              required
-            >
-              <option value="">-- Selecciona --</option>
-              <option value="Junior">Junior</option>
-              <option value="Junior Advanced">Junior Advanced</option>
-              <option value="Semi Senior">Semi Senior</option>
-              <option value="Semi Senior Advanced">Semi Senior Advanced</option>
-              <option value="Senior">Senior</option>
-            </select>
-          </div>
-        </div>
-
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full bg-indigo-600 text-white font-bold px-4 py-3 rounded-lg hover:bg-indigo-700 transition disabled:bg-indigo-300 flex justify-center items-center shadow-md active:transform active:scale-95"
-        >
-          {loading ? <LoadingSpinner /> : "Guardar Feedback"}
-        </button>
-
-        {message && (
-          <div className={`p-3 rounded-lg text-sm text-center font-medium ${message.type === "success" ? "bg-green-50 text-green-700 border border-green-200" : "bg-red-50 text-red-700 border border-red-200"}`}>
-            {message.text}
-          </div>
-        )}
-      </form>
-    </AccordionCard>
-  );
-};
-
-const UserProfileCard: FC<{ data: UserData }> = ({ data }) => (
-  <AccordionCard
-    title="Información General"
-    icon={<UserIcon />}
-    startOpen={true}
-  >
-    <dl>
-      <InfoRow label="Nombre" value={data.name || "N/A"} />
-      <InfoRow label="Código" value={data.code || "N/A"} />
-      <InfoRow label="Requisitos" value={data.requirements || "N/A"} />
-      <InfoRow label="Paso Actual" value={data.step || "N/A"} />
-      <InfoRow label="ID de Formulario" value={data.form_id || "N/A"} />
-    </dl>
-
-    <div className="mt-4 pt-4 border-t border-gray-100">
-      <button
-        onClick={() => window.open(`/login?code=${data.code}`, "_blank")}
-        className="w-full flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md text-blue-700 bg-blue-100 hover:bg-blue-200 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-      >
-        Abrir Link del Candidato
-        <ExternalLinkIcon />
-      </button>
-    </div>
-  </AccordionCard>
-);
-
-const EvaluationResultCard: FC<{ result: EvaluationResult }> = ({ result }) => (
-  <AccordionCard
-    title="Resultados de Pre-Screening"
-    icon={<CheckCircleIcon />}
-    startOpen={true}
-  >
-    <dl>
-      <InfoRow label="ID Formulario" value={result.formId || "N/A"} />
-      <InfoRow
-        label="Resultado"
-        value={
-          result.valid ? (
-            <span className="font-bold text-green-600 bg-green-100 px-2 py-1 rounded-full">
-              Aprobado
-            </span>
-          ) : (
-            <span className="font-bold text-red-600 bg-red-100 px-2 py-1 rounded-full">
-              No Aprobado
-            </span>
-          )
-        }
-      />
-    </dl>
-    {result.answers && (
-      <div className="mt-6">
-        <h4 className="font-semibold text-gray-700 mb-2">Puntajes</h4>
-        <dl>
-          {Object.entries(result.answers).map(([skill, score]) => (
-            <InfoRow key={skill} label={skill} value={String(score)} />
-          ))}
-        </dl>
-      </div>
-    )}
-    {result.gaps?.length > 0 && (
-      <>
-        <div className="mt-6">
-          <h4 className="font-semibold text-gray-700 mb-2">Brechas</h4>
-          <dl>
-            {result.gaps.map((gap, index) => (
-              <InfoRow
-                key={index}
-                label={gap.skill}
-                value={`Evaluado: ${gap.got} / ${gap.required}`}
-              />
-            ))}
-          </dl>
-        </div>
-        <div className="mt-6">
-          <h4 className="font-semibold text-gray-700 mb-4">Análisis Gráfico</h4>
-          <div className="w-full h-64 md:h-80">
-            <GapAnalysisRechart gaps={result.gaps} />
-          </div>
-        </div>
-      </>
-    )}
-  </AccordionCard>
-);
-
-const CertificationAnalysisCard: FC<{ result: CertificationResult }> = ({
-  result,
-}) => (
-  <AccordionCard
-    title="Análisis de Certificación"
-    icon={<TargetIcon />}
-    startOpen={true}
-  >
-    <div className="text-center mb-4">
-      <p className="text-lg text-gray-600">Resultado</p>
-      <p className="text-4xl font-bold text-blue-600">
-        {result.score} / {result.total}
-      </p>
-    </div>
-    <h4 className="font-semibold text-gray-700 mb-2">Análisis Detallado:</h4>
-    <p className="text-sm text-gray-600 bg-gray-50 p-3 rounded-md border">
-      {result.analysis || "No hay análisis disponible."}
-    </p>
-  </AccordionCard>
-);
-
-const QuestionsCard: FC<{
-  questionsData: { questions: Question[] };
-  certificationResult?: CertificationResult;
-}> = ({ questionsData, certificationResult }) => (
-  <AccordionCard title="Preguntas de Certificación" icon={<HelpCircleIcon />}>
-    <div className="space-y-4">
-      {questionsData.questions.map((q) => {
-        const res = certificationResult?.details.find(
-          (data) => data.questionId === q.id
-        );
-        return (
-          <div key={q.id} className="p-3 bg-gray-50 rounded-lg border">
-            <p className="font-medium text-gray-800">{q.question}</p>
-            {res &&
-              (res.correct ? (
-                <p className="text-sm text-green-700 mt-1">
-                  Respuesta Correcta:{" "}
-                  <span className="pl-2 font-semibold">
-                    ✔️ {q.correctAnswer}
-                  </span>
-                </p>
-              ) : (
-                <p className="text-sm text-red-700 mt-1">
-                  Respuesta Incorrecta:{" "}
-                  <span className="pl-2 font-semibold">❌ {res.chosen}</span> |{" "}
-                  <span className="text-green-700">✔️ {q.correctAnswer}</span>
-                </p>
-              ))}
-          </div>
-        );
-      })}
-    </div>
-  </AccordionCard>
-);
-
-const ChallengeResultCard: FC<{ result: ChallengeResult }> = ({ result }) => (
-  <AccordionCard
-    title="Pregunta Desafiante"
-    icon={<TargetIcon />}
-    startOpen={true}
-  >
-    <div>
-      <h3 className="font-bold text-lg text-gray-800 mb-2">{result.title}</h3>
-      <p className="text-sm text-gray-600 mb-4 border-l-2 border-blue-500 pl-3 italic">
-        {result.description}
-      </p>
-      {result.coverages?.length > 0 && (
-        <InfoList title="Coberturas:" items={result.coverages} />
-      )}
-      {result.evaluationCriteria?.length > 0 && (
-        <InfoList
-          title="Criterios del Reto:"
-          items={result.evaluationCriteria}
-        />
-      )}
-      {result.coverageQuestions?.length > 0 && (
-        <InfoList title="Preguntas Base:" items={result.coverageQuestions} />
-      )}
-    </div>
-  </AccordionCard>
-);
-
-const TagSelector: FC<{
-  label: string;
-  options: readonly string[];
-  selected: string;
-  onToggle: (option: string) => void;
-}> = ({ label, options, selected, onToggle }) => {
-  return (
-    <div>
-      <label className="block text-sm font-semibold text-gray-700 mb-2">
-        {label}
-      </label>
-      <div className="flex flex-wrap gap-2">
-        {options.map((option) => {
-          const isSelected = selected === option;
-          return (
-            <button
-              type="button"
-              key={option}
-              onClick={() => onToggle(option)}
-              className={`px-4 py-2 text-sm font-medium rounded-full border transition-all duration-200 ${
-                isSelected
-                  ? "bg-blue-600 text-white border-blue-600 shadow"
-                  : "bg-white text-gray-700 border-gray-300 hover:bg-gray-100"
-              }`}
-            >
-              {option}
-            </button>
-          );
-        })}
-      </div>
-    </div>
-  );
-};
-
-// --- MODIFICADO: Removido el header y main ---
-const CreateUserPage: FC = () => {
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [selectedRequirements, setSelectedRequirements] = useState<string>("");
-  const [step, setStep] = useState("pre-screening");
-  const [code, setCode] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<{
-    message: string;
-    code: string;
-  } | null>(null);
-
-  const generateCode = () => {
-    const newCode = Math.random().toString(16).substring(2, 10).toUpperCase();
-    setCode(newCode);
-  };
-
-  useEffect(() => {
-    generateCode();
-  }, []);
-
-  const handleRequirementToggle = (req: string) => {
-    setSelectedRequirements(req);
-  };
-
-  const handleCreateUser = async (e: FormEvent) => {
-    e.preventDefault();
-    if (!name || !code) {
-      setError("El nombre y el código son obligatorios.");
-      return;
-    }
-    if (!selectedRequirements) {
-      setError("Debes seleccionar el requisito.");
-      return;
-    }
-
-    setLoading(true);
-    setError(null);
-    setSuccess(null);
-
-    const requirements = selectedRequirements.split(":")[0].toLocaleLowerCase();
-    const form_id = selectedRequirements.split(":")[1].toLocaleLowerCase();
-
-    const payload = {
-      name,
-      email,
-      code,
-      step,
-      requirements: requirements,
-      form_id: form_id,
-    };
-
+  const handleStartInterview = async () => {
+    if (!challenge) return;
+    setGeneratingPlan(true);
     try {
-      const response = await fetch("/api/user", {
+      const response = await fetch("/api/challenge/interview-tree", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({
+          challengeTitle: challenge.title,
+          challengeDescription: challenge.description,
+        }),
       });
 
-      if (!response.ok) {
-        const errorData = await response
-          .json()
-          .catch(() => ({ message: response.statusText }));
-        throw new Error(
-          `Error ${response.status}: ${
-            errorData.message || "No se pudo crear el usuario."
-          }`
-        );
-      }
+      if (!response.ok) throw new Error("Failed to generate plan");
+      const plan = await response.json();
+      setInterviewPlan(plan);
+    } catch (error) {
+      console.error(error);
+      alert("Error iniciando el modo entrevista.");
+    } finally {
+      setGeneratingPlan(false);
+    }
+  };
 
-      setSuccess({
-        message: `El usuario "${name}" ha sido creado exitosamente con el código ${code}. Por favor, envía este código al candidato para que pueda realizar la prueba.`,
-        code: code,
+  const handleInterviewSave = async (history: any[]) => {
+    setInterviewPlan(null);
+    setLoading(true);
+    setMessage({ type: "success", text: "Generando feedback con IA..." });
+
+    try {
+      const response = await fetch("/api/challenge/interview-feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          history,
+          candidateName: userData.name
+        })
       });
 
-      setName("");
-      setEmail("");
-      setSelectedRequirements("");
-      setStep("pre-screening");
-      generateCode();
-    } catch (err) {
-      setError(
-        (err as Error).message || "Ocurrió un error al crear el usuario."
-      );
+      if (!response.ok) throw new Error("Error generando feedback");
+      const data = await response.json();
+
+      const newFeedback = (feedback ? feedback + "\n\n" : "") + data.feedback;
+      setFeedback(newFeedback);
+      setMessage({ type: "success", text: "Feedback generado. Revisa y guarda." });
+
+    } catch (err: any) {
+      console.error(err);
+      setMessage({ type: "error", text: "Error generando feedback IA: " + err.message });
     } finally {
       setLoading(false);
     }
@@ -1074,171 +1041,97 @@ const CreateUserPage: FC = () => {
 
   return (
     <>
-      <Card>
-        <CardTitle icon={<UserPlusIcon />}>Datos del Candidato</CardTitle>
-        <form onSubmit={handleCreateUser} className="space-y-6 mt-4">
-          <div>
-            <label
-              htmlFor="name"
-              className="block text-sm font-semibold text-gray-700 mb-1"
-            >
-              Nombre Completo
-            </label>
-            <input
-              type="text"
-              id="name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="w-full px-4 py-2 text-base border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-              required
-            />
-          </div>
-          <div>
-            <label
-              htmlFor="email"
-              className="block text-sm font-semibold text-gray-700 mb-1"
-            >
-              Correo Electrónico
-            </label>
-            <input
-              type="email"
-              id="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-2 text-base border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-              required
-            />
-          </div>
-          <div>
-            <label
-              htmlFor="code"
-              className="block text-sm font-semibold text-gray-700 mb-1"
-            >
-              Código Único (Generado)
-            </label>
-            <div className="flex items-center gap-2">
-              <input
-                type="text"
-                id="code"
-                value={code}
-                readOnly
-                className="w-full px-4 py-2 text-base border border-gray-300 rounded-lg bg-gray-100 cursor-not-allowed"
-              />
-              <button
-                type="button"
-                onClick={generateCode}
-                className="p-2 text-gray-600 hover:text-blue-600 bg-white border border-gray-300 rounded-lg"
-                title="Generar nuevo código"
-              >
-                <RefreshCwIcon />
-              </button>
+      <Card title="Evaluación del Entrevistador" icon={<Icons.MessageSquare className="w-5 h-5" />}>
+        {/* AI Controls Header */}
+        <div className="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-100 flex flex-col md:flex-row justify-between items-center gap-4">
+          <div className="flex items-center gap-2">
+            <span className="text-2xl">🤖</span>
+            <div>
+              <h4 className="font-bold text-gray-800 text-sm">Asistente de Entrevista</h4>
+              <p className="text-xs text-gray-500">Herramientas de IA para el reclutador</p>
             </div>
           </div>
-          <TagSelector
-            label="Requisitos"
-            options={ALL_REQUIREMENTS}
-            selected={selectedRequirements}
-            onToggle={handleRequirementToggle}
-          />
-          <div>
-            <label
-              htmlFor="step"
-              className="block text-sm font-semibold text-gray-700 mb-1"
+          <div className="flex gap-2">
+            <button
+              onClick={handleStartInterview}
+              disabled={generatingPlan || loading || !challenge}
+              className="bg-teal-600 text-white text-xs font-bold px-3 py-2 rounded hover:bg-teal-700 transition disabled:bg-teal-300 flex items-center gap-2 shadow-sm"
             >
-              Paso Actual
-            </label>
-            <input
-              type="text"
-              id="step"
-              value={step}
-              onChange={(e) => setStep(e.target.value)}
-              className="w-full px-4 py-2 text-base border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+              {generatingPlan ? <Spinner /> : <><Icons.Sparkles className="w-3 h-3" /> Modo Guía (Wizard)</>}
+            </button>
+          </div>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-1">Feedback de la Entrevista</label>
+            <textarea
+              value={feedback}
+              onChange={(e) => setFeedback(e.target.value)}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 min-h-[120px] text-sm font-mono"
+              placeholder="Escribe el feedback detallado o usa el Asistente de Entrevista para generarlo..."
+              required
             />
           </div>
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-teal-600 text-white font-bold px-6 py-3 rounded-lg hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 disabled:bg-teal-300 disabled:cursor-not-allowed transition flex items-center justify-center text-lg"
-          >
-            {loading ? (
-              <>
-                <LoadingSpinner /> Creando...
-              </>
-            ) : (
-              "Crear Candidato"
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1">Estado Final</label>
+              <select
+                value={status}
+                onChange={(e) => setStatus(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 text-sm"
+                required
+              >
+                <option value="">-- Selecciona --</option>
+                <option value="pasa">✅ Pasa</option>
+                <option value="no_pasa">❌ No Pasa</option>
+                <option value="en_espera">⏳ En Espera</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1">Nivel Técnico Asignado</label>
+              <select
+                value={technicalLevel}
+                onChange={(e) => setTechnicalLevel(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 text-sm"
+                required
+              >
+                <option value="">-- Selecciona --</option>
+                <option value="Junior">Junior</option>
+                <option value="Junior Advanced">Junior Advanced</option>
+                <option value="Semi Senior">Semi Senior</option>
+                <option value="Semi Senior Advanced">Semi Senior Advanced</option>
+                <option value="Senior">Senior</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="flex justify-between items-center">
+            {message && (
+              <div className={`px-3 py-2 rounded-lg text-sm font-medium ${message.type === "success" ? "bg-green-50 text-green-700" : "bg-red-50 text-red-700"}`}>
+                {message.text}
+              </div>
             )}
-          </button>
+            <button
+              type="submit"
+              disabled={loading}
+              className="bg-indigo-600 text-white font-bold px-6 py-2 rounded-lg hover:bg-indigo-700 transition disabled:bg-indigo-300 flex items-center shadow-md ml-auto"
+            >
+              {loading ? <Spinner /> : "Guardar Feedback"}
+            </button>
+          </div>
         </form>
       </Card>
 
-      {error && (
-        <div
-          className="mt-6 bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-lg"
-          role="alert"
-        >
-          <p className="font-bold">Error</p>
-          <p>{error}</p>
-        </div>
-      )}
-
-      {success && (
-        <div
-          className="mt-6 bg-green-100 border-l-4 border-green-500 text-green-700 p-4 rounded-lg"
-          role="alert"
-        >
-          <p className="font-bold">Éxito</p>
-          <p>{success.message}</p>
-          <button
-            onClick={() => window.open(`/login?code=${success.code}`, "_blank")}
-            className="mt-3 inline-flex items-center px-3 py-2 bg-green-600 text-white text-sm font-medium rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
-          >
-            Abrir Link del Candidato
-            <ExternalLinkIcon />
-          </button>
-        </div>
+      {/* Render Wizard Modal if Plan exists */}
+      {interviewPlan && (
+        <InterviewWizard
+          plan={interviewPlan}
+          onClose={() => setInterviewPlan(null)}
+          onSave={handleInterviewSave}
+        />
       )}
     </>
   );
 };
-
-// --- MODIFICADO: Gestiona el estado del modal ---
-export default function App() {
-  const { status } = useSession();
-  const router = useRouter();
-
-  // Estado para controlar la visibilidad del modal
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const openModal = () => setIsModalOpen(true);
-  const closeModal = () => setIsModalOpen(false);
-
-  useEffect(() => {
-    console.log("Auth status:", status);
-    if (status === "unauthenticated") {
-      router.push("/admin/sign-in");
-    }
-  }, [status, router]);
-
-  if (status === "loading" || status === "unauthenticated") {
-    return <div className="bg-gray-50 min-h-screen"></div>;
-  }
-
-  return (
-    <div className="bg-gray-50 min-h-screen font-sans text-gray-800">
-      <div className="container mx-auto px-4 py-8 md:py-12">
-        {/* Removido el grid de 2 columnas */}
-        <div>
-          <ReviewUserPage onOpenCreateModal={openModal} />
-        </div>
-      </div>
-
-      {/* Renderiza el Modal fuera del layout principal */}
-      <Modal
-        isOpen={isModalOpen}
-        onClose={closeModal}
-        title="Crear Nuevo Candidato"
-      >
-        <CreateUserPage />
-      </Modal>
-    </div>
-  );
-}

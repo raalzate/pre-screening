@@ -125,6 +125,29 @@ export default function ChallengeContainer({
     return challenge.mermaid.replace(/```mermaid|```/g, "").trim();
   }, [challenge?.mermaid]);
 
+  const [spec, setSpec] = useState<any | null>(null);
+  const [loadingSpec, setLoadingSpec] = useState(false);
+  const [showSpec, setShowSpec] = useState(false);
+
+  const generateSpec = async () => {
+    if (!challenge) return;
+    try {
+      setLoadingSpec(true);
+      const response = await api.post("/challenge/spec", {
+        challengeTitle: challenge.title,
+        challengeDescription: challenge.description,
+      });
+      setSpec(response.data);
+      setShowSpec(true);
+      toast.success("Especificación generada con éxito");
+    } catch (err) {
+      console.error("Error al generar especificación:", err);
+      toast.error("No se pudo generar la especificación técnica");
+    } finally {
+      setLoadingSpec(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex flex-col justify-center items-center h-64 text-center p-4">
@@ -179,15 +202,30 @@ export default function ChallengeContainer({
         </div>
       )}
 
-      <div className="text-center mt-6">
+      <div className="flex flex-col md:flex-row justify-center items-center gap-4 mt-6">
         <button
           aria-expanded={showCriteria}
           onClick={() => setShowCriteria((prev) => !prev)}
-          className="bg-blue-600 text-white px-6 py-3 rounded-full font-medium shadow-lg hover:bg-blue-700 transition-all duration-300 transform hover:scale-105"
+          className="bg-gray-100 text-gray-700 px-6 py-3 rounded-full font-medium shadow-md hover:bg-gray-200 transition-all duration-300 transform hover:scale-105"
         >
           {showCriteria
             ? "Ocultar criterios de evaluación"
             : "Mostrar criterios de evaluación"}
+        </button>
+
+        <button
+          onClick={generateSpec}
+          disabled={loadingSpec}
+          className="bg-blue-600 text-white px-6 py-3 rounded-full font-medium shadow-lg hover:bg-blue-700 transition-all duration-300 transform hover:scale-105 disabled:opacity-50 flex items-center"
+        >
+          {loadingSpec ? (
+            <>
+              <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2"></div>
+              Generando...
+            </>
+          ) : (
+            "Ver Especificación Técnica (Spec-Kit)"
+          )}
         </button>
       </div>
 
@@ -204,6 +242,61 @@ export default function ChallengeContainer({
 
           <div className="mt-6 text-sm text-gray-600 text-right italic">
             Nota: La pregunta desafiante del reto deberá ser sustentada durante la entrevista. El candidato deberá explicar su respuesta con argumentos sólidos y bien estructurados, demostrando claridad en el razonamiento, conocimiento técnico y capacidad de justificar las decisiones tomadas.
+          </div>
+        </div>
+      )}
+
+      {showSpec && spec && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+            <div className="p-6 border-b flex justify-between items-center bg-blue-50">
+              <h3 className="text-2xl font-bold text-blue-900">Especificación Técnica de Referencia</h3>
+              <button onClick={() => setShowSpec(false)} className="text-gray-500 hover:text-gray-700 text-3xl">&times;</button>
+            </div>
+            <div className="p-8 overflow-y-auto space-y-8">
+              <section>
+                <h4 className="text-lg font-bold text-blue-800 mb-2 border-b-2 border-blue-200 pb-1">1. Big Picture</h4>
+                <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">{spec.bigPicture}</p>
+              </section>
+
+              <section>
+                <h4 className="text-lg font-bold text-blue-800 mb-4 border-b-2 border-blue-200 pb-1">2. Read Models</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {spec.readModels.map((rm: any, idx: number) => (
+                    <div key={idx} className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                      <h5 className="font-bold text-gray-900 mb-1">{rm.name}</h5>
+                      <p className="text-sm text-gray-600 mb-2">{rm.description}</p>
+                      <code className="text-xs bg-gray-900 text-green-400 p-2 block rounded overflow-x-auto">
+                        {rm.structure}
+                      </code>
+                    </div>
+                  ))}
+                </div>
+              </section>
+
+              <section>
+                <h4 className="text-lg font-bold text-blue-800 mb-4 border-b-2 border-blue-200 pb-1">3. Processes & Logic</h4>
+                <div className="space-y-4">
+                  {spec.processes.map((proc: any, idx: number) => (
+                    <div key={idx} className="p-5 bg-blue-50 rounded-xl border border-blue-100">
+                      <h5 className="font-bold text-blue-900 mb-2 uppercase tracking-tight text-sm">{proc.name}</h5>
+                      <p className="text-gray-700 mb-3">{proc.description}</p>
+                      <div className="bg-white p-3 rounded border border-blue-200 text-sm italic text-blue-800">
+                        {proc.flow}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            </div>
+            <div className="p-6 border-t bg-gray-50 text-center">
+              <button
+                onClick={() => setShowSpec(false)}
+                className="bg-blue-600 text-white px-8 py-2 rounded-lg font-semibold hover:bg-blue-700 transition"
+              >
+                Cerrar
+              </button>
+            </div>
           </div>
         </div>
       )}

@@ -1,16 +1,6 @@
-import { genkit } from 'genkit';
-import { config } from 'dotenv';
-import { googleAI } from '@genkit-ai/googleai';
-import * as z from 'zod';
+import { BaseGenerator } from './baseGenerator';
+import { z } from 'zod';
 
-config();
-
-export const ai = genkit({
-    plugins: [googleAI()],
-    model: googleAI.model('gemini-2.5-flash'),
-});
-
-// New Schema for Section-Based Interview
 const QuestionSchema = z.object({
     id: z.string(),
     text: z.string().describe("La pregunta técnica que el entrevistador debe formular."),
@@ -27,19 +17,34 @@ const InterviewPlanSchema = z.object({
     sections: z.array(SectionSchema).describe("Plan de 4 a 5 secciones cubriendo todo el reto."),
 });
 
+const InterviewPlanInputSchema = z.object({
+    challengeTitle: z.string(),
+    challengeDescription: z.string(),
+});
+
+export type InterviewPlanInput = z.infer<typeof InterviewPlanInputSchema>;
 export type InterviewPlan = z.infer<typeof InterviewPlanSchema>;
 
-export const interviewPlanFlow = ai.defineFlow(
-    {
-        name: 'interviewPlanFlow',
-        inputSchema: z.object({
-            challengeTitle: z.string(),
-            challengeDescription: z.string(),
-        }),
-        outputSchema: InterviewPlanSchema,
-    },
-    async (input) => {
-        const prompt = `
+class InterviewTreeGenerator extends BaseGenerator<typeof InterviewPlanInputSchema, typeof InterviewPlanSchema> {
+    constructor() {
+        super('gemini-2.5-flash');
+    }
+
+    get name() {
+        return 'interviewPlan';
+    }
+
+    get inputSchema() {
+        return InterviewPlanInputSchema;
+    }
+
+    get outputSchema() {
+        return InterviewPlanSchema;
+    }
+
+    get promptTemplate() {
+        return (input: InterviewPlanInput) => {
+            return `
       Eres un Tech Lead diseñando una entrevista técnica profunda (15-20 min).
       
       RETOS:
@@ -62,28 +67,8 @@ export const interviewPlanFlow = ai.defineFlow(
       
       Asegúrate de que las preguntas cubran todo el espectro del reto descrito.
     `;
-
-        const llmResponse = await ai.generate({
-            prompt: prompt,
-            config: {
-                temperature: 0.5,
-            },
-            output: {
-                format: 'json',
-                schema: InterviewPlanSchema,
-            },
-        });
-
-        if (!llmResponse || !llmResponse.output) {
-            throw new Error("Error generando el plan de entrevista.");
-        }
-
-        return llmResponse.output;
+        };
     }
-);
+}
 
-export const interviewTreeGenerator = {
-    async generate(input: { challengeTitle: string; challengeDescription: string }) {
-        return await interviewPlanFlow(input);
-    },
-};
+export const interviewTreeGenerator = new InterviewTreeGenerator();

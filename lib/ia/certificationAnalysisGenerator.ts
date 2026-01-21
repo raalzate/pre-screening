@@ -1,14 +1,5 @@
-import { genkit } from 'genkit';
-import { config } from 'dotenv';
-import { googleAI } from '@genkit-ai/googleai';
-import * as z from 'zod';
-
-config();
-
-export const ai = genkit({
-    plugins: [googleAI()],
-    model: googleAI.model('gemini-2.5-flash'), // Using 2.5 flash for deeper analysis
-});
+import { BaseGenerator } from './baseGenerator';
+import { z } from 'zod';
 
 const GapDetailSchema = z.object({
     skill: z.string(),
@@ -19,23 +10,37 @@ const GapDetailSchema = z.object({
 const CertificationAnalysisInputSchema = z.object({
     score: z.number(),
     gaps: z.array(GapDetailSchema),
-    details: z.any().optional(), // Can include question details for deeper context if available
+    details: z.any().optional(),
 });
 
-export const certificationAnalysisFlow = ai.defineFlow(
-    {
-        name: "certificationAnalysisFlow",
-        inputSchema: CertificationAnalysisInputSchema,
-        outputSchema: z.string(),
-    },
-    async ({ score, gaps }) => {
-        const prompt = `
+export type CertificationAnalysisInput = z.infer<typeof CertificationAnalysisInputSchema>;
+
+class CertificationAnalysisGenerator extends BaseGenerator<typeof CertificationAnalysisInputSchema, z.ZodString> {
+    constructor() {
+        super('gemini-2.5-flash');
+    }
+
+    get name() {
+        return 'certificationAnalysis';
+    }
+
+    get inputSchema() {
+        return CertificationAnalysisInputSchema;
+    }
+
+    get outputSchema() {
+        return z.string();
+    }
+
+    get promptTemplate() {
+        return (input: CertificationAnalysisInput) => {
+            return `
       Actúa como un Lead Evaluator generando un RESUMEN DE CONTROL EJECUTIVO sobre un candidato.
       
       CONTEXTO:
-      Puntuación: ${score}/100.
+      Puntuación: ${input.score}/100.
       Brechas identificadas:
-      ${JSON.stringify(gaps, null, 2)}
+      ${JSON.stringify(input.gaps, null, 2)}
       
       TU TAREA:
       Genera un resumen MUY CONCISO (Bullet points) para toma de decisiones rápida.
@@ -48,20 +53,8 @@ export const certificationAnalysisFlow = ai.defineFlow(
       
       IMPORTANTE: Sé breve, directo y elimina explicaciones innecesarias.
     `;
-
-        const llmResponse = await ai.generate({
-            prompt: prompt,
-            config: {
-                temperature: 0.3, // Lower temperature for analytical precision
-            },
-        });
-
-        return llmResponse.text;
+        };
     }
-);
+}
 
-export const certificationAnalysisGenerator = {
-    generate: async (input: z.infer<typeof CertificationAnalysisInputSchema>) => {
-        return await certificationAnalysisFlow(input);
-    },
-};
+export const certificationAnalysisGenerator = new CertificationAnalysisGenerator();

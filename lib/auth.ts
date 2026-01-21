@@ -2,12 +2,13 @@ import { NextAuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { db } from "@/lib/db";
+import { config } from "./config";
 
 export const authOptions: NextAuthOptions = {
   providers: [
     GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID!,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+      clientId: config.GOOGLE_CLIENT_ID,
+      clientSecret: config.GOOGLE_CLIENT_SECRET,
     }),
     CredentialsProvider({
       name: "Code",
@@ -61,7 +62,7 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     async signIn({ account, profile }) {
       if (account?.provider === "google") {
-        const allowedDomain = process.env.ALLOWED_DOMAIN;
+        const allowedDomain = config.ALLOWED_DOMAIN;
 
         if (!profile?.email) {
           throw new Error("No hay perfil de email en la cuenta de Google.");
@@ -113,5 +114,5 @@ export const authOptions: NextAuthOptions = {
       return session;
     },
   },
-  secret: process.env.NEXTAUTH_SECRET!,
+  secret: config.NEXTAUTH_SECRET,
 };

@@ -369,7 +369,7 @@ export default function App() {
               onChange={setActiveTab}
               tabs={[
                 { id: "profile", label: "Perfil & Pre-Screening", icon: <Icons.User className="w-4 h-4" /> },
-                { id: "technical", label: "Prueba Técnica", icon: <Icons.Target className="w-4 h-4" /> },
+                { id: "technical", label: "Validación Técnica", icon: <Icons.Target className="w-4 h-4" /> },
                 { id: "interview", label: "Entrevista & Feedback", icon: <Icons.MessageSquare className="w-4 h-4" /> }
               ]}
             />

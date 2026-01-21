@@ -1,14 +1,5 @@
-import { genkit } from 'genkit';
-import { config } from 'dotenv';
-import { googleAI } from '@genkit-ai/googleai';
-import * as z from 'zod';
-
-config();
-
-export const ai = genkit({
-    plugins: [googleAI()],
-    model: googleAI.model('gemini-2.5-flash'),
-});
+import { BaseGenerator } from './baseGenerator';
+import { z } from 'zod';
 
 const InterviewHistoryItemSchema = z.object({
     section: z.string(),
@@ -24,14 +15,29 @@ const FeedbackInputSchema = z.object({
     history: z.array(InterviewHistoryItemSchema),
 });
 
-export const interviewFeedbackFlow = ai.defineFlow(
-    {
-        name: "interviewFeedbackFlow",
-        inputSchema: FeedbackInputSchema,
-        outputSchema: z.string(),
-    },
-    async ({ candidateName, history }) => {
-        const prompt = `
+export type FeedbackInput = z.infer<typeof FeedbackInputSchema>;
+
+class InterviewFeedbackGenerator extends BaseGenerator<typeof FeedbackInputSchema, z.ZodString> {
+    constructor() {
+        super('gemini-2.5-flash');
+    }
+
+    get name() {
+        return 'interviewFeedback';
+    }
+
+    get inputSchema() {
+        return FeedbackInputSchema;
+    }
+
+    get outputSchema() {
+        return z.string();
+    }
+
+    get promptTemplate() {
+        return (input: FeedbackInput) => {
+            const { candidateName, history } = input;
+            return `
       Actúa como un reclutador técnico experto y senior.
       
       Tienes el historial de una entrevista técnica realizada a un candidato${candidateName ? ` llamado ${candidateName}` : ""}.
@@ -50,20 +56,27 @@ export const interviewFeedbackFlow = ai.defineFlow(
       
       Usa formato Markdown para que sea legible. Sé constructivo pero directo sobre las brechas técnicas.
     `;
-
-        const llmResponse = await ai.generate({
-            prompt: prompt,
-            config: {
-                temperature: 0.4,
-            },
-        });
-
-        return llmResponse.text;
+        };
     }
-);
 
-export const interviewFeedbackGenerator = {
-    generate: async (input: z.infer<typeof FeedbackInputSchema>) => {
-        return await interviewFeedbackFlow(input);
-    },
-};
+    // Override to handle non-JSON output (string)
+    protected defineFlow() {
+        return this.ai.defineFlow(
+            {
+                name: `${this.name}Flow`,
+                inputSchema: this.inputSchema,
+                outputSchema: this.outputSchema,
+            },
+            async (input) => {
+                const response = await this.ai.generate({
+                    prompt: this.promptTemplate(input),
+                    // For string output, we don't specify output schema in AI.generate
+                });
+
+                return response.text;
+            }
+        );
+    }
+}
+
+export const interviewFeedbackGenerator = new InterviewFeedbackGenerator();

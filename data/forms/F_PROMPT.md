@@ -36,6 +36,5 @@ Ten en cuenta las siguientes especificaciones:
   * **2 = Conocimiento teórico y algo de práctica limitada:** Ha visto o experimentado superficialmente, pero su experiencia no es suficiente para un proyecto real.
   * **3 = Experiencia práctica en proyectos:** Puede mencionar ejemplos de proyectos donde ha aplicado el conocimiento, pero con áreas de mejora claras.
   * **4 = Experiencia sólida y autónoma en proyectos reales:** Ha liderado o participado con autonomía en proyectos de cierta envergadura; comprende la mayoría de los matices y trade-offs; puede explicar cómo resolvió retos.
-  * **5 = Dominio profundo y liderazgo/innovación:** Ha liderado equipos o proyectos críticos donde introdujo o mejoró significativamente la práctica, el código o la arquitectura.
 * **Idiomas:** El contenido debe estar en [idioma, ej. español].
 

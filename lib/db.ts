@@ -1,8 +1,9 @@
 // lib/db.ts
 import { createClient } from '@libsql/client';
+import { config } from './config';
 
-const url = process.env.TURSO_DB_URL || "file:local.db";
-const authToken = process.env.TURSO_DB_TOKEN || "";
+const url = config.TURSO_DB_URL;
+const authToken = config.TURSO_DB_TOKEN || "";
 
 export const db = createClient({
   url: url,

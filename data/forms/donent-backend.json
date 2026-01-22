@@ -1,0 +1,156 @@
+{
+  "id": "dotnet-backend-prescreening",
+  "title": "Pre-Screening Técnico: Perfil .NET Core Backend",
+  "description": "Por favor, indica tu nivel de dominio o experiencia en los siguientes aspectos técnicos.",
+  "categories": [
+    {
+      "id": "core-engineering",
+      "title": "Ingeniería de Software y Core .NET",
+      "questions": [
+        {
+          "id": "buenas-practicas",
+          "question": "¿Cómo calificarías tu nivel de experiencia implementando Inyección de Dependencias (DI) nativa y principios SOLID para garantizar la mantenibilidad?",
+          "type": "scale",
+          "scaleMax": 4,
+          "example": "Considera si sabes manejar ciclos de vida (Transient, Scoped, Singleton) y evitar fugas de memoria."
+        },
+        {
+          "id": "lenguaje-de-programacion",
+          "question": "¿Qué grado de dominio posees sobre las características modernas de C# (v10+) y la gestión de memoria avanzada?",
+          "type": "scale",
+          "scaleMax": 4,
+          "example": "Considera tu uso de async/await, Span<T>, Records y optimización de recursos."
+        },
+        {
+          "id": "framework",
+          "question": "¿Qué tan profundo es tu conocimiento sobre el funcionamiento interno de ASP.NET Core (Middleware Pipeline y Hosting)?",
+          "type": "scale",
+          "scaleMax": 4,
+          "example": "Considera si has creado middlewares personalizados o configurado el pipeline de peticiones desde cero."
+        }
+      ]
+    },
+    {
+      "id": "architecture-design",
+      "title": "Arquitectura y Diseño de Sistemas",
+      "questions": [
+        {
+          "id": "patrones-de-diseno",
+          "question": "¿Con qué frecuencia aplicas patrones de diseño (CQRS, Mediator, Factory) en tus desarrollos habituales?",
+          "type": "scale",
+          "scaleMax": 4,
+          "example": "Considera la implementación de librerías como MediatR para desacoplar lógica."
+        },
+        {
+          "id": "arquitectura",
+          "question": "¿Cuál es tu nivel de autonomía para definir o estructurar soluciones bajo Clean Architecture o Microservicios?",
+          "type": "scale",
+          "scaleMax": 4,
+          "example": "Considera tu capacidad para organizar capas (Dominio, Aplicación, Infraestructura) invirtiendo dependencias."
+        },
+        {
+          "id": "integracion",
+          "question": "¿Qué tanta experiencia práctica tienes diseñando integraciones resilientes ante fallos (HTTP/gRPC)?",
+          "type": "scale",
+          "scaleMax": 4,
+          "example": "Considera el uso de políticas de Retry, Circuit Breaker (Polly) y manejo de Timeouts."
+        }
+      ]
+    },
+    {
+      "id": "data-persistence",
+      "title": "Persistencia y Datos",
+      "questions": [
+        {
+          "id": "base-datos-relacionales",
+          "question": "¿Cómo evaluarías tu capacidad para optimizar el rendimiento de consultas complejas en Entity Framework Core o Dapper?",
+          "type": "scale",
+          "scaleMax": 4,
+          "example": "Considera el uso de proyecciones, Split Queries y análisis del SQL generado."
+        },
+        {
+          "id": "base-datos-nosql",
+          "question": "¿Qué nivel de experiencia tienes integrando Caché Distribuida (Redis) o bases NoSQL?",
+          "type": "scale",
+          "scaleMax": 4,
+          "example": "Considera la configuración de expiración de claves y estrategias de caché."
+        }
+      ]
+    },
+    {
+      "id": "devops-quality",
+      "title": "Calidad, Seguridad y DevOps",
+      "questions": [
+        {
+          "id": "cloud",
+          "question": "¿Qué dominio manejas de los servicios Cloud (Azure/AWS) y su integración nativa con .NET?",
+          "type": "scale",
+          "scaleMax": 4,
+          "example": "Considera el uso de Key Vault, App Configuration o servicios de mensajería."
+        },
+        {
+          "id": "control-versiones",
+          "question": "¿Cómo describirías tu soltura gestionando flujos de trabajo complejos en Git?",
+          "type": "scale",
+          "scaleMax": 4,
+          "example": "Considera el manejo de rebases, cherry-picks y resolución de conflictos de merge."
+        },
+        {
+          "id": "testing",
+          "question": "¿Qué nivel de cobertura y tipos de pruebas (Unitarias/Integración) sueles implementar en tus proyectos?",
+          "type": "scale",
+          "scaleMax": 4,
+          "example": "Considera el uso de xUnit, Moq y WebApplicationFactory para pruebas de integración."
+        },
+        {
+          "id": "contenedores",
+          "question": "¿Qué tan experto te consideras en la containerización de aplicaciones .NET (Docker)?",
+          "type": "scale",
+          "scaleMax": 4,
+          "example": "Considera la optimización de imágenes (multi-stage builds) y reducción de tamaño."
+        },
+        {
+          "id": "despliegue-ci-cd",
+          "question": "¿Qué experiencia tienes creando o manteniendo pipelines de CI/CD (Azure DevOps/GitHub Actions)?",
+          "type": "scale",
+          "scaleMax": 4,
+          "example": "Considera la automatización de builds, tests y despliegues a entornos productivos."
+        },
+        {
+          "id": "seguridad",
+          "question": "¿Cuál es tu nivel de conocimiento implementando protocolos de seguridad modernos (OAuth2, OIDC)?",
+          "type": "scale",
+          "scaleMax": 4,
+          "example": "Considera la configuración de autenticación JWT y autorización basada en políticas."
+        },
+        {
+          "id": "monitoreo-sre-basico",
+          "question": "¿Qué tanto has trabajado con herramientas de observabilidad y diagnóstico en producción?",
+          "type": "scale",
+          "scaleMax": 4,
+          "example": "Considera la implementación de logging estructurado (Serilog) y trazabilidad distribuida."
+        }
+      ]
+    },
+    {
+      "id": "soft-skills",
+      "title": "Habilidades Blandas y Liderazgo",
+      "questions": [
+        {
+          "id": "comunicacion",
+          "question": "¿Cómo calificarías tu habilidad para traducir deuda técnica o decisiones complejas a personas no técnicas?",
+          "type": "scale",
+          "scaleMax": 4,
+          "example": "Considera tu capacidad para justificar refactorizaciones en términos de valor de negocio."
+        },
+        {
+          "id": "trabajo-en-equipo",
+          "question": "¿Qué nivel de iniciativa tomas en el mentoring técnico y la mejora de procesos del equipo?",
+          "type": "scale",
+          "scaleMax": 4,
+          "example": "Considera si realizas code reviews educativos y promueves buenas prácticas."
+        }
+      ]
+    }
+  ]
+}

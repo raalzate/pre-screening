@@ -3,7 +3,7 @@
 import { useAuth } from "@/context/AuthContext";
 import createApiClient from "@/lib/apiClient";
 import { FormJson } from "@/types/outputConfig";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import QuestionCanvas from "./QuestionCanvas";
 import useDisableShortcuts from "./hooks/useDisableShortcuts";
 
@@ -28,6 +28,7 @@ export default function DynamicMCQForm({
   useDisableShortcuts();
 
   const [answers, setAnswers] = useState<Record<string, string>>({});
+  const answersRef = useRef<Record<string, string>>({});
   const [result, setResult] = useState<{
     score: number;
     total: number;
@@ -44,6 +45,61 @@ export default function DynamicMCQForm({
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [timeLeft, setTimeLeft] = useState(TIME_PER_QUESTION);
+
+  const handleChange = (questionId: string, value: string) => {
+    answersRef.current = { ...answersRef.current, [questionId]: value };
+    setAnswers((prev) => ({ ...prev, [questionId]: value }));
+  };
+
+  const handleSubmit = useCallback(async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!form) return;
+
+    let correct = 0;
+    const details: ResultDetail[] = [];
+
+    form.questions.forEach((q) => {
+      const chosen = answersRef.current[q.id] ?? null;
+      const isCorrect = chosen === q.correctAnswer;
+      if (isCorrect) correct++;
+      details.push({
+        questionId: q.id,
+        correct: isCorrect,
+        chosen,
+        correctAnswer: q.correctAnswer,
+        rationale: q.rationale,
+        relatedTo: q.relatedTo,
+      });
+    });
+
+    const wrongTopics: string[] = [];
+    details.forEach((d) => {
+      if (!d.correct) wrongTopics.push(...d.relatedTo);
+    });
+
+    const analysis = wrongTopics.length === 0
+      ? "Excelente, el candidato respondió correctamente todas las preguntas."
+      : `El candidato mostró debilidades en las áreas: ${[...new Set(wrongTopics)].join(", ")}.`;
+
+    const finalResult = { score: correct, total: form.questions.length, details, analysis };
+    setResult(finalResult);
+
+    try {
+      await api.post("/certification", { result: finalResult });
+    } catch (error) {
+      console.error("Error saving result", error);
+    }
+  }, [form, api]);
+
+  const handleNextOrSubmit = useCallback(() => {
+    if (!form) return;
+    const isLastQuestion = currentIndex === form.questions.length - 1;
+    if (isLastQuestion) {
+      handleSubmit();
+    } else {
+      setCurrentIndex((prev) => prev + 1);
+    }
+  }, [currentIndex, form, handleSubmit]);
 
   useEffect(() => {
     async function fetchForm() {
@@ -81,63 +137,11 @@ export default function DynamicMCQForm({
     }, 1000);
 
     return () => clearInterval(timerId);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [timeLeft, form, result]);
+  }, [timeLeft, form, result, handleNextOrSubmit]);
 
   if (loading) return <div className="min-h-screen bg-gray-900 text-white flex flex-col items-center justify-center">Cargando...</div>;
   if (error) return <div className="min-h-screen bg-gray-900 text-white flex flex-col items-center justify-center">Error: {error}</div>;
   if (!form) return null;
-
-  const handleChange = (questionId: string, value: string) => {
-    setAnswers((prev) => ({ ...prev, [questionId]: value }));
-  };
-
-  const handleNextOrSubmit = () => {
-    const isLastQuestion = currentIndex === form.questions.length - 1;
-    if (isLastQuestion) {
-      handleSubmit({ preventDefault: () => { } } as React.FormEvent);
-    } else {
-      setCurrentIndex((prev) => prev + 1);
-    }
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    let correct = 0;
-    const details: ResultDetail[] = [];
-
-    form.questions.forEach((q) => {
-      const chosen = answers[q.id] ?? null;
-      const isCorrect = chosen === q.correctAnswer;
-      if (isCorrect) correct++;
-      details.push({
-        questionId: q.id,
-        correct: isCorrect,
-        chosen,
-        correctAnswer: q.correctAnswer,
-        rationale: q.rationale,
-        relatedTo: q.relatedTo,
-      });
-    });
-
-    const wrongTopics: string[] = [];
-    details.forEach((d) => {
-      if (!d.correct) wrongTopics.push(...d.relatedTo);
-    });
-
-    const analysis = wrongTopics.length === 0
-      ? "Excelente, el candidato respondió correctamente todas las preguntas."
-      : `El candidato mostró debilidades en las áreas: ${[...new Set(wrongTopics)].join(", ")}.`;
-
-    const finalResult = { score: correct, total: form.questions.length, details, analysis };
-    setResult(finalResult);
-
-    try {
-      await api.post("/certification", { result: finalResult });
-    } catch (error) {
-      console.error("Error saving result", error);
-    }
-  };
 
   const currentQuestion = form.questions[currentIndex];
   const progress = ((currentIndex + 1) / form.questions.length) * 100;

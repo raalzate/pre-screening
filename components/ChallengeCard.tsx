@@ -15,6 +15,7 @@ export interface Challenge {
   coverages: string[];
   mermaid?: string;
   evaluationCriteria: string[];
+  coverageQuestions?: string[];
 }
 
 interface ChallengeContainerProps {
@@ -37,14 +38,14 @@ const ChallengeDisclaimerBlueFullWidth = () => {
           </div>
           <div className="flex-grow">
             <h3 className="text-xl font-bold text-blue-800">
-              Instrucciones para el Reto Técnico
+              Instrucciones para el caso de estudio
             </h3>
             <p className="mt-2 text-blue-700">
               Has avanzado a la siguiente etapa. Como parte de ella, deberás preparar una solución para el reto asignado. Por favor, ten en cuenta las siguientes condiciones:
             </p>
             <ul className="mt-4 list-disc list-inside space-y-2 text-blue-700">
               <li>
-                <b>Plazo de Preparación:</b> Dispones de un máximo de <strong className="font-semibold text-blue-800">3 días</strong> a partir de hoy para preparar tu propuesta.
+                <b>Plazo de Preparación:</b> Dispoble hasta el día de la entrevista.
               </li>
               <li>
                 <b>Formato de Evaluación:</b> Deberás<strong className="font-semibold text-blue-800"> sustentar tu solución durante la entrevista técnica</strong>. La evaluación se centrará en tu razonamiento y comunicación.
@@ -79,6 +80,7 @@ export default function ChallengeContainer({
   const [loading, setLoading] = useState<boolean>(!defaultResult);
   const [error, setError] = useState<string | null>(null);
   const [showCriteria, setShowCriteria] = useState(false);
+  const [showQuestions, setShowQuestions] = useState(false);
 
   const fetchChallenge = useCallback(async () => {
     // Si ya tenemos un challenge, no hacemos nada más
@@ -213,20 +215,17 @@ export default function ChallengeContainer({
             : "Mostrar criterios de evaluación"}
         </button>
 
-        <button
-          onClick={generateSpec}
-          disabled={loadingSpec}
-          className="bg-blue-600 text-white px-6 py-3 rounded-full font-medium shadow-lg hover:bg-blue-700 transition-all duration-300 transform hover:scale-105 disabled:opacity-50 flex items-center"
-        >
-          {loadingSpec ? (
-            <>
-              <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2"></div>
-              Generando...
-            </>
-          ) : (
-            "Ver Especificación Técnica (Spec-Kit)"
-          )}
-        </button>
+        {challenge.coverageQuestions && challenge.coverageQuestions.length > 0 && (
+          <button
+            onClick={() => setShowQuestions((prev) => !prev)}
+            className="bg-gray-100 text-gray-700 px-6 py-3 rounded-full font-medium shadow-md hover:bg-gray-200 transition-all duration-300 transform hover:scale-105"
+          >
+
+            {showQuestions
+              ? "Ocultar preguntas sugeridas"
+              : "Ver preguntas sugeridas (IA)"}
+          </button>
+        )}
       </div>
 
       {showCriteria && (
@@ -243,6 +242,30 @@ export default function ChallengeContainer({
           <div className="mt-6 text-sm text-gray-600 text-right italic">
             Nota: La pregunta desafiante del reto deberá ser sustentada durante la entrevista. El candidato deberá explicar su respuesta con argumentos sólidos y bien estructurados, demostrando claridad en el razonamiento, conocimiento técnico y capacidad de justificar las decisiones tomadas.
           </div>
+        </div>
+      )}
+
+      {showQuestions && challenge.coverageQuestions && (
+        <div className="mt-4 bg-indigo-50 border border-indigo-100 rounded-lg p-6 animate-fade-in-down text-left">
+          <h3 className="text-xl font-semibold mb-4 text-indigo-900 flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" />
+            </svg>
+            Preguntas sugeridas para tu preparación
+          </h3>
+          <p className="text-sm text-indigo-800 mb-4 bg-indigo-100/50 p-3 rounded border border-indigo-200 italic">
+            Estas preguntas son generadas por IA basadas en tu perfil. Te recomendamos prepararlas, ya que podrían ser discutidas durante la entrevista técnica.
+          </p>
+          <ul className="space-y-3 pl-4">
+            {challenge.coverageQuestions.map((q, idx) => (
+              <li key={idx} className="text-indigo-900 flex items-start gap-3 bg-white p-3 rounded-lg shadow-sm border border-indigo-100">
+                <span className="flex-shrink-0 w-6 h-6 bg-indigo-600 text-white rounded-full flex items-center justify-center text-xs font-bold">
+                  {idx + 1}
+                </span>
+                <span className="font-medium">{q}</span>
+              </li>
+            ))}
+          </ul>
         </div>
       )}
 

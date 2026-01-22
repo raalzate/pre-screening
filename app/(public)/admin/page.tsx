@@ -16,8 +16,14 @@ import { useRouter } from "next/navigation";
 // --- 1. CONSTANTS & TYPES ---
 
 const ALL_REQUIREMENTS = [
-  "deuna:nestjs-ssr",
-  "edi-iris-bank:edi-ssr",
+  "pichincha-sr:angular-frontend",
+  "pichincha-ssr:angular-frontend",
+  "pichincha-sr:react-native-frontend",
+  "pichincha-ssr:react-native-frontend",
+  "pichincha-sr:springboot-backend",
+  "pichincha-ssr:springboot-backend",
+  "pichincha-sr:dotnet-backend",
+  "pichincha-ssr:dotnet-backend",
 ] as const;
 
 interface EvaluationGap {
@@ -322,7 +328,9 @@ export default function App() {
             >
               <option value="">-- Seleccionar Candidato --</option>
               {filteredUsers.map(u => (
-                <option key={u.code} value={u.code}>{u.name} — {u.requirements}</option>
+                <option key={u.code} value={u.code} style={{ textTransform: 'uppercase' }}>
+                  {u.name.toUpperCase().replace(/-/g, ' ')} — {u.form_id.toUpperCase().replace(/-/g, ' ')} ({u.requirements.toUpperCase().replace(/-/g, ' ')})
+                </option>
               ))}
             </select>
             <button
@@ -370,7 +378,6 @@ export default function App() {
               tabs={[
                 { id: "profile", label: "Perfil & Pre-Screening", icon: <Icons.User className="w-4 h-4" /> },
                 { id: "technical", label: "Validación Técnica", icon: <Icons.Target className="w-4 h-4" /> },
-                { id: "interview", label: "Entrevista & Feedback", icon: <Icons.MessageSquare className="w-4 h-4" /> }
               ]}
             />
 
@@ -453,6 +460,13 @@ const CreateUserForm: FC<{ onClose: () => void }> = ({ onClose }) => {
   const [code, setCode] = useState(() => Math.random().toString(16).substring(2, 10).toUpperCase());
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState<string | null>(null);
+  const [profileSearch, setProfileSearch] = useState("");
+
+  const filteredRequirements = useMemo(() => {
+    return ALL_REQUIREMENTS.filter(req =>
+      req.toLowerCase().includes(profileSearch.toLowerCase())
+    );
+  }, [profileSearch]);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -513,13 +527,26 @@ const CreateUserForm: FC<{ onClose: () => void }> = ({ onClose }) => {
       </div>
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">Perfil Técnico</label>
-        <div className="grid grid-cols-1 gap-2">
-          {ALL_REQUIREMENTS.map(req => (
+        <div className="relative mb-3">
+          <Icons.Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+          <input
+            type="text"
+            placeholder="Buscar perfil (ej: angular, sr, backend)..."
+            className="w-full pl-9 pr-4 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-teal-500 outline-none bg-gray-50"
+            value={profileSearch}
+            onChange={(e) => setProfileSearch(e.target.value)}
+          />
+        </div>
+        <div className="grid grid-cols-1 gap-2 max-h-60 overflow-y-auto pr-1">
+          {filteredRequirements.map(req => (
             <button type="button" key={req} onClick={() => setFormData({ ...formData, requirements: req })}
               className={`px-4 py-3 rounded-lg border text-left text-sm font-medium transition ${formData.requirements === req ? "border-teal-500 bg-teal-50 text-teal-700 ring-1 ring-teal-500" : "border-gray-200 hover:bg-gray-50"}`}>
               {req}
             </button>
           ))}
+          {filteredRequirements.length === 0 && (
+            <p className="text-center text-gray-400 py-4 text-sm italic">No se encontraron perfiles</p>
+          )}
         </div>
       </div>
       <div className="pt-4">

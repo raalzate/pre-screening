@@ -53,6 +53,39 @@ function DynamicForm({
   };
 
   if (result) {
+    if (!result.valid) {
+      return (
+        <div className="min-h-screen flex flex-col justify-center items-center">
+          <div className="w-full max-w-2xl bg-white rounded-lg shadow-lg space-y-6 p-8 text-center border-t-4 border-red-500">
+            <div className="flex justify-center">
+              <div className="p-3 bg-red-100 rounded-full">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-12 h-12 text-red-600">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+                </svg>
+              </div>
+            </div>
+            <h2 className="text-2xl font-bold text-gray-800">Proceso Finalizado</h2>
+            <p className="text-gray-600 leading-relaxed">
+              Gracias por tu tiempo e interés en Sofka. Tras evaluar tu pre-screening técnico, hemos identificado que en este momento existe una brecha significativa respecto a los requerimientos del rol.
+            </p>
+            <div className="bg-gray-50 p-4 rounded-lg border border-gray-100">
+              <p className="text-sm text-gray-500 italic">
+                Te invitamos a seguir fortaleciendo tu perfil técnico y a postularte a futuras oportunidades que se ajusten mejor a tu experiencia actual.
+              </p>
+            </div>
+            <div className="flex justify-center pt-4">
+              <button
+                className="w-full bg-gray-800 text-white px-6 py-3 rounded-lg font-semibold hover:bg-gray-900 transition-colors"
+                onClick={() => auth.logout()}
+              >
+                Cerrar Sesión
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div className="min-h-screen flex flex-col justify-center items-center">
         <div className="w-full  bg-white rounded-lg shadow-lg  space-y-6 text-center p-6">
@@ -60,12 +93,12 @@ function DynamicForm({
             opportunityTitle={"Gráfica de oportunidad"}
             gaps={result.gaps}
           />
-           <div className="mt-6 text-sm text-gray-600 text-right italic">
-        Nota: Las gráficas presentadas son un apoyo visual para identificar el
-        nivel de alineación con la oportunidad. Esta información constituye
-        únicamente un insumo dentro del proceso de evaluación y será considerada
-        junto con otros criterios y etapas dentro del proceso.
-      </div>
+          <div className="mt-6 text-sm text-gray-600 text-right italic">
+            Nota: Las gráficas presentadas son un apoyo visual para identificar el
+            nivel de alineación con la oportunidad. Esta información constituye
+            únicamente un insumo dentro del proceso de evaluación y será considerada
+            junto con otros criterios y etapas dentro del proceso.
+          </div>
           <div className="flex justify-center space-x-4 mt-8 p-6">
             <button
               className="w-full bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-transform duration-300 transform hover:scale-105"
@@ -86,11 +119,10 @@ function DynamicForm({
       <div className="w-full bg-white rounded-lg shadow-lg p-8 space-y-6">
         {message && (
           <div
-            className={`p-4 rounded-md text-center font-semibold ${
-              message.type === "success"
+            className={`p-4 rounded-md text-center font-semibold ${message.type === "success"
                 ? "bg-green-100 text-green-800"
                 : "bg-red-100 text-red-800"
-            }`}
+              }`}
           >
             {message.text}
           </div>

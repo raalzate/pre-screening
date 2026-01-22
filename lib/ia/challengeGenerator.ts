@@ -67,8 +67,7 @@ class ChallengeGenerator extends BaseGenerator<InputSchemaType, OutputSchemaType
         
         ### Influencia
         - La pregunta debe tener un contexto bancario.
-        - La pregunta debe ser **práctica, abierta y desafiante**.
-        - La debe resolver problemas de negocio con un grado de dificultad técnica.
+        - Busca preguntas que requieran resolver problemas de negocio con un grado de dificultad técnica.
         
         ### Datos de entrada (gaps)
         ${gaps}

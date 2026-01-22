@@ -1,0 +1,155 @@
+{
+  "id": "angular-frontend",
+  "title": "Auto-Evaluación Técnica - Angular Frontend",
+  "categories": [
+    {
+      "id": "core-engineering",
+      "title": "Ingeniería de Software y Core Angular",
+      "questions": [
+        {
+          "id": "buenas-practicas",
+          "question": "¿Cómo calificarías tu capacidad para garantizar código robusto utilizando 'Strict Mode' y tipos avanzados de TypeScript?",
+          "type": "scale",
+          "scaleMax": 4,
+          "example": "Uso de 'Strict Mode' en TS, Types de utilidad (Pick, Omit, Partial), y configuración de reglas personalizadas en ESLint/Prettier para forzar inmutabilidad."
+        },
+        {
+          "id": "lenguaje-de-programacion",
+          "question": "¿Qué nivel de profundidad tienes en JavaScript (ES6+) y TypeScript, específicamente en el manejo del Event Loop y asincronía?",
+          "type": "scale",
+          "scaleMax": 4,
+          "example": "Uso avanzado de Generics para crear componentes reutilizables y tipados seguros, y comprensión profunda del Event Loop y Closures para depurar problemas de rendimiento."
+        },
+        {
+          "id": "framework",
+          "question": "¿Qué tanto dominas el ciclo de vida de Angular, la detección de cambios y las nuevas características (v16+ como Signals)?",
+          "type": "scale",
+          "scaleMax": 4,
+          "example": "Optimización de rendimiento cambiando la estrategia a `OnPush`, uso de `trackBy` en bucles, e implementación de **Signals** para reactividad de grano fino."
+        }
+      ]
+    },
+    {
+      "id": "architecture-design",
+      "title": "Arquitectura y Diseño de UI",
+      "questions": [
+        {
+          "id": "patrones-de-diseno",
+          "question": "¿Con qué frecuencia y profundidad aplicas patrones de diseño clásicos adaptados al contexto Frontend?",
+          "type": "scale",
+          "scaleMax": 4,
+          "example": "Implementación del patrón **Facade** para abstraer la lógica de gestión de estado (NGRX/Signals) de los componentes, facilitando el testing y el desacoplamiento."
+        },
+        {
+          "id": "arquitectura",
+          "question": "¿Qué grado de experiencia práctica tienes diseñando arquitecturas escalables, Micro-frontends o migrando a Standalone Components?",
+          "type": "scale",
+          "scaleMax": 4,
+          "example": "Migración de una arquitectura de módulos (NgModules) a **Standalone Components** o implementación de **Module Federation** para compartir dependencias entre micro-frontends."
+        },
+        {
+          "id": "integracion",
+          "question": "¿Cómo evaluarías tu dominio de RxJS para manejar flujos de datos complejos y comunicación HTTP?",
+          "type": "scale",
+          "scaleMax": 4,
+          "example": "Uso de operadores de orden superior (`switchMap`, `concatMap`, `mergeMap`) para evitar 'Race Conditions' y manejo centralizado de errores y tokens mediante HttpInterceptors."
+        }
+      ]
+    },
+    {
+      "id": "data-state-management",
+      "title": "Gestión de Estado y Datos",
+      "questions": [
+        {
+          "id": "base-datos-relacionales",
+          "question": "¿Qué nivel de maestría posees en la implementación de State Management global (NGRX/Store) y normalización de datos?",
+          "type": "scale",
+          "scaleMax": 4,
+          "example": "Diseño de un Store normalizado en **NGRX** (evitando anidación profunda) y uso de Selectors memoizados para derivar datos sin recalcular la vista innecesariamente."
+        },
+        {
+          "id": "base-datos-nosql",
+          "question": "¿Qué tanta experiencia tienes implementando estrategias de persistencia local y soporte Offline (PWA)?",
+          "type": "scale",
+          "scaleMax": 4,
+          "example": "Implementación de estrategias de caché offline-first usando **Service Workers** (PWA) e IndexedDB para sincronizar datos cuando se recupera la conexión."
+        }
+      ]
+    },
+    {
+      "id": "devops-quality",
+      "title": "Calidad, Seguridad y DevOps",
+      "questions": [
+        {
+          "id": "cloud",
+          "question": "¿Tienes experiencia configurando Server-Side Rendering (SSR) y desplegando aplicaciones en infraestructura Cloud?",
+          "type": "scale",
+          "scaleMax": 4,
+          "example": "Implementación de **Angular SSR (Server-Side Rendering)** con hidratación para mejorar el SEO y los Core Web Vitals (LCP), desplegado en AWS S3 + CloudFront o Vercel."
+        },
+        {
+          "id": "control-versiones",
+          "question": "¿Qué tanto dominas la gestión de Monorepos y flujos de trabajo complejos con Git?",
+          "type": "scale",
+          "scaleMax": 4,
+          "example": "Gestión de un monorepo con **Nx**, configurando límites de dependencias (boundaries) entre librerías y aplicaciones para evitar dependencias circulares."
+        },
+        {
+          "id": "testing",
+          "question": "¿Qué tan robustas son tus estrategias de Testing (Unitario, Integración y E2E) en proyectos reales?",
+          "type": "scale",
+          "scaleMax": 4,
+          "example": "Escritura de tests unitarios robustos usando `TestBed` con mocks de servicios, y tests E2E con **Cypress** interceptando llamadas de red (Network Stubbing) para no depender del backend."
+        },
+        {
+          "id": "contenedores",
+          "question": "¿Sabes crear imágenes de Docker optimizadas para servir aplicaciones Frontend?",
+          "type": "scale",
+          "scaleMax": 4,
+          "example": "Creación de un Dockerfile 'Multi-stage' que compila la app Angular en la primera etapa y usa una imagen ligera de **Nginx** (Alpine) configurada con gzip/brotli para servir los archivos finales."
+        },
+        {
+          "id": "despliegue-ci-cd",
+          "question": "¿Qué nivel de intervención puedes tener en la optimización de Pipelines de CI/CD y tiempos de Build?",
+          "type": "scale",
+          "scaleMax": 4,
+          "example": "Análisis de 'Bundle Size' con `webpack-bundle-analyzer` en el CI para bloquear Pull Requests que excedan el presupuesto de peso inicial (Performance Budget)."
+        },
+        {
+          "id": "seguridad",
+          "question": "¿Qué tan familiarizado estás con las prácticas de seguridad web (OWASP) aplicadas al cliente?",
+          "type": "scale",
+          "scaleMax": 4,
+          "example": "Implementación de **Content Security Policy (CSP)** estricta, sanitización de inputs con `DomSanitizer` y manejo seguro de Refresh Tokens (HttpOnly cookies vs LocalStorage)."
+        },
+        {
+          "id": "monitoreo-sre-basico",
+          "question": "¿Tienes experiencia implementando monitoreo de errores y optimización de Web Vitals en producción?",
+          "type": "scale",
+          "scaleMax": 4,
+          "example": "Integración de herramientas como Sentry o LogRocket para reproducir sesiones de usuario con errores y optimización de métricas CLS (Cumulative Layout Shift) y LCP."
+        }
+      ]
+    },
+    {
+      "id": "soft-skills",
+      "title": "Habilidades Blandas y Liderazgo",
+      "questions": [
+        {
+          "id": "comunicacion",
+          "question": "¿Qué tan efectivo te consideras negociando contratos técnicos con Backend y traduciendo factibilidad a UX/UI?",
+          "type": "scale",
+          "scaleMax": 4,
+          "example": "Negociación de contratos de API (Swagger/OpenAPI) con el equipo Backend antes de desarrollar y traducción de la factibilidad técnica de diseños complejos al equipo de UX."
+        },
+        {
+          "id": "trabajo-en-equipo",
+          "question": "¿Qué nivel de experiencia tienes estandarizando código o mentoreando a otros desarrolladores?",
+          "type": "scale",
+          "scaleMax": 4,
+          "example": "Creación y mantenimiento de una librería de componentes UI interna (Design System) para asegurar consistencia visual y reducir código duplicado entre equipos."
+        }
+      ]
+    }
+  ]
+}

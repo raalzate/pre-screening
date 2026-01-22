@@ -8,6 +8,7 @@ export interface ClientRequirements {
 
 export interface ComparisonResult {
   valid: boolean;
+  coverageScore: number; // 0..1
   gaps: Array<{ skill: string; required: number; got: number }>;
 }
 
@@ -16,17 +17,26 @@ export function compareAnswers(
   requirements: ClientRequirements
 ): ComparisonResult {
   const gaps: Array<{ skill: string; required: number; got: number }> = [];
+  let metCount = 0;
+  const skills = Object.keys(requirements);
 
-  for (const skill of Object.keys(requirements)) {
+  for (const skill of skills) {
     const required = requirements[skill];
     const got = candidate[skill] ?? 0;
 
+    if (got >= required) {
+      metCount++;
+    }
+
     gaps.push({ skill, required, got });
-    
   }
 
+  const coverageScore = skills.length > 0 ? metCount / skills.length : 1;
+
   return {
-    valid: gaps.some(g => g.required <= g.got),
+    // Definimos validez si cubrió al menos el 60% (umbral solicitado: rechazo si >40% no cubierto)
+    valid: coverageScore >= 0.6,
+    coverageScore,
     gaps,
   };
 }

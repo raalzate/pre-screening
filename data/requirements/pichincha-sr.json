@@ -1,0 +1,23 @@
+{
+  "id": "software-engineer-sr",
+  "title": "Evaluación Software Engineer Senior",
+  "requirements": {
+    "buenas-practicas": 4,
+    "lenguaje-de-programacion": 4,
+    "framework": 4,
+    "patrones-de-diseno": 4,
+    "arquitectura": 3,
+    "integracion": 4,
+    "cloud": 4,
+    "control-versiones": 4,
+    "testing": 4,
+    "contenedores": 4,
+    "despliegue-ci-cd": 4,
+    "base-datos-relacionales": 4,
+    "base-datos-nosql": 4,
+    "seguridad": 4,
+    "monitoreo-sre-basico": 4,
+    "comunicacion": 4,
+    "trabajo-en-equipo": 4
+  }
+}

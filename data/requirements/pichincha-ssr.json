@@ -1,0 +1,23 @@
+{
+  "id": "software-engineer-ssr",
+  "title": "Evaluación Software Engineer Semi Senior",
+  "requirements": {
+    "buenas-practicas": 4,
+    "lenguaje-de-programacion": 4,
+    "framework": 3,
+    "patrones-de-diseno": 4,
+    "arquitectura": 2,
+    "integracion": 3,
+    "cloud": 4,
+    "control-versiones": 4,
+    "testing": 4,
+    "contenedores": 4,
+    "despliegue-ci-cd": 4,
+    "base-datos-relacionales": 4,
+    "base-datos-nosql": 4,
+    "seguridad": 3,
+    "monitoreo-sre-basico": 3,
+    "comunicacion": 4,
+    "trabajo-en-equipo": 4
+  }
+}

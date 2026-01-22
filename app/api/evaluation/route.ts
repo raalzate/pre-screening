@@ -9,7 +9,7 @@ import path from "path";
 import { db } from "@/lib/db";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { sendEvaluationCompleteEmail } from "@/lib/email";
+import { sendEvaluationCompleteEmail, sendRejectionEmail } from "@/lib/email";
 
 export async function POST(req: Request) {
   try {
@@ -35,6 +35,35 @@ export async function POST(req: Request) {
     if (userCode) {
       waitUntil((async () => {
         try {
+          if (!session || !session.user) return;
+
+          if (!comparisonResult.valid) {
+            // Caso de rechazo automático
+            const name = (session.user as any).name || "Candidato";
+            const feedback = `Hola ${name},\n\nAgradecemos tu interés en Sofka. Tras evaluar tu pre-screening técnico, hemos identificado que en este momento existe una brecha significativa respecto a los requerimientos del rol.\n\nPor el momento no continuaremos con tu proceso, pero te invitamos a seguir fortaleciendo tu perfil para futuras oportunidades.`;
+
+            await db.execute(
+              `UPDATE users
+               SET evaluation_result = ?, step = ?, interview_status = ?, interview_feedback = ?, interviewer_name = ?
+               WHERE code = ?`,
+              [JSON.stringify(result), 'feedback', 'no_pasa', feedback, 'IA Assistant', userCode]
+            );
+            console.log("❌ Candidato rechazado automáticamente por falta de cobertura:", userCode);
+
+            // Enviar correo de rechazo
+            try {
+              const userStmt = await db.execute("SELECT name, email FROM users WHERE code = ?", [userCode]);
+              const user = userStmt.rows[0];
+              if (user && user.email) {
+                await sendRejectionEmail(user.name as string, user.email as string);
+              }
+            } catch (emailErr) {
+              console.error("❌ Error enviando correo de rechazo:", emailErr);
+            }
+            return;
+          }
+
+          // Caso de éxito: Generar certificación
           const questions = await evaluationGenerator.generate({ formId, answers });
           await db.execute(
             `UPDATE users

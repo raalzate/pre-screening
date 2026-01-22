@@ -127,6 +127,8 @@ export async function sendEvaluationCompleteEmail(name: string, email: string, c
 
   const html = getSofkaTemplate(title, body, loginUrl, "Ir a Certificación");
 
+  if (!process.env.SMTP_USER) return;
+
   await transporter.sendMail({
     from: `"Talento Sofka" <${process.env.SMTP_USER}>`,
     to: email,
@@ -147,10 +149,36 @@ export async function sendCertificationCompleteEmail(name: string, email: string
 
   const html = getSofkaTemplate(title, body, loginUrl, "Aceptar el Reto");
 
+  if (!process.env.SMTP_USER) return;
+
   await transporter.sendMail({
     from: `"Talento Sofka" <${process.env.SMTP_USER}>`,
     to: email,
     subject: 'Reto Técnico Habilitado - Estás muy cerca',
+    html,
+  });
+}
+
+/**
+ * Envía un correo de rechazo cordial cuando el candidato no cumple con el umbral técnico.
+ */
+export async function sendRejectionEmail(name: string, email: string) {
+  const title = `¡Gracias por tu interés, ${name}!`;
+  const body = `
+    <p>Agradecemos el tiempo que has dedicado a completar nuestro pre-screening técnico.</p>
+    <p>En este momento, hemos identificado que existe una brecha significativa entre tu perfil actual y los requerimientos específicos de esta vacante.</p>
+    <p>Por esta razón, no continuaremos con tu proceso de selección en esta ocasión. Sin embargo, te animamos a seguir fortaleciendo tu perfil y a postularte a futuras oportunidades en Sofka.</p>
+    <p>¡Te deseamos mucho éxito en tus proyectos!</p>
+  `;
+
+  const html = getSofkaTemplate(title, body, "#", "Ver otras vacantes");
+
+  if (!process.env.SMTP_USER) return;
+
+  await transporter.sendMail({
+    from: `"Talento Sofka" <${process.env.SMTP_USER}>`,
+    to: email,
+    subject: 'Actualización sobre tu proceso de selección - Sofka',
     html,
   });
 }

@@ -1,0 +1,155 @@
+{
+  "id": "pichincha-sr-react-native",
+  "title": "Evaluación Técnica Senior - React Native",
+  "categories": [
+    {
+      "id": "core-engineering",
+      "title": "Ingeniería de Software y Core React Native",
+      "questions": [
+        {
+          "id": "buenas-practicas",
+          "question": "¿Qué nivel de experiencia tienes optimizando el rendimiento (Re-renders, Memory Leaks) y aplicando correctamente los Hooks?",
+          "type": "scale",
+          "scaleMax": 4,
+          "example": "Uso estratégico de `useMemo` y `useCallback` analizando el profiler, y optimización de listas largas (FlatList/FlashList) implementando `getItemLayout` y `memo` en items."
+        },
+        {
+          "id": "lenguaje-de-programacion",
+          "question": "¿Cómo evaluarías tu dominio de TypeScript y JavaScript (ES6+), incluyendo el manejo del Bridge y JSI?",
+          "type": "scale",
+          "scaleMax": 4,
+          "example": "Escribir un 'Native Module' personalizado en Swift/Kotlin para una funcionalidad no soportada por el framework y exponerlo a JS usando la Nueva Arquitectura (TurboModules/JSI)."
+        },
+        {
+          "id": "framework",
+          "question": "¿Qué tan profundo es tu conocimiento de la arquitectura interna de React Native (Old Bridge vs New Architecture, Fabric, TurboModules, Hermes)?",
+          "type": "scale",
+          "scaleMax": 4,
+          "example": "Migración de una aplicación para habilitar el motor **Hermes** (mejorando el TTI) y adaptación de librerías para soportar **Fabric** (renderizado síncrono y concurrente)."
+        }
+      ]
+    },
+    {
+      "id": "architecture-design",
+      "title": "Arquitectura y Navegación",
+      "questions": [
+        {
+          "id": "patrones-de-diseno",
+          "question": "¿Qué tanta experiencia tienes implementando patrones avanzados de composición de UI y lógica (Compound Components, Custom Hooks, HOCs)?",
+          "type": "scale",
+          "scaleMax": 4,
+          "example": "Diseño de un componente de 'Formulario Dinámico' utilizando el patrón Compound Components para flexibilidad y Custom Hooks para abstraer la validación."
+        },
+        {
+          "id": "arquitectura",
+          "question": "¿Qué nivel de dominio tienes diseñando estructuras de proyecto escalables y gestionando estado global (Redux Toolkit, Zustand, Context)?",
+          "type": "scale",
+          "scaleMax": 4,
+          "example": "Arquitectura que separa capas de Servicios (API), Store (Estado) y UI, implementando selectores memoizados para evitar renderizados innecesarios en componentes conectados."
+        },
+        {
+          "id": "integracion",
+          "question": "¿Cuál es tu nivel de experticia realizando integraciones nativas complejas, Deep Linking y manejo avanzado de APIs?",
+          "type": "scale",
+          "scaleMax": 4,
+          "example": "Configuración de Universal Links (iOS) y App Links (Android) manejando la navegación profunda tanto en 'cold start' como en 'background resume', y sincronización con React Navigation."
+        }
+      ]
+    },
+    {
+      "id": "data-persistence",
+      "title": "Persistencia y Datos Offline (Adaptado)",
+      "questions": [
+        {
+          "id": "base-datos-relacionales",
+          "question": "¿Qué tanta experiencia tienes manejando bases de datos locales estructuradas como SQLite o WatermelonDB?",
+          "type": "scale",
+          "scaleMax": 4,
+          "example": "Implementación de **WatermelonDB** para manejo de grandes volúmenes de datos locales con relaciones, aprovechando la carga perezosa (lazy loading) y sincronización eficiente."
+        },
+        {
+          "id": "base-datos-nosql",
+          "question": "¿Cómo calificarías tu capacidad para implementar almacenamiento Key-Value de alto rendimiento y estrategias Offline-First?",
+          "type": "scale",
+          "scaleMax": 4,
+          "example": "Reemplazo de AsyncStorage por **MMKV** para almacenamiento síncrono de alto rendimiento y diseño de una cola de sincronización (Sync Queue) para soportar operatividad sin internet."
+        }
+      ]
+    },
+    {
+      "id": "devops-quality",
+      "title": "Calidad, Seguridad y DevOps Móvil",
+      "questions": [
+        {
+          "id": "cloud",
+          "question": "¿Qué experiencia tienes integrando servicios BaaS (Firebase, Supabase) y gestionando actualizaciones OTA con CodePush?",
+          "type": "scale",
+          "scaleMax": 4,
+          "example": "Implementación de **CodePush** para despliegue de hotfixes críticos saltando el proceso de revisión de las tiendas, con estrategias de rollback si la actualización falla."
+        },
+        {
+          "id": "control-versiones",
+          "question": "¿Qué tan cómodo te sientes gestionando conflictos de Git en archivos nativos (pbxproj, gradle) dentro de proyectos móviles?",
+          "type": "scale",
+          "scaleMax": 4,
+          "example": "Resolución de conflictos complejos en el archivo `project.pbxproj` de iOS tras un merge y gestión de versiones semánticas sincronizadas entre `package.json` y los binarios nativos."
+        },
+        {
+          "id": "testing",
+          "question": "¿Cuál es tu nivel de dominio implementando estrategias de Testing (Unitario, Integración y E2E con Jest, RNTL, Detox/Maestro)?",
+          "type": "scale",
+          "scaleMax": 4,
+          "example": "Creación de tests E2E con **Detox** o **Maestro** que simulan flujos de usuario completos, incluyendo interacción con permisos nativos (cámara, ubicación) en simuladores."
+        },
+        {
+          "id": "contenedores",
+          "question": "¿Qué experiencia tienes configurando entornos de compilación aislados (Docker) y optimizando listas mediante virtualización?",
+          "type": "scale",
+          "scaleMax": 4,
+          "example": "Uso de una imagen Docker estandarizada para el pipeline de Android en CI/CD para evitar el problema de 'funciona en mi máquina', o virtualización avanzada de listas (FlashList) reciclando vistas."
+        },
+        {
+          "id": "despliegue-ci-cd",
+          "question": "¿Qué tanto dominas la automatización de despliegues y firma de apps utilizando herramientas como Fastlane, EAS o App Center?",
+          "type": "scale",
+          "scaleMax": 4,
+          "example": "Configuración de **Fastlane** para automatizar la captura de screenshots, gestión de certificados (Match), incremento de build numbers y subida a TestFlight/Play Console."
+        },
+        {
+          "id": "seguridad",
+          "question": "¿Cuál es tu nivel de experiencia implementando medidas de seguridad móvil (Secure Storage, SSL Pinning, Ofuscación)?",
+          "type": "scale",
+          "scaleMax": 4,
+          "example": "Uso de `react-native-keychain` o `EncryptedSharedPreferences` para tokens sensibles, implementación de SSL Pinning para prevenir ataques Man-in-the-Middle y ProGuard para ofuscación."
+        },
+        {
+          "id": "monitoreo-sre-basico",
+          "question": "¿Qué capacidad tienes para diagnosticar y monitorear aplicaciones en producción usando herramientas de observabilidad (Crashlytics, Performance Monitoring)?",
+          "type": "scale",
+          "scaleMax": 4,
+          "example": "Diagnóstico de un 'App Hang' (ANR) en producción utilizando trazas de Sentry o Firebase Performance para identificar operaciones pesadas en el hilo principal JS o UI."
+        }
+      ]
+    },
+    {
+      "id": "soft-skills",
+      "title": "Habilidades Blandas y Liderazgo",
+      "questions": [
+        {
+          "id": "comunicacion",
+          "question": "¿Qué tan efectivo te consideras comunicando limitaciones técnicas y de plataforma a perfiles no técnicos (Product Owners, Diseñadores)?",
+          "type": "scale",
+          "scaleMax": 4,
+          "example": "Explicar las diferencias de UX entre iOS (Human Interface Guidelines) y Android (Material Design) para adaptar un diseño sin aumentar excesivamente el costo de desarrollo."
+        },
+        {
+          "id": "trabajo-en-equipo",
+          "question": "¿Qué nivel de experiencia tienes liderando la gestión de deuda técnica y actualizaciones mayores de versiones en React Native?",
+          "type": "scale",
+          "scaleMax": 4,
+          "example": "Planificar y ejecutar una actualización mayor de React Native (ej. 0.70 a 0.73), coordinando con el equipo para mitigar breaking changes en dependencias nativas."
+        }
+      ]
+    }
+  ]
+}

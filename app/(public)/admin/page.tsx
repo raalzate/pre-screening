@@ -371,13 +371,15 @@ export default function App() {
         {userData && (
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
             <CandidateHeader user={userData} onRefresh={() => fetchCandidate(userData.code)} />
-
             <Tabs
               activeTab={activeTab}
               onChange={setActiveTab}
               tabs={[
                 { id: "profile", label: "Perfil & Pre-Screening", icon: <Icons.User className="w-4 h-4" /> },
-                { id: "technical", label: "Validación Técnica", icon: <Icons.Target className="w-4 h-4" /> },
+                ...(userData.certification_result || userData.challenge_result ? [
+                  { id: "technical", label: "Validación Técnica", icon: <Icons.Target className="w-4 h-4" /> }
+                ] : []),
+                { id: "interview", label: "Entrevista & Feedback", icon: <Icons.MessageSquare className="w-4 h-4" /> }
               ]}
             />
 

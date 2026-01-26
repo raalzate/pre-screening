@@ -12,6 +12,8 @@ import React, {
 import { GapAnalysisRechart } from "@/components/GapAnalysisChart";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import AdminFormsView from "@/components/admin/AdminFormsView";
+import FormPreview from "@/components/admin/FormPreview";
 
 // --- 1. CONSTANTS & TYPES ---
 
@@ -25,6 +27,8 @@ const ALL_REQUIREMENTS = [
   "pichincha-sr:dotnet-backend",
   "pichincha-ssr:dotnet-backend",
 ] as const;
+
+type AdminView = "candidates" | "forms";
 
 interface EvaluationGap {
   skill: string;
@@ -287,6 +291,8 @@ export default function App() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("profile");
   const [searchQuery, setSearchQuery] = useState("");
+  const [view, setView] = useState<AdminView>("candidates");
+  const [selectedFormId, setSelectedFormId] = useState<string | null>(null);
 
   // Auth Guard
   useEffect(() => {
@@ -309,151 +315,186 @@ export default function App() {
     <div className="bg-gray-50 min-h-screen pb-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
-        {/* --- TOP BAR: SEARCH & ACTIONS --- */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-4 mb-8 flex flex-col md:flex-row gap-4 items-center justify-between">
-          <div className="flex-1 w-full flex flex-col md:flex-row gap-3">
-            <div className="relative flex-1">
-              <Icons.Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
-              <input
-                className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition outline-none"
-                placeholder="Filtrar candidatos..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </div>
-            <select
-              value={selectedCode}
-              onChange={(e) => setSelectedCode(e.target.value)}
-              className="flex-[2] py-2.5 px-4 rounded-xl border border-gray-200 bg-white focus:ring-2 focus:ring-blue-500 outline-none"
-            >
-              <option value="">-- Seleccionar Candidato --</option>
-              {filteredUsers.map(u => (
-                <option key={u.code} value={u.code} style={{ textTransform: 'uppercase' }}>
-                  {u.name.toUpperCase().replace(/-/g, ' ')} — {u.form_id.toUpperCase().replace(/-/g, ' ')} ({u.requirements.toUpperCase().replace(/-/g, ' ')})
-                </option>
-              ))}
-            </select>
-            <button
-              onClick={handleSearch}
-              disabled={userLoading || !selectedCode}
-              className="bg-blue-600 text-white px-6 py-2.5 rounded-xl font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition shadow-md hover:shadow-lg flex items-center justify-center gap-2"
-            >
-              {userLoading ? <Spinner /> : "Consultar"}
-            </button>
-          </div>
+        {/* --- VIEW TOGGLE --- */}
+        <div className="flex bg-white p-1 rounded-xl shadow-sm border border-gray-200 mb-8 w-fit">
           <button
-            onClick={() => setIsModalOpen(true)}
-            className="bg-teal-600 text-white px-5 py-2.5 rounded-xl font-bold hover:bg-teal-700 transition flex items-center gap-2 shadow-md hover:shadow-lg whitespace-nowrap w-full md:w-auto justify-center"
+            onClick={() => { setView("candidates"); setSelectedFormId(null); }}
+            className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${view === "candidates" ? "bg-blue-600 text-white shadow-md" : "text-gray-500 hover:text-blue-600"}`}
           >
-            <Icons.Plus className="w-5 h-5" /> Nuevo Candidato
+            Candidatos
+          </button>
+          <button
+            onClick={() => setView("forms")}
+            className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${view === "forms" ? "bg-blue-600 text-white shadow-md" : "text-gray-500 hover:text-blue-600"}`}
+          >
+            Formularios
           </button>
         </div>
 
-        {/* --- ERROR STATE --- */}
-        {userError && (
-          <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-xl mb-6 flex items-center gap-3">
-            <Icons.X className="w-5 h-5" />
-            {userError}
-          </div>
-        )}
-
-        {/* --- EMPTY STATE --- */}
-        {!userData && !userLoading && !userError && (
-          <div className="text-center py-20 text-gray-400">
-            <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Icons.Search className="w-10 h-10 opacity-50" />
+        {/* --- TOP BAR: SEARCH & ACTIONS --- */}
+        {view === "candidates" && (
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-4 mb-8 flex flex-col md:flex-row gap-4 items-center justify-between">
+            <div className="flex-1 w-full flex flex-col md:flex-row gap-3">
+              <div className="relative flex-1">
+                <Icons.Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <input
+                  className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition outline-none"
+                  placeholder="Filtrar candidatos..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
+              <select
+                value={selectedCode}
+                onChange={(e) => setSelectedCode(e.target.value)}
+                className="flex-[2] py-2.5 px-4 rounded-xl border border-gray-200 bg-white focus:ring-2 focus:ring-blue-500 outline-none"
+              >
+                <option value="">-- Seleccionar Candidato --</option>
+                {filteredUsers.map(u => (
+                  <option key={u.code} value={u.code} style={{ textTransform: 'uppercase' }}>
+                    {u.name.toUpperCase().replace(/-/g, ' ')} — {u.form_id.toUpperCase().replace(/-/g, ' ')} ({u.requirements.toUpperCase().replace(/-/g, ' ')})
+                  </option>
+                ))}
+              </select>
+              <button
+                onClick={handleSearch}
+                disabled={userLoading || !selectedCode}
+                className="bg-blue-600 text-white px-6 py-2.5 rounded-xl font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition shadow-md hover:shadow-lg flex items-center justify-center gap-2"
+              >
+                {userLoading ? <Spinner /> : "Consultar"}
+              </button>
             </div>
-            <p className="text-lg font-medium">Selecciona un candidato para comenzar la revisión.</p>
+            <button
+              onClick={() => setIsModalOpen(true)}
+              className="bg-teal-600 text-white px-5 py-2.5 rounded-xl font-bold hover:bg-teal-700 transition flex items-center gap-2 shadow-md hover:shadow-lg whitespace-nowrap w-full md:w-auto justify-center"
+            >
+              <Icons.Plus className="w-5 h-5" /> Nuevo Candidato
+            </button>
           </div>
         )}
 
         {/* --- MAIN CONTENT --- */}
-        {userData && (
-          <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <CandidateHeader user={userData} onRefresh={() => fetchCandidate(userData.code)} />
-            <Tabs
-              activeTab={activeTab}
-              onChange={setActiveTab}
-              tabs={[
-                { id: "profile", label: "Perfil & Pre-Screening", icon: <Icons.User className="w-4 h-4" /> },
-                ...(userData.certification_result || userData.challenge_result ? [
-                  { id: "technical", label: "Validación Técnica", icon: <Icons.Target className="w-4 h-4" /> }
-                ] : []),
-                { id: "interview", label: "Entrevista & Feedback", icon: <Icons.MessageSquare className="w-4 h-4" /> }
-              ]}
-            />
+        {view === "candidates" && (
+          <>
+            {/* --- ERROR STATE --- */}
+            {userError && (
+              <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-xl mb-6 flex items-center gap-3">
+                <Icons.X className="w-5 h-5" />
+                {userError}
+              </div>
+            )}
 
-            <div className="grid grid-cols-1 gap-8">
-              {/* TAB 1: PROFILE */}
-              {activeTab === "profile" && (
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  <Card title="Datos Generales" icon={<Icons.User className="w-5 h-5" />}>
-                    <dl className="space-y-1">
-                      <InfoRow label="Nombre" value={userData.name} />
-                      <InfoRow label="Email" value={userData.email || "N/A"} />
-                      <InfoRow label="Código" value={userData.code} copyable />
-                      <InfoRow label="Requisito" value={<Badge>{userData.requirements}</Badge>} />
-                      <InfoRow label="Etapa" value={userData.step} />
-                    </dl>
-                  </Card>
-
-                  {userData.evaluation_result && (
-                    <Card title="Resultados Screening" icon={<Icons.Target className="w-5 h-5" />}>
-                      <div className="mb-4 flex justify-between items-center">
-                        <span className="text-sm text-gray-500">Estado:</span>
-                        {userData.evaluation_result.valid ? <Badge variant="success">Aprobado</Badge> : <Badge variant="danger">Rechazado</Badge>}
-                      </div>
-                      {userData.evaluation_result.gaps?.length > 0 && (
-                        <div className="h-64 mt-4">
-                          <GapAnalysisRechart gaps={userData.evaluation_result.gaps} />
-                        </div>
-                      )}
-                    </Card>
-                  )}
+            {/* --- EMPTY STATE --- */}
+            {!userData && !userLoading && !userError && (
+              <div className="text-center py-20 text-gray-400">
+                <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Icons.Search className="w-10 h-10 opacity-50" />
                 </div>
-              )}
+                <p className="text-lg font-medium">Selecciona un candidato para comenzar la revisión.</p>
+              </div>
+            )}
 
-              {/* TAB 2: TECHNICAL */}
-              {activeTab === "technical" && (
-                <div className="space-y-8">
-                  {userData.certification_result && (
-                    <CertificationAnalysisCard
-                      result={userData.certification_result}
-                      gaps={userData.evaluation_result?.gaps || []}
-                      questionsData={userData.questions}
-                    />
-                  )}
-
-                  {userData.challenge_result && (
-                    <ChallengeResultCard
-                      challenge={userData.challenge_result}
-                      certificationResult={userData.certification_result}
-                    />
-                  )}
-                </div>
-              )}
-
-              {/* TAB 3: INTERVIEW */}
-              {activeTab === "interview" && (
-                <InterviewFeedbackCard
-                  userData={userData}
-                  onUpdate={() => fetchCandidate(userData.code)}
-                  challenge={userData.challenge_result}
+            {/* --- MAIN CONTENT --- */}
+            {userData && (
+              <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <CandidateHeader user={userData} onRefresh={() => fetchCandidate(userData.code)} />
+                <Tabs
+                  activeTab={activeTab}
+                  onChange={setActiveTab}
+                  tabs={[
+                    { id: "profile", label: "Perfil & Pre-Screening", icon: <Icons.User className="w-4 h-4" /> },
+                    ...(userData.certification_result || userData.challenge_result ? [
+                      { id: "technical", label: "Validación Técnica", icon: <Icons.Target className="w-4 h-4" /> }
+                    ] : []),
+                    { id: "interview", label: "Entrevista & Feedback", icon: <Icons.MessageSquare className="w-4 h-4" /> }
+                  ]}
                 />
-              )}
-            </div>
+
+                <div className="grid grid-cols-1 gap-8">
+                  {/* TAB 1: PROFILE */}
+                  {activeTab === "profile" && (
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                      <Card title="Datos Generales" icon={<Icons.User className="w-5 h-5" />}>
+                        <dl className="space-y-1">
+                          <InfoRow label="Nombre" value={userData.name} />
+                          <InfoRow label="Email" value={userData.email || "N/A"} />
+                          <InfoRow label="Código" value={userData.code} copyable />
+                          <InfoRow label="Requisito" value={<Badge>{userData.requirements}</Badge>} />
+                          <InfoRow label="Etapa" value={userData.step} />
+                        </dl>
+                      </Card>
+
+                      {userData.evaluation_result && (
+                        <Card title="Resultados Screening" icon={<Icons.Target className="w-5 h-5" />}>
+                          <div className="mb-4 flex justify-between items-center">
+                            <span className="text-sm text-gray-500">Estado:</span>
+                            {userData.evaluation_result.valid ? <Badge variant="success">Aprobado</Badge> : <Badge variant="danger">Rechazado</Badge>}
+                          </div>
+                          {userData.evaluation_result.gaps?.length > 0 && (
+                            <div className="h-64 mt-4">
+                              <GapAnalysisRechart gaps={userData.evaluation_result.gaps} />
+                            </div>
+                          )}
+                        </Card>
+                      )}
+                    </div>
+                  )}
+
+                  {/* TAB 2: TECHNICAL */}
+                  {activeTab === "technical" && (
+                    <div className="space-y-8">
+                      {userData.certification_result && (
+                        <CertificationAnalysisCard
+                          result={userData.certification_result}
+                          gaps={userData.evaluation_result?.gaps || []}
+                          questionsData={userData.questions}
+                        />
+                      )}
+
+                      {userData.challenge_result && (
+                        <ChallengeResultCard
+                          challenge={userData.challenge_result}
+                          certificationResult={userData.certification_result}
+                        />
+                      )}
+                    </div>
+                  )}
+
+                  {/* TAB 3: INTERVIEW */}
+                  {activeTab === "interview" && (
+                    <InterviewFeedbackCard
+                      userData={userData}
+                      onUpdate={() => fetchCandidate(userData.code)}
+                      challenge={userData.challenge_result}
+                    />
+                  )}
+                </div>
+              </div>
+            )}
+          </>
+        )}
+
+        {view === "forms" && (
+          <div className="animate-in fade-in duration-500">
+            {selectedFormId ? (
+              <FormPreview
+                formId={selectedFormId}
+                onBack={() => setSelectedFormId(null)}
+              />
+            ) : (
+              <AdminFormsView onSelectForm={(id) => setSelectedFormId(id)} />
+            )}
           </div>
         )}
       </div>
 
-      {/* CREATE MODAL */}
+      {/* --- ADD CANDIDATE MODAL --- */}
       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Crear Nuevo Candidato">
         <CreateUserForm onClose={() => setIsModalOpen(false)} />
       </Modal>
-
     </div>
   );
-}
+};
 
 // --- 6. FEATURE COMPONENTS (Extracted for cleaner Main Page) ---
 

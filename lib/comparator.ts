@@ -34,7 +34,6 @@ export function compareAnswers(
   const coverageScore = skills.length > 0 ? metCount / skills.length : 1;
 
   return {
-    // Definimos validez si cubrió al menos el 60% (umbral solicitado: rechazo si >40% no cubierto)
     valid: coverageScore >= 0.6,
     coverageScore,
     gaps,

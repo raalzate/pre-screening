@@ -33,6 +33,8 @@ const XIcon = () => (
 );
 
 
+import ProfileSelector from '@/components/ProfileSelector';
+
 function LoginContent() {
   const [code, setCode] = useState('');
   const { login } = useAuth();
@@ -40,63 +42,105 @@ function LoginContent() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [savedUsers, setSavedUsers] = useState<SavedUser[]>([]);
+  const [profiles, setProfiles] = useState<any[]>([]);
 
-  // --- Lógica de Login (CON CORRECCIÓN de parseo JSON) ---
+  // --- Nueva lógica de verificación ---
   const handleLoginAttempt = useCallback(async (loginCode: string) => {
     if (!loginCode) return;
     setError('');
     setLoading(true);
-    try {
-      // 1. loginResponse será el JSON string
-      const loginResponse = await login(loginCode);
+    setProfiles([]); // Reset profiles
 
-      // 2. Parsear la respuesta (¡IMPORTANTE!)
+    try {
+      // 1. Verificar código primero
+      const verifyRes = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: loginCode }),
+      });
+
+      if (!verifyRes.ok) {
+        throw new Error('Código inválido o error en verificación.');
+      }
+
+      const verifyData = await verifyRes.json();
+
+      // 2. Si hay múltiples perfiles, mostrar selector
+      if (verifyData.profiles && verifyData.profiles.length > 1) {
+        setProfiles(verifyData.profiles);
+        setCode(loginCode); // Ensure code is set for later
+        setLoading(false);
+        return;
+      }
+
+      // 3. Si es usuario único, proceder login directo
+      // verifyData es el usuario único
+      await performLogin(loginCode, verifyData.requirements);
+
+    } catch (err) {
+      console.error(err);
+      setError((err as Error).message || 'Error al validar el código.');
+      setLoading(false);
+    }
+  }, [login]); // Removed router from deps as performLogin uses it
+
+  // --- Login Real ---
+  const performLogin = async (loginCode: string, requirements?: string) => {
+    try {
+      setLoading(true);
+      const loginResponse = await login(loginCode, requirements);
+
+      // Parsear respuesta (similar logic)
       let userData;
       if (typeof loginResponse === 'string') {
         userData = JSON.parse(loginResponse);
       } else if (typeof loginResponse === 'object' && loginResponse !== null) {
-        userData = loginResponse; // Ya era un objeto
+        userData = loginResponse;
       } else {
         throw new Error("Respuesta de login desconocida.");
       }
 
-      // 3. Validar el objeto parseado
       if (!userData || !userData.name || !userData.code || !userData.form_id) {
-        throw new Error("El objeto de usuario no tiene 'name', 'code', o 'form_id'.");
+        throw new Error("Datos de usuario incompletos.");
       }
 
-      // 4. Crear el objeto simple para guardar
+      // Guardar reciente
       const userToSave: SavedUser = {
         name: userData.name,
         code: userData.code,
         formId: userData.form_id,
       };
 
-      // 5. Guardar en estado y localStorage
       setSavedUsers(prevUsers => {
         const otherUsers = prevUsers.filter(u => u.code !== userToSave.code);
         const newUsers = [userToSave, ...otherUsers].slice(0, 5);
         try {
           localStorage.setItem(RECENT_USERS_KEY, JSON.stringify(newUsers));
         } catch (e) {
-          console.error("Error al guardar en localStorage:", e);
+          console.error("Error saving to localStorage:", e);
         }
         return newUsers;
       });
 
-      // 6. Redirigir
       router.push('/');
-
     } catch (err) {
       console.error(err);
-      setError((err as Error).message || 'Código inválido. Por favor, intenta de nuevo.');
-      setCode(loginCode);
+      setError((err as Error).message);
     } finally {
       setLoading(false);
     }
-  }, [login, router]);
+  };
 
+  const handleProfileSelect = (reqs: string) => {
+    performLogin(code, reqs);
+  };
 
+  // --- ... (Rest of existing functions) ... ---
+  // ... handleDeleteRecentUser, useEffects ...
+
+  // NOTE: Reuse existing useEffects and handlers
+
+  // ... (Hooks for RECENT_USERS_KEY, searchParams, handleSubmit) ...
   // --- 2. NUEVA FUNCIÓN para eliminar un usuario reciente ---
   const handleDeleteRecentUser = useCallback((e: React.MouseEvent, codeToDelete: string) => {
     e.stopPropagation(); // Previene que se dispare el login
@@ -111,8 +155,7 @@ function LoginContent() {
     } catch (err) {
       console.error("Error al actualizar localStorage:", err);
     }
-  }, [savedUsers]); // Depende del estado 'savedUsers'
-
+  }, [savedUsers]);
 
   // Hook para LEER de localStorage al cargar
   useEffect(() => {
@@ -125,25 +168,23 @@ function LoginContent() {
       console.error("Error al leer de localStorage:", e);
       localStorage.removeItem(RECENT_USERS_KEY);
     }
-  }, []); // Se ejecuta solo al montar
-
+  }, []);
 
   // Hook para leer el parámetro 'code' de la URL
   const searchParams = useSearchParams();
   useEffect(() => {
     const queryCode = searchParams.get('code');
     if (queryCode) {
+      setCode(queryCode);
       handleLoginAttempt(queryCode);
     }
   }, [searchParams, handleLoginAttempt]);
-
 
   // Manejador del formulario
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     handleLoginAttempt(code);
   };
-
 
   return (
     <div className="min-h-screen flex flex-col" style={{ backgroundColor: sofkaColors.gray }}>
@@ -157,7 +198,6 @@ function LoginContent() {
             height={30}
             priority
           />
-          {/* Puedes mover el Link de Admin aquí si lo prefieres */}
         </div>
       </header>
 
@@ -180,20 +220,16 @@ function LoginContent() {
 
             {savedUsers.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-                {/* --- 3. Tarjeta de Usuario MODIFICADA --- */}
                 {savedUsers.map((user) => (
-                  // Convertido en <div> 'relative' para posicionar el botón de borrar
                   <div
                     key={user.code}
                     className="relative p-6 rounded-lg shadow-md transition-all duration-300 hover:shadow-lg"
                     style={{ backgroundColor: 'white' }}
                   >
-                    {/* Botón principal de login */}
                     <button
                       onClick={() => handleLoginAttempt(user.code)}
                       disabled={loading}
-                      className="w-full text-left focus:outline-none disabled:opacity-50 pr-8" // Padding derecho para no solapar con la 'X'
+                      className="w-full text-left focus:outline-none disabled:opacity-50 pr-8"
                       title={`Ingresar como ${user.name}`}
                     >
                       <span className="block text-lg font-semibold truncate" style={{ color: sofkaColors.blue }}>
@@ -203,23 +239,18 @@ function LoginContent() {
                         {user.formId}
                       </span>
                     </button>
-
-                    {/* Botón de eliminar (posicionado absoluto) */}
                     <button
                       onClick={(e) => handleDeleteRecentUser(e, user.code)}
                       disabled={loading}
                       className="absolute top-3 right-3 w-8 h-8 flex items-center justify-center rounded-full text-gray-400 hover:bg-red-100 hover:text-red-600 focus:outline-none focus:bg-red-100 focus:text-red-600 transition-colors disabled:opacity-50"
                       title={`Eliminar ${user.name}`}
-                      aria-label={`Eliminar acceso reciente de ${user.name}`}
                     >
                       <XIcon />
                     </button>
                   </div>
                 ))}
-
               </div>
             ) : (
-              // Mensaje si no hay usuarios guardados
               <div
                 className="p-6 rounded-lg border-l-4"
                 style={{ backgroundColor: 'white', borderColor: sofkaColors.lightBlue }}
@@ -234,49 +265,55 @@ function LoginContent() {
           </div>
         </div>
 
-        {/* Columna Derecha: Formulario de Login */}
+        {/* Columna Derecha: Login / Selector */}
         <div className="w-full md:w-2/5 lg:w-2/5 md:sticky md:top-20">
           <div className="p-8 rounded-lg shadow-xl space-y-6" style={{ backgroundColor: 'white' }}>
-            <div className="text-center">
-              <h2 className="text-2xl font-bold" style={{ color: sofkaColors.darkGray }}>
-                Ingresa tu código
-              </h2>
-              <p className="mt-2 text-sm" style={{ color: sofkaColors.darkGray }}>
-                Para empezar, ingresa el código que se te ha proporcionado.
-              </p>
-            </div>
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div>
-                <label htmlFor="code" className="sr-only">
-                  Código
-                </label>
-                <input
-                  id="code"
-                  type="password"
-                  value={code}
-                  onChange={(e) => setCode(e.target.value)}
-                  placeholder="Código secreto"
-                  required
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg outline-none transition duration-300 focus:border-sofka-light-blue focus:ring-1 focus:ring-sofka-light-blue"
-                />
-              </div>
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full px-6 py-3 rounded-lg font-semibold transition-all duration-300 transform disabled:opacity-50 disabled:cursor-not-allowed"
-                style={{
-                  backgroundColor: sofkaColors.blue,
-                  color: 'white',
-                }}
-              >
-                {loading ? 'Validando...' : 'Ingresar'}
-              </button>
-              {error && (
-                <p className="text-center text-red-600 font-medium">
-                  {error}
-                </p>
-              )}
-            </form>
+            {profiles.length > 0 ? (
+              <ProfileSelector profiles={profiles} onSelect={handleProfileSelect} />
+            ) : (
+              <>
+                <div className="text-center">
+                  <h2 className="text-2xl font-bold" style={{ color: sofkaColors.darkGray }}>
+                    Ingresa tu código
+                  </h2>
+                  <p className="mt-2 text-sm" style={{ color: sofkaColors.darkGray }}>
+                    Para empezar, ingresa el código que se te ha proporcionado.
+                  </p>
+                </div>
+                <form onSubmit={handleSubmit} className="space-y-6">
+                  <div>
+                    <label htmlFor="code" className="sr-only">
+                      Código
+                    </label>
+                    <input
+                      id="code"
+                      type="password"
+                      value={code}
+                      onChange={(e) => setCode(e.target.value)}
+                      placeholder="Código secreto"
+                      required
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg outline-none transition duration-300 focus:border-sofka-light-blue focus:ring-1 focus:ring-sofka-light-blue"
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="w-full px-6 py-3 rounded-lg font-semibold transition-all duration-300 transform disabled:opacity-50 disabled:cursor-not-allowed"
+                    style={{
+                      backgroundColor: sofkaColors.blue,
+                      color: 'white',
+                    }}
+                  >
+                    {loading ? 'Validando...' : 'Ingresar'}
+                  </button>
+                  {error && (
+                    <p className="text-center text-red-600 font-medium">
+                      {error}
+                    </p>
+                  )}
+                </form>
+              </>
+            )}
           </div>
         </div>
       </main>

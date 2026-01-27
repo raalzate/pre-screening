@@ -20,10 +20,9 @@ export async function POST(request: Request) {
     await db.execute(`
       INSERT INTO users (name, email, code, requirements, step, form_id)
       VALUES (?, ?, ?, ?, ?, ?)
-      ON CONFLICT(code) DO UPDATE SET
+      ON CONFLICT(code, requirements) DO UPDATE SET
         name=excluded.name,
         email=excluded.email,
-        requirements=excluded.requirements,
         step=excluded.step,
         form_id=excluded.form_id
     `, [name, email, code, requirements, step, form_id]);
@@ -53,16 +52,25 @@ export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url, "http://n");
     const code = searchParams.get("code");
+    const requirements = searchParams.get("requirements");
 
     if (code) {
-      // Buscar usuario por code
-      const result = await db.execute("SELECT * FROM users WHERE code = ?", [code]);
+      // Buscar usuario por code y optional requirements
+      let query = "SELECT * FROM users WHERE code = ?";
+      let args = [code];
+
+      if (requirements) {
+        query += " AND requirements = ?";
+        args.push(requirements);
+      }
+
+      const result = await db.execute(query, args);
 
       if (result.rows.length === 0) {
         return NextResponse.json({ message: "Usuario no encontrado" }, { status: 404 });
       }
 
-      // Convertir a objeto plano para evitar problemas de serialización si los hay
+      // Convertir a objeto plano
       const user = { ...result.rows[0] };
       return NextResponse.json(user);
     } else {

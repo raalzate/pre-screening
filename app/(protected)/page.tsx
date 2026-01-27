@@ -69,7 +69,7 @@ export default function Home() {
   };
 
   const seniorityLevels: { [key: string]: string } = {
-    'J': 'Junior',
+    'JR': 'Junior',
     'SSR': 'Semi Senior',
     'SR': 'Senior',
   };
@@ -116,7 +116,7 @@ export default function Home() {
                   <p className="text-indigo-100 mt-1 opacity-90">Entrevistador: {auth.user.interviewer_name || 'Comité Técnico'}</p>
                 </div>
                 <div className={`px-4 py-2 rounded-full font-bold text-sm uppercase tracking-wider ${auth.user.interview_status === 'pasa' ? 'bg-green-400 text-green-900' :
-                    auth.user.interview_status === 'no_pasa' ? 'bg-red-400 text-red-900' : 'bg-yellow-400 text-yellow-900'
+                  auth.user.interview_status === 'no_pasa' ? 'bg-red-400 text-red-900' : 'bg-yellow-400 text-yellow-900'
                   }`}>
                   {auth.user.interview_status === 'pasa' ? 'Aprobado' :
                     auth.user.interview_status === 'no_pasa' ? 'No Aprobado' : 'En Espera'}
@@ -205,7 +205,7 @@ export default function Home() {
       <header className="bg-white shadow-sm">
         <div className="container mx-auto px-4 py-6">
           <h1 className="text-3xl font-bold text-gray-800">
-            Hola {auth.user?.name.toUpperCase()}, bienvenido a la plataforma de evaluación
+            Hola {auth.user?.name?.toUpperCase() ?? 'Usuario'}, bienvenido a la plataforma de evaluación
           </h1>
           <p className="mt-2 text-gray-600 font-semibold">{getInstructionalHeader()}</p>
         </div>
@@ -263,9 +263,9 @@ export default function Home() {
             </h2>
             <div className="grid grid-cols-1 gap-8">
               {formIds.map((id, index) => {
-                const idParts = id.split('-');
-                const seniorityCode = idParts[idParts.length - 1].toUpperCase();
-                const seniority = seniorityLevels[seniorityCode] || seniorityCode;
+                const idParts = auth.user?.requirements?.split('-') || [];
+                const seniorityCode = idParts.at(-1)?.toUpperCase();
+                const seniority = seniorityLevels[seniorityCode || ''] || seniorityCode || 'N/A';
                 const isRecommended = index === 0; // Asume que el primer formulario es el recomendado
 
                 return (

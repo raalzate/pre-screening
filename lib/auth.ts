@@ -14,15 +14,27 @@ export const authOptions: NextAuthOptions = {
       name: "Code",
       credentials: {
         code: { label: "Code", type: "text" },
+        requirements: { label: "Requirements", type: "text" },
       },
       async authorize(credentials) {
         if (!credentials?.code) return null;
 
         try {
-          const stmt = await db.execute(
-            'SELECT name, code, email, requirements, step, evaluation_result, form_id, certification_result, challenge_result, interview_feedback, interview_status, technical_level, interviewer_name FROM users WHERE code = ?',
-            [credentials.code]
-          );
+          let stmt;
+          if (credentials.requirements) {
+            stmt = await db.execute(
+              'SELECT name, code, email, requirements, step, evaluation_result, form_id, certification_result, challenge_result, interview_feedback, interview_status, technical_level, interviewer_name FROM users WHERE code = ? AND requirements = ?',
+              [credentials.code, credentials.requirements]
+            );
+          } else {
+            // Fallback for single profile or auto-select first (legacy behavior safety)
+            // However, login flow should handle selection before calling this if multiple exist.
+            stmt = await db.execute(
+              'SELECT name, code, email, requirements, step, evaluation_result, form_id, certification_result, challenge_result, interview_feedback, interview_status, technical_level, interviewer_name FROM users WHERE code = ?',
+              [credentials.code]
+            );
+          }
+
           const user = stmt.rows.length ? stmt.rows[0] : null;
 
           if (user) {
@@ -87,6 +99,8 @@ export const authOptions: NextAuthOptions = {
         token.code = (user as any).code;
         token.email = user.email;
         token.name = user.name;
+        // Persist the specific requirements chosen
+        token.requirements = (user as any).requirements;
       }
       return token;
     },
@@ -95,10 +109,21 @@ export const authOptions: NextAuthOptions = {
       // usando el código guardado en el JWT.
       if (token.code) {
         try {
-          const stmt = await db.execute(
-            'SELECT name, code, email, requirements, step, evaluation_result, form_id, certification_result, challenge_result, interview_feedback, interview_status, technical_level, interviewer_name FROM users WHERE code = ?',
-            [token.code as string]
-          );
+          let stmt;
+          if (token.requirements) {
+            // Query with requirements if available (multi-profile case)
+            stmt = await db.execute(
+              'SELECT name, code, email, requirements, step, evaluation_result, form_id, certification_result, challenge_result, interview_feedback, interview_status, technical_level, interviewer_name FROM users WHERE code = ? AND requirements = ?',
+              [token.code as string, token.requirements as string]
+            );
+          } else {
+            // Fallback to first profile if requirements not in token (shouldn't happen but safety)
+            stmt = await db.execute(
+              'SELECT name, code, email, requirements, step, evaluation_result, form_id, certification_result, challenge_result, interview_feedback, interview_status, technical_level, interviewer_name FROM users WHERE code = ? LIMIT 1',
+              [token.code as string]
+            );
+          }
+
           const user = stmt.rows.length ? stmt.rows[0] : null;
 
           if (user) {

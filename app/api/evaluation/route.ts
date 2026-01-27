@@ -45,14 +45,14 @@ export async function POST(req: Request) {
             await db.execute(
               `UPDATE users
                SET evaluation_result = ?, step = ?, interview_status = ?, interview_feedback = ?, interviewer_name = ?
-               WHERE code = ?`,
-              [JSON.stringify(result), 'feedback', 'no_pasa', feedback, 'IA Assistant', userCode]
+               WHERE code = ? AND requirements = ?`,
+              [JSON.stringify(result), 'feedback', 'no_pasa', feedback, 'IA Assistant', userCode, requirements]
             );
-            console.log("❌ Candidato rechazado automáticamente por falta de cobertura:", userCode);
+            console.log("❌ Candidato rechazado automáticamente por falta de cobertura:", userCode, requirements);
 
             // Enviar correo de rechazo
             try {
-              const userStmt = await db.execute("SELECT name, email FROM users WHERE code = ?", [userCode]);
+              const userStmt = await db.execute("SELECT name, email FROM users WHERE code = ? AND requirements = ?", [userCode, requirements]);
               const user = userStmt.rows[0];
               if (user && user.email) {
                 await sendRejectionEmail(user.name as string, user.email as string);
@@ -68,14 +68,14 @@ export async function POST(req: Request) {
           await db.execute(
             `UPDATE users
              SET evaluation_result = ?, questions = ?, step = ?
-             WHERE code = ?`,
-            [JSON.stringify(result), JSON.stringify(questions), 'certified', userCode]
+             WHERE code = ? AND requirements = ?`,
+            [JSON.stringify(result), JSON.stringify(questions), 'certified', userCode, requirements]
           );
-          console.log("✅ Datos guardados en la base de datos del codigo:", userCode);
+          console.log("✅ Datos guardados en la base de datos del codigo:", userCode, requirements);
 
           // Enviar correo de notificación de fin de evaluación
           try {
-            const userStmt = await db.execute("SELECT name, email FROM users WHERE code = ?", [userCode]);
+            const userStmt = await db.execute("SELECT name, email FROM users WHERE code = ? AND requirements = ?", [userCode, requirements]);
             const user = userStmt.rows[0];
             if (user && user.email) {
               await sendEvaluationCompleteEmail(user.name as string, user.email as string, userCode);

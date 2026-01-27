@@ -10,6 +10,7 @@ const GapSchema = z.object({
 
 const ChallengeInputSchema = z.object({
   formId: z.string(),
+  requirements: z.string(),
   answers: z.record(z.string(), z.number()),
   gaps: z.array(GapSchema),
 });
@@ -59,6 +60,7 @@ class ChallengeGenerator extends BaseGenerator<InputSchemaType, OutputSchemaType
         La persona deberá analizar el gráfico junto con el caso para responder.
 
         ### Reglas
+        - Nivel de dificultad: ${input.requirements}
         - La salida debe ser una **pregunta redactada como tal**, dentro de un **caso de estudio hipotético**.
         - La **pregunta debe estar siempre en negrilla usando formato HTML (<b> ... </b>)** dentro de la descripción, para que sea fácil de identificar.
         - El diagrama Mermaid debe ser un **sequenceDiagram válido**, mostrando mensajes, actores y flujos clave que el candidato deba interpretar.

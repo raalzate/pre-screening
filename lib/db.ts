@@ -10,29 +10,33 @@ export const db = createClient({
   authToken: authToken,
 });
 
-// Inicialización de tabla (solo si no existe)
+// Inicialización de tablas (solo si no existen)
 export async function initDb() {
-  await db.execute(`
-    CREATE TABLE IF NOT EXISTS users (
-      name TEXT NOT NULL,
-      email TEXT NULL,
-      code TEXT PRIMARY KEY,
-      requirements TEXT NOT NULL,
-      step TEXT NOT NULL,
-      form_id TEXT NOT NULL,
-      evaluation_result TEXT NULL,
-      questions TEXT NULL,
-      certification_result TEXT NULL,
-      challenge_result TEXT NULL,
-      interview_feedback TEXT NULL,
-      interview_status TEXT NULL,
-      technical_level TEXT NULL,
-      interviewer_name TEXT NULL
-    );
-  `);
+  const usersTableSchema = `
+    name TEXT NOT NULL,
+    email TEXT NULL,
+    code TEXT PRIMARY KEY,
+    requirements TEXT NOT NULL,
+    step TEXT NOT NULL,
+    form_id TEXT NOT NULL,
+    evaluation_result TEXT NULL,
+    questions TEXT NULL,
+    certification_result TEXT NULL,
+    challenge_result TEXT NULL,
+    interview_feedback TEXT NULL,
+    interview_status TEXT NULL,
+    technical_level TEXT NULL,
+    interviewer_name TEXT NULL
+  `;
+
+  await db.execute(`CREATE TABLE IF NOT EXISTS users (${usersTableSchema});`);
+  await db.execute(`CREATE TABLE IF NOT EXISTS history_candidates (
+    ${usersTableSchema},
+    moved_at TEXT DEFAULT CURRENT_TIMESTAMP
+  );`);
 
   // Asegurar que las columnas existan en bases de datos ya creadas
-  const columns = [
+  const optionalColumns = [
     { name: "email", type: "TEXT NULL" },
     { name: "interview_feedback", type: "TEXT NULL" },
     { name: "interview_status", type: "TEXT NULL" },
@@ -40,12 +44,16 @@ export async function initDb() {
     { name: "interviewer_name", type: "TEXT NULL" }
   ];
 
-  for (const col of columns) {
-    try {
-      await db.execute(`ALTER TABLE users ADD COLUMN ${col.name} ${col.type};`);
-    } catch (e: any) {
-      if (!e.message?.includes("duplicate column name") && !e.message?.includes("already exists")) {
-        console.error(`Error al añadir columna ${col.name}:`, e);
+  const tables = ["users", "history_candidates"];
+
+  for (const table of tables) {
+    for (const col of optionalColumns) {
+      try {
+        await db.execute(`ALTER TABLE ${table} ADD COLUMN ${col.name} ${col.type};`);
+      } catch (e: any) {
+        if (!e.message?.includes("duplicate column name") && !e.message?.includes("already exists")) {
+          console.error(`Error al añadir columna ${col.name} a la tabla ${table}:`, e);
+        }
       }
     }
   }

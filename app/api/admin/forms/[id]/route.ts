@@ -23,7 +23,7 @@ export async function GET(
             const content = await fs.readFile(filePath, 'utf-8');
             const data = JSON.parse(content);
             return NextResponse.json(data);
-        } catch (e) {
+        } catch {
             return NextResponse.json({ message: 'Form not found' }, { status: 404 });
         }
     } catch (error) {

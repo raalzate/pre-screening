@@ -128,27 +128,9 @@ export default function ChallengeContainer({
   }, [challenge?.mermaid]);
 
   const [spec, setSpec] = useState<any | null>(null);
-  const [loadingSpec, setLoadingSpec] = useState(false);
   const [showSpec, setShowSpec] = useState(false);
 
-  const generateSpec = async () => {
-    if (!challenge) return;
-    try {
-      setLoadingSpec(true);
-      const response = await api.post("/challenge/spec", {
-        challengeTitle: challenge.title,
-        challengeDescription: challenge.description,
-      });
-      setSpec(response.data);
-      setShowSpec(true);
-      toast.success("Especificación generada con éxito");
-    } catch (err) {
-      console.error("Error al generar especificación:", err);
-      toast.error("No se pudo generar la especificación técnica");
-    } finally {
-      setLoadingSpec(false);
-    }
-  };
+
 
   if (loading) {
     return (

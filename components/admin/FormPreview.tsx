@@ -97,7 +97,7 @@ const FormPreview: FC<FormPreviewProps> = ({ formId, onBack }) => {
                         </div>
 
                         <div className="p-6 space-y-8">
-                            {category.questions.map((q, qIdx) => (
+                            {category.questions.map((q) => (
                                 <div key={q.id} className="group">
                                     <div className="flex gap-4">
                                         <div className="flex-1">

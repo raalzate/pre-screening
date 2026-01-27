@@ -44,48 +44,8 @@ function LoginContent() {
   const [savedUsers, setSavedUsers] = useState<SavedUser[]>([]);
   const [profiles, setProfiles] = useState<any[]>([]);
 
-  // --- Nueva lógica de verificación ---
-  const handleLoginAttempt = useCallback(async (loginCode: string) => {
-    if (!loginCode) return;
-    setError('');
-    setLoading(true);
-    setProfiles([]); // Reset profiles
-
-    try {
-      // 1. Verificar código primero
-      const verifyRes = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code: loginCode }),
-      });
-
-      if (!verifyRes.ok) {
-        throw new Error('Código inválido o error en verificación.');
-      }
-
-      const verifyData = await verifyRes.json();
-
-      // 2. Si hay múltiples perfiles, mostrar selector
-      if (verifyData.profiles && verifyData.profiles.length > 1) {
-        setProfiles(verifyData.profiles);
-        setCode(loginCode); // Ensure code is set for later
-        setLoading(false);
-        return;
-      }
-
-      // 3. Si es usuario único, proceder login directo
-      // verifyData es el usuario único
-      await performLogin(loginCode, verifyData.requirements);
-
-    } catch (err) {
-      console.error(err);
-      setError((err as Error).message || 'Error al validar el código.');
-      setLoading(false);
-    }
-  }, [login]); // Removed router from deps as performLogin uses it
-
   // --- Login Real ---
-  const performLogin = async (loginCode: string, requirements?: string) => {
+  const performLogin = useCallback(async (loginCode: string, requirements?: string) => {
     try {
       setLoading(true);
       const loginResponse = await login(loginCode, requirements);
@@ -129,7 +89,47 @@ function LoginContent() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [login, router, setSavedUsers]);
+
+  // --- Nueva lógica de verificación ---
+  const handleLoginAttempt = useCallback(async (loginCode: string) => {
+    if (!loginCode) return;
+    setError('');
+    setLoading(true);
+    setProfiles([]); // Reset profiles
+
+    try {
+      // 1. Verificar código primero
+      const verifyRes = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: loginCode }),
+      });
+
+      if (!verifyRes.ok) {
+        throw new Error('Código inválido o error en verificación.');
+      }
+
+      const verifyData = await verifyRes.json();
+
+      // 2. Si hay múltiples perfiles, mostrar selector
+      if (verifyData.profiles && verifyData.profiles.length > 1) {
+        setProfiles(verifyData.profiles);
+        setCode(loginCode); // Ensure code is set for later
+        setLoading(false);
+        return;
+      }
+
+      // 3. Si es usuario único, proceder login directo
+      // verifyData es el usuario único
+      await performLogin(loginCode, verifyData.requirements);
+
+    } catch (err) {
+      console.error(err);
+      setError((err as Error).message || 'Error al validar el código.');
+      setLoading(false);
+    }
+  }, [performLogin]);
 
   const handleProfileSelect = (reqs: string) => {
     performLogin(code, reqs);

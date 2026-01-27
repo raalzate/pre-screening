@@ -37,12 +37,7 @@ interface EvaluationGap {
   got: number;
   required: number;
 }
-interface EvaluationResult {
-  formId: string;
-  valid: boolean;
-  answers: Record<string, number>;
-  gaps: EvaluationGap[];
-}
+
 interface CertificationDetail {
   questionId: string;
   correct: boolean;
@@ -68,9 +63,7 @@ interface Question {
 }
 
 // Reuse or Extend UserData to be compatible with AdminUser
-interface UserData extends AdminUser {
-  // Add any missing specific fields if needed
-}
+type UserData = AdminUser;
 
 // --- 2. UI LIBRARY (ATOMIC COMPONENTS) ---
 // ... (Icons, Spinner, Badge, Card, Modal, Tabs, Skeleton remain same) ...
@@ -222,9 +215,7 @@ const Tabs: FC<{ tabs: { id: string; label: string; icon?: ReactNode }[]; active
   </div>
 );
 
-const Skeleton: FC<{ className?: string }> = ({ className }) => (
-  <div className={`animate-pulse bg-gray-200 rounded ${className}`} />
-);
+
 
 // --- 4. SUB-COMPONENTS ---
 
@@ -253,7 +244,7 @@ const InfoRow: FC<{ label: string; value: ReactNode; copyable?: boolean }> = ({ 
   );
 };
 
-const CandidateHeader: FC<{ user: UserData; onRefresh: () => void }> = ({ user, onRefresh }) => (
+const CandidateHeader: FC<{ user: UserData }> = ({ user }) => (
   <div className="top-0 z-30  m-4 shadow-sm flex flex-col md:flex-row justify-between items-center gap-4">
     <div className="flex items-center gap-4">
       <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold text-xl shadow-lg">
@@ -289,8 +280,8 @@ export default function App() {
   const router = useRouter();
 
   // Hooks
-  const { users, loading: listLoading } = useUserList();
-  const { data: userData, loading: userLoading, error: userError, fetchCandidate, setData: updateUserData } = useCandidate();
+  const { users } = useUserList();
+  const { data: userData, loading: userLoading, error: userError, fetchCandidate } = useCandidate();
 
   // State
   const [selectedCode, setSelectedCode] = useState("");
@@ -450,7 +441,7 @@ export default function App() {
                   </div>
                 )}
                 <div className="mb-6 bg-white rounded-xl border border-gray-200">
-                  <CandidateHeader user={userData} onRefresh={() => fetchCandidate(userData.code, userData.requirements)} />
+                  <CandidateHeader user={userData} />
                 </div>
                 <Tabs
                   activeTab={activeTab}
@@ -482,11 +473,11 @@ export default function App() {
                         <Card title="Resultados Screening" icon={<Icons.Target className="w-5 h-5" />}>
                           <div className="mb-4 flex justify-between items-center">
                             <span className="text-sm text-gray-500">Estado:</span>
-                            {userData.evaluation_result.valid ? <Badge variant="success">Aprobado</Badge> : <Badge variant="danger">Rechazado</Badge>}
+                            {JSON.parse(userData.evaluation_result).valid ? <Badge variant="success">Aprobado</Badge> : <Badge variant="danger">Rechazado</Badge>}
                           </div>
-                          {userData.evaluation_result.gaps?.length > 0 && (
+                          {JSON.parse(userData.evaluation_result).gaps?.length > 0 && (
                             <div className="h-64 mt-4">
-                              <GapAnalysisRechart gaps={userData.evaluation_result.gaps} />
+                              <GapAnalysisRechart gaps={JSON.parse(userData.evaluation_result).gaps} />
                             </div>
                           )}
                         </Card>
@@ -499,16 +490,16 @@ export default function App() {
                     <div className="space-y-8">
                       {userData.certification_result && (
                         <CertificationAnalysisCard
-                          result={userData.certification_result}
-                          gaps={userData.evaluation_result?.gaps || []}
-                          questionsData={userData.questions}
+                          result={JSON.parse(userData.certification_result)}
+                          gaps={JSON.parse(userData.evaluation_result || "{}").gaps}
+                          questionsData={JSON.parse(userData.questions || "[]")}
                         />
                       )}
 
                       {userData.challenge_result && (
                         <ChallengeResultCard
-                          challenge={userData.challenge_result}
-                          certificationResult={userData.certification_result}
+                          challenge={JSON.parse(userData.challenge_result)}
+                          certificationResult={JSON.parse(userData.certification_result || "{}")}
                         />
                       )}
                     </div>
@@ -519,7 +510,7 @@ export default function App() {
                     <InterviewFeedbackCard
                       userData={userData}
                       onUpdate={() => fetchCandidate(userData.code)}
-                      challenge={userData.challenge_result}
+                      challenge={JSON.parse(userData.challenge_result || "{}")}
                     />
                   )}
                 </div>
@@ -555,7 +546,7 @@ export default function App() {
 const CreateUserForm: FC<{ onClose: () => void }> = ({ onClose }) => {
   const [formData, setFormData] = useState({ name: "", email: "" });
   const [selectedReqs, setSelectedReqs] = useState<string[]>([]);
-  const [code, setCode] = useState(() => Math.random().toString(16).substring(2, 10).toUpperCase());
+  const [code] = useState(() => Math.random().toString(16).substring(2, 10).toUpperCase());
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState<string | null>(null);
   const [profileSearch, setProfileSearch] = useState("");
@@ -1090,8 +1081,7 @@ const InterviewFeedbackCard: FC<{
   userData: UserData;
   onUpdate: () => void;
   challenge?: ChallengeResult;
-  certificationResult?: CertificationResult;
-}> = ({ userData, onUpdate, challenge, certificationResult }) => {
+}> = ({ userData, onUpdate, challenge }) => {
   const [feedback, setFeedback] = useState(userData.interview_feedback || "");
   const [status, setStatus] = useState(userData.interview_status || "");
   const [technicalLevel, setTechnicalLevel] = useState(userData.technical_level || "");

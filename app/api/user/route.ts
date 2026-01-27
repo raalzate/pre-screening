@@ -57,7 +57,7 @@ export async function GET(request: Request) {
     if (code) {
       // Buscar usuario por code y optional requirements
       let query = "SELECT * FROM users WHERE code = ?";
-      let args = [code];
+      const args = [code];
 
       if (requirements) {
         query += " AND requirements = ?";

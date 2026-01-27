@@ -5,10 +5,10 @@ export interface User {
     requirements: string;
     step: string;
     form_id: string;
-    evaluation_result?: string;
-    questions?: string;
-    certification_result?: string;
-    challenge_result?: string;
+    evaluation_result?: any;
+    questions?: any;
+    certification_result?: any;
+    challenge_result?: any;
     interview_feedback?: string;
     interview_status?: string;
     technical_level?: string;

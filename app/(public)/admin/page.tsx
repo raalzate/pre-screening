@@ -62,15 +62,8 @@ interface Question {
   correctAnswer: string;
 }
 
-// Reuse or Extend UserData to be compatible with AdminUser
 type UserData = AdminUser;
 
-// --- 2. UI LIBRARY (ATOMIC COMPONENTS) ---
-// ... (Icons, Spinner, Badge, Card, Modal, Tabs, Skeleton remain same) ...
-
-// ...
-
-// --- 3. LOGIC HOOKS ---
 
 const useCandidate = () => {
   const [data, setData] = useState<UserData | null>(null);
@@ -329,7 +322,7 @@ export default function App() {
   };
 
   if (status === "loading") return <div className="min-h-screen bg-gray-50 flex items-center justify-center"><Spinner size="md" /></div>;
-
+  console.log(userData);
   return (
     <div className="bg-gray-50 min-h-screen pb-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -432,8 +425,8 @@ export default function App() {
                             }`}
                         >
                           <div className="flex flex-col items-start">
-                            <span className="font-bold">{profile.requirements}</span>
-                            <span className="text-xs opacity-75">{profile.form_id}</span>
+                            <span className="font-bold">{profile.requirements.toUpperCase().replace('-', ' ')}</span>
+                            <span className="text-xs opacity-75">{profile.form_id.replace('-', ' ')}</span>
                           </div>
                         </button>
                       ))}
@@ -473,11 +466,11 @@ export default function App() {
                         <Card title="Resultados Screening" icon={<Icons.Target className="w-5 h-5" />}>
                           <div className="mb-4 flex justify-between items-center">
                             <span className="text-sm text-gray-500">Estado:</span>
-                            {JSON.parse(userData.evaluation_result).valid ? <Badge variant="success">Aprobado</Badge> : <Badge variant="danger">Rechazado</Badge>}
+                            {userData.evaluation_result.valid ? <Badge variant="success">Aprobado</Badge> : <Badge variant="danger">Rechazado</Badge>}
                           </div>
-                          {JSON.parse(userData.evaluation_result).gaps?.length > 0 && (
+                          {userData.evaluation_result.gaps?.length > 0 && (
                             <div className="h-64 mt-4">
-                              <GapAnalysisRechart gaps={JSON.parse(userData.evaluation_result).gaps} />
+                              <GapAnalysisRechart gaps={userData.evaluation_result.gaps} />
                             </div>
                           )}
                         </Card>
@@ -490,16 +483,16 @@ export default function App() {
                     <div className="space-y-8">
                       {userData.certification_result && (
                         <CertificationAnalysisCard
-                          result={JSON.parse(userData.certification_result)}
-                          gaps={JSON.parse(userData.evaluation_result || "{}").gaps}
-                          questionsData={JSON.parse(userData.questions || "[]")}
+                          result={userData.certification_result}
+                          gaps={userData.evaluation_result.gaps}
+                          questionsData={userData.questions}
                         />
                       )}
 
                       {userData.challenge_result && (
                         <ChallengeResultCard
-                          challenge={JSON.parse(userData.challenge_result)}
-                          certificationResult={JSON.parse(userData.certification_result || "{}")}
+                          challenge={userData.challenge_result}
+                          certificationResult={userData.certification_result}
                         />
                       )}
                     </div>
@@ -510,7 +503,7 @@ export default function App() {
                     <InterviewFeedbackCard
                       userData={userData}
                       onUpdate={() => fetchCandidate(userData.code)}
-                      challenge={JSON.parse(userData.challenge_result || "{}")}
+                      challenge={userData.challenge_result}
                     />
                   )}
                 </div>

@@ -28,7 +28,7 @@ interface User {
 export interface AuthContextType {
   user: User | null;
   isLoading: boolean;
-  login: (code: string) => Promise<User>;
+  login: (code: string, requirements?: string) => Promise<User>;
   logout: () => void;
 }
 
@@ -47,9 +47,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [session]);
 
-  const login = useCallback(async (code: string) => {
+  const login = useCallback(async (code: string, requirements?: string) => {
     const result = await signIn("credentials", {
       code,
+      requirements, // Pass explicitly
       redirect: false,
     });
 
@@ -58,11 +59,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
 
     // Fetch full user data after successful login to maintain compatibility
-    const response = await fetch(`/api/user?code=${encodeURIComponent(code)}`);
+    let url = `/api/user?code=${encodeURIComponent(code)}`;
+    if (requirements) {
+      url += `&requirements=${encodeURIComponent(requirements)}`;
+    }
+
+    const response = await fetch(url);
     if (!response.ok) {
       throw new Error("No se pudo recuperar la información del usuario tras el inicio de sesión.");
     }
-    
+
     return await response.json();
   }, []);
 

@@ -95,9 +95,7 @@ function DynamicForm({
           />
           <div className="mt-6 text-sm text-gray-600 text-right italic">
             Nota: Las gráficas presentadas son un apoyo visual para identificar el
-            nivel de alineación con la oportunidad. Esta información constituye
-            únicamente un insumo dentro del proceso de evaluación y será considerada
-            junto con otros criterios y etapas dentro del proceso.
+            nivel de alineación con la oportunidad. Debes esperar que se genere la certificación, se te envia un correo para que puedas presentar la certificación y poder evaluar tu perfil.
           </div>
           <div className="flex justify-center space-x-4 mt-8 p-6">
             <button
@@ -120,8 +118,8 @@ function DynamicForm({
         {message && (
           <div
             className={`p-4 rounded-md text-center font-semibold ${message.type === "success"
-                ? "bg-green-100 text-green-800"
-                : "bg-red-100 text-red-800"
+              ? "bg-green-100 text-green-800"
+              : "bg-red-100 text-red-800"
               }`}
           >
             {message.text}

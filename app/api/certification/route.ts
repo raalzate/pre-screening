@@ -9,8 +9,9 @@ export async function GET() {
 
     const session = await getServerSession(authOptions);
     const code = (session?.user as any)?.code;
+    const requirements = (session?.user as any)?.requirements;
 
-    const user = (await db.execute('SELECT questions FROM users WHERE code = ?', [code])).rows[0];
+    const user = (await db.execute('SELECT questions FROM users WHERE code = ? AND requirements = ?', [code, requirements])).rows[0];
 
     if (!user) {
       return NextResponse.json({ message: 'Invalid code' }, { status: 401 });
@@ -34,17 +35,18 @@ export async function POST(req: Request) {
 
     const session = await getServerSession(authOptions);
     const userCode = (session?.user as any)?.code;
+    const requirements = (session?.user as any)?.requirements;
 
     if (userCode) {
       await db.execute(`
                 UPDATE users
                 SET certification_result = ?, step = ?
-                WHERE code = ?
-            `, [JSON.stringify(result), 'challenge', userCode]);
+                WHERE code = ? AND requirements = ?
+            `, [JSON.stringify(result), 'challenge', userCode, requirements]);
 
       // Enviar correo de notificación de fin de certificación
       try {
-        const userStmt = await db.execute("SELECT name, email FROM users WHERE code = ?", [userCode]);
+        const userStmt = await db.execute("SELECT name, email FROM users WHERE code = ? AND requirements = ?", [userCode, requirements]);
         const user = userStmt.rows[0];
         if (user && user.email) {
           await sendCertificationCompleteEmail(user.name as string, user.email as string, userCode);

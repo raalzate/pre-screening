@@ -14,6 +14,7 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import AdminFormsView from "@/components/admin/AdminFormsView";
 import FormPreview from "@/components/admin/FormPreview";
+import { groupCandidatesByCode, GroupedCandidate, User as AdminUser } from "@/lib/adminUtils";
 
 // --- 1. CONSTANTS & TYPES ---
 
@@ -26,6 +27,7 @@ const ALL_REQUIREMENTS = [
   "pichincha-ssr:springboot-backend",
   "pichincha-sr:dotnet-backend",
   "pichincha-ssr:dotnet-backend",
+  "pichincha-qa-datos-sr:qa-data-testing",
 ] as const;
 
 type AdminView = "candidates" | "forms";
@@ -64,22 +66,78 @@ interface Question {
   question: string;
   correctAnswer: string;
 }
-interface UserData {
-  name: string;
-  email?: string;
-  code: string;
-  requirements: string;
-  step: string;
-  form_id: string;
-  evaluation_result?: EvaluationResult;
-  certification_result?: CertificationResult;
-  challenge_result?: ChallengeResult;
-  questions?: { questions: Question[] };
-  interview_feedback?: string;
-  interview_status?: string;
-  technical_level?: string;
-  interviewer_name?: string;
+
+// Reuse or Extend UserData to be compatible with AdminUser
+interface UserData extends AdminUser {
+  // Add any missing specific fields if needed
 }
+
+// --- 2. UI LIBRARY (ATOMIC COMPONENTS) ---
+// ... (Icons, Spinner, Badge, Card, Modal, Tabs, Skeleton remain same) ...
+
+// ...
+
+// --- 3. LOGIC HOOKS ---
+
+const useCandidate = () => {
+  const [data, setData] = useState<UserData | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchCandidate = useCallback(async (code: string, requirements?: string) => {
+    if (!code) return;
+    setLoading(true);
+    setError(null);
+    setData(null);
+    try {
+      let url = `/api/user?code=${encodeURIComponent(code)}`;
+      if (requirements) {
+        url += `&requirements=${encodeURIComponent(requirements)}`;
+      }
+      const res = await fetch(url);
+      if (!res.ok) throw new Error("No se pudo cargar el candidato");
+      const rawData = await res.json();
+
+      const parse = (str: any) => (typeof str === 'string' ? JSON.parse(str) : str);
+
+      setData({
+        ...rawData,
+        evaluation_result: parse(rawData.evaluation_result),
+        questions: parse(rawData.questions),
+        certification_result: parse(rawData.certification_result),
+        challenge_result: parse(rawData.challenge_result),
+      });
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  return { data, loading, error, fetchCandidate, setData };
+};
+
+const useUserList = () => {
+  const [users, setUsers] = useState<GroupedCandidate[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/user")
+      .then((res) => res.json())
+      .then((data) => {
+        if (Array.isArray(data)) {
+          const grouped = groupCandidatesByCode(data);
+          setUsers(grouped);
+        } else {
+          setUsers([]);
+        }
+      })
+      .catch((err) => console.error(err))
+      .finally(() => setLoading(false));
+  }, []);
+
+  return { users, loading };
+};
 
 // --- 2. UI LIBRARY (ATOMIC COMPONENTS) ---
 
@@ -168,58 +226,6 @@ const Skeleton: FC<{ className?: string }> = ({ className }) => (
   <div className={`animate-pulse bg-gray-200 rounded ${className}`} />
 );
 
-// --- 3. LOGIC HOOKS ---
-
-const useCandidate = () => {
-  const [data, setData] = useState<UserData | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const fetchCandidate = useCallback(async (code: string) => {
-    if (!code) return;
-    setLoading(true);
-    setError(null);
-    setData(null); // Clear previous data
-    try {
-      const res = await fetch(`/api/user?code=${encodeURIComponent(code)}`);
-      if (!res.ok) throw new Error("No se pudo cargar el candidato");
-      const rawData = await res.json();
-
-      // Helper for safe parsing
-      const parse = (str: any) => (typeof str === 'string' ? JSON.parse(str) : str);
-
-      setData({
-        ...rawData,
-        evaluation_result: parse(rawData.evaluation_result),
-        questions: parse(rawData.questions),
-        certification_result: parse(rawData.certification_result),
-        challenge_result: parse(rawData.challenge_result),
-      });
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  return { data, loading, error, fetchCandidate, setData }; // setData exported for updates
-};
-
-const useUserList = () => {
-  const [users, setUsers] = useState<UserData[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetch("/api/user")
-      .then((res) => res.json())
-      .then((data) => setUsers(Array.isArray(data) ? data : []))
-      .catch((err) => console.error(err))
-      .finally(() => setLoading(false));
-  }, []);
-
-  return { users, loading };
-};
-
 // --- 4. SUB-COMPONENTS ---
 
 const InfoRow: FC<{ label: string; value: ReactNode; copyable?: boolean }> = ({ label, value, copyable }) => {
@@ -248,7 +254,7 @@ const InfoRow: FC<{ label: string; value: ReactNode; copyable?: boolean }> = ({ 
 };
 
 const CandidateHeader: FC<{ user: UserData; onRefresh: () => void }> = ({ user, onRefresh }) => (
-  <div className="sticky top-0 z-30 bg-white/80 backdrop-blur-md border-b border-gray-200 -mx-4 px-4 py-4 md:px-8 md:-mx-8 mb-6 shadow-sm flex flex-col md:flex-row justify-between items-center gap-4">
+  <div className="top-0 z-30  m-4 shadow-sm flex flex-col md:flex-row justify-between items-center gap-4">
     <div className="flex items-center gap-4">
       <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold text-xl shadow-lg">
         {user.name.charAt(0)}
@@ -288,6 +294,8 @@ export default function App() {
 
   // State
   const [selectedCode, setSelectedCode] = useState("");
+  const [selectedGroupedCandidate, setSelectedGroupedCandidate] = useState<GroupedCandidate | null>(null);
+  const [selectedProfileIndex, setSelectedProfileIndex] = useState(0);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("profile");
   const [searchQuery, setSearchQuery] = useState("");
@@ -307,7 +315,27 @@ export default function App() {
     );
   }, [users, searchQuery]);
 
-  const handleSearch = () => fetchCandidate(selectedCode);
+  const handleSearch = () => {
+    const group = users.find(u => u.code === selectedCode);
+    if (group) {
+      setSelectedGroupedCandidate(group);
+      setSelectedProfileIndex(0);
+      // Fetch the first profile's data
+      const firstProfile = group.profiles[0];
+      if (firstProfile) {
+        fetchCandidate(firstProfile.code, firstProfile.requirements);
+      }
+    }
+  };
+
+  const handleProfileSwitch = (index: number) => {
+    if (selectedGroupedCandidate && selectedGroupedCandidate.profiles[index]) {
+      setSelectedProfileIndex(index);
+      const profile = selectedGroupedCandidate.profiles[index];
+      fetchCandidate(profile.code, profile.requirements);
+      setActiveTab("profile"); // Reset to profile tab when switching
+    }
+  };
 
   if (status === "loading") return <div className="min-h-screen bg-gray-50 flex items-center justify-center"><Spinner size="md" /></div>;
 
@@ -350,9 +378,9 @@ export default function App() {
                 className="flex-[2] py-2.5 px-4 rounded-xl border border-gray-200 bg-white focus:ring-2 focus:ring-blue-500 outline-none"
               >
                 <option value="">-- Seleccionar Candidato --</option>
-                {filteredUsers.map(u => (
-                  <option key={u.code} value={u.code} style={{ textTransform: 'uppercase' }}>
-                    {u.name.toUpperCase().replace(/-/g, ' ')} — {u.form_id.toUpperCase().replace(/-/g, ' ')} ({u.requirements.toUpperCase().replace(/-/g, ' ')})
+                {filteredUsers.map((group, i) => (
+                  <option key={group.code + i} value={group.code} style={{ textTransform: 'uppercase' }}>
+                    {group.name.toUpperCase()} ({group.profiles.length} PERFILES)
                   </option>
                 ))}
               </select>
@@ -397,7 +425,33 @@ export default function App() {
             {/* --- MAIN CONTENT --- */}
             {userData && (
               <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-                <CandidateHeader user={userData} onRefresh={() => fetchCandidate(userData.code)} />
+
+                {/* --- PROFILE TABS (if multiple profiles) --- */}
+                {selectedGroupedCandidate && selectedGroupedCandidate.profiles.length > 1 && (
+                  <div className="mb-6 bg-white rounded-xl border border-gray-200 p-4">
+                    <h4 className="text-sm font-semibold text-gray-700 mb-3">Perfiles del Candidato:</h4>
+                    <div className="flex gap-2 flex-wrap">
+                      {selectedGroupedCandidate.profiles.map((profile, index) => (
+                        <button
+                          key={`${profile.code}-${profile.requirements}-${index}`}
+                          onClick={() => handleProfileSwitch(index)}
+                          className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${selectedProfileIndex === index
+                            ? "bg-blue-600 text-white shadow-md"
+                            : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                            }`}
+                        >
+                          <div className="flex flex-col items-start">
+                            <span className="font-bold">{profile.requirements}</span>
+                            <span className="text-xs opacity-75">{profile.form_id}</span>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                <div className="mb-6 bg-white rounded-xl border border-gray-200">
+                  <CandidateHeader user={userData} onRefresh={() => fetchCandidate(userData.code, userData.requirements)} />
+                </div>
                 <Tabs
                   activeTab={activeTab}
                   onChange={setActiveTab}
@@ -499,11 +553,20 @@ export default function App() {
 // --- 6. FEATURE COMPONENTS (Extracted for cleaner Main Page) ---
 
 const CreateUserForm: FC<{ onClose: () => void }> = ({ onClose }) => {
-  const [formData, setFormData] = useState({ name: "", email: "", requirements: "" });
+  const [formData, setFormData] = useState({ name: "", email: "" });
+  const [selectedReqs, setSelectedReqs] = useState<string[]>([]);
   const [code, setCode] = useState(() => Math.random().toString(16).substring(2, 10).toUpperCase());
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState<string | null>(null);
   const [profileSearch, setProfileSearch] = useState("");
+
+  const toggleReq = (req: string) => {
+    if (selectedReqs.includes(req)) {
+      setSelectedReqs(selectedReqs.filter(r => r !== req));
+    } else {
+      setSelectedReqs([...selectedReqs, req]);
+    }
+  };
 
   const filteredRequirements = useMemo(() => {
     return ALL_REQUIREMENTS.filter(req =>
@@ -513,28 +576,37 @@ const CreateUserForm: FC<{ onClose: () => void }> = ({ onClose }) => {
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    if (!formData.requirements) return alert("Selecciona un requisito");
+    if (selectedReqs.length === 0) return alert("Selecciona al menos un perfil");
 
     setLoading(true);
-    const [req, formId] = formData.requirements.split(":");
 
     try {
-      const res = await fetch("/api/user", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...formData,
-          code,
-          step: "pre-screening",
-          requirements: req.toLowerCase(),
-          form_id: formId.toLowerCase()
-        })
+      // Loop through all selected requirements and create a profile for each
+      const promises = selectedReqs.map(reqString => {
+        const [req, formId] = reqString.split(":");
+        return fetch("/api/user", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            ...formData,
+            code, // Same code for all
+            step: "pre-screening",
+            requirements: req.toLowerCase(),
+            form_id: formId.toLowerCase()
+          })
+        });
       });
-      if (!res.ok) throw new Error("Error creando usuario");
+
+      const results = await Promise.all(promises);
+      const errors = results.filter(r => !r.ok);
+
+      if (errors.length > 0) {
+        throw new Error(`Fallaron ${errors.length} peticiones de ${selectedReqs.length}`);
+      }
 
       setSuccess(code);
-    } catch (e) {
-      alert("Error al crear candidato");
+    } catch (e: any) {
+      alert("Error al crear candidato: " + e.message);
     } finally {
       setLoading(false);
     }
@@ -550,6 +622,9 @@ const CreateUserForm: FC<{ onClose: () => void }> = ({ onClose }) => {
         <p className="text-gray-500 mb-6">Comparte este código con el candidato:</p>
         <div className="bg-gray-100 p-4 rounded-xl font-mono text-2xl font-bold tracking-wider mb-6 select-all">
           {success}
+        </div>
+        <div className="text-sm text-gray-500 mb-6">
+          Perfiles asignados: {selectedReqs.join(", ")}
         </div>
         <button onClick={onClose} className="w-full bg-gray-900 text-white py-3 rounded-xl font-bold">Cerrar</button>
       </div>
@@ -569,7 +644,7 @@ const CreateUserForm: FC<{ onClose: () => void }> = ({ onClose }) => {
           value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} />
       </div>
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">Perfil Técnico</label>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Perfiles Técnicos</label>
         <div className="relative mb-3">
           <Icons.Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
           <input
@@ -581,20 +656,27 @@ const CreateUserForm: FC<{ onClose: () => void }> = ({ onClose }) => {
           />
         </div>
         <div className="grid grid-cols-1 gap-2 max-h-60 overflow-y-auto pr-1">
-          {filteredRequirements.map(req => (
-            <button type="button" key={req} onClick={() => setFormData({ ...formData, requirements: req })}
-              className={`px-4 py-3 rounded-lg border text-left text-sm font-medium transition ${formData.requirements === req ? "border-teal-500 bg-teal-50 text-teal-700 ring-1 ring-teal-500" : "border-gray-200 hover:bg-gray-50"}`}>
-              {req}
-            </button>
-          ))}
+          {filteredRequirements.map(req => {
+            const isSelected = selectedReqs.includes(req);
+            return (
+              <button type="button" key={req} onClick={() => toggleReq(req)}
+                className={`px-4 py-3 rounded-lg border text-left text-sm font-medium transition flex justify-between items-center ${isSelected ? "border-teal-500 bg-teal-50 text-teal-700 ring-1 ring-teal-500" : "border-gray-200 hover:bg-gray-50"}`}>
+                <span>{req}</span>
+                {isSelected && <Icons.Check className="w-4 h-4 text-teal-600" />}
+              </button>
+            );
+          })}
           {filteredRequirements.length === 0 && (
             <p className="text-center text-gray-400 py-4 text-sm italic">No se encontraron perfiles</p>
           )}
         </div>
+        <p className="text-xs text-gray-500 mt-2 text-right">
+          {selectedReqs.length} perfiles seleccionados
+        </p>
       </div>
       <div className="pt-4">
         <button disabled={loading} className="w-full bg-teal-600 text-white py-3 rounded-xl font-bold hover:bg-teal-700 transition flex justify-center">
-          {loading ? <Spinner /> : "Crear Candidato"}
+          {loading ? <Spinner /> : "Crear Candidato (Multi-Perfil)"}
         </button>
       </div>
     </form>

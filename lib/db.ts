@@ -12,10 +12,10 @@ export const db = createClient({
 
 // Inicialización de tablas (solo si no existen)
 export async function initDb() {
-  const usersTableSchema = `
+  const commonColumns = `
     name TEXT NOT NULL,
     email TEXT NULL,
-    code TEXT PRIMARY KEY,
+    code TEXT NOT NULL,
     requirements TEXT NOT NULL,
     step TEXT NOT NULL,
     form_id TEXT NOT NULL,
@@ -29,13 +29,77 @@ export async function initDb() {
     interviewer_name TEXT NULL
   `;
 
-  await db.execute(`CREATE TABLE IF NOT EXISTS users (${usersTableSchema});`);
-  await db.execute(`CREATE TABLE IF NOT EXISTS history_candidates (
-    ${usersTableSchema},
-    moved_at TEXT DEFAULT CURRENT_TIMESTAMP
-  );`);
+  const usersTableSchema = `
+    ${commonColumns},
+    PRIMARY KEY (code, requirements)
+  `;
 
-  // Asegurar que las columnas existan en bases de datos ya creadas
+  const historySchema = `
+    ${commonColumns},
+    moved_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (code, requirements, moved_at)
+  `;
+
+  // Migration Check: Inspect if 'users' uses composite key
+  let needsMigration = false;
+  try {
+    const tableInfo = await db.execute("PRAGMA table_info(users)");
+    const codeCol = tableInfo.rows.find(row => row.name === 'code');
+    const reqCol = tableInfo.rows.find(row => row.name === 'requirements');
+
+    const tableExists = tableInfo.rows.length > 0;
+    if (tableExists) {
+      if (codeCol && codeCol.pk === 1 && reqCol && reqCol.pk === 0) {
+        needsMigration = true;
+      }
+    }
+  } catch (e) {
+    console.error("Error inspecting table:", e);
+  }
+
+  if (needsMigration) {
+    console.log("Migrating 'users' table to composite primary key...");
+    await db.batch([
+      "ALTER TABLE users RENAME TO users_old",
+      `CREATE TABLE users (${usersTableSchema})`,
+      "INSERT INTO users SELECT * FROM users_old",
+      "DROP TABLE users_old"
+    ], "write");
+    console.log("Migration complete.");
+  } else {
+    await db.execute(`CREATE TABLE IF NOT EXISTS users (${usersTableSchema});`);
+  }
+
+  // History table migration check
+  let historyNeedsMigration = false;
+  try {
+    const tableInfo = await db.execute("PRAGMA table_info(history_candidates)");
+    const codeCol = tableInfo.rows.find(row => row.name === 'code');
+    const reqCol = tableInfo.rows.find(row => row.name === 'requirements');
+
+    if (tableInfo.rows.length > 0) {
+      if (codeCol && codeCol.pk === 1 && reqCol && reqCol.pk === 0) {
+        historyNeedsMigration = true;
+      }
+    }
+  } catch (e) {
+    console.error("Error inspecting history table:", e);
+  }
+
+  if (historyNeedsMigration) {
+    console.log("Migrating 'history_candidates' table...");
+    await db.batch([
+      "ALTER TABLE history_candidates RENAME TO history_old",
+      `CREATE TABLE history_candidates (${historySchema})`,
+      "INSERT INTO history_candidates SELECT * FROM history_old",
+      "DROP TABLE history_old"
+    ], "write");
+    console.log("History migration complete.");
+  } else {
+    await db.execute(`CREATE TABLE IF NOT EXISTS history_candidates (${historySchema});`);
+  }
+
+  // Asegurar que las columnas existan en bases de datos ya creadas (Idempotent column add)
   const optionalColumns = [
     { name: "email", type: "TEXT NULL" },
     { name: "interview_feedback", type: "TEXT NULL" },
@@ -52,7 +116,7 @@ export async function initDb() {
         await db.execute(`ALTER TABLE ${table} ADD COLUMN ${col.name} ${col.type};`);
       } catch (e: any) {
         if (!e.message?.includes("duplicate column name") && !e.message?.includes("already exists")) {
-          console.error(`Error al añadir columna ${col.name} a la tabla ${table}:`, e);
+          // ignore column exists error
         }
       }
     }

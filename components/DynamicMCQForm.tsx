@@ -143,6 +143,16 @@ export default function DynamicMCQForm({
   if (error) return <div className="min-h-screen bg-gray-900 text-white flex flex-col items-center justify-center">Error: {error}</div>;
   if (!form) return null;
 
+  // Validate that questions array exists and has items
+  if (!form.questions || !Array.isArray(form.questions) || form.questions.length === 0) {
+    return (
+      <div className="min-h-screen bg-gray-900 text-white flex flex-col items-center justify-center">
+        <p className="text-xl">No hay preguntas disponibles para este formulario.</p>
+        <p className="text-sm text-gray-400 mt-2">Por favor, contacta al administrador.</p>
+      </div>
+    );
+  }
+
   const currentQuestion = form.questions[currentIndex];
   const progress = ((currentIndex + 1) / form.questions.length) * 100;
 
@@ -217,6 +227,9 @@ export default function DynamicMCQForm({
                   )}
                 </div>
               ))}
+            </div>
+            <div className="mt-6 text-sm text-gray-600 text-right italic">
+              Nota: El resulta de la certificación sera insumo para evaluar tu perfil. Finaliza este proceso y vuelve a ingresar que el sistema te genere una pregunta retadora para la sustentacion final.
             </div>
             <div className="flex justify-center space-x-4 mt-8">
               <button type="button" className="w-full bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700" onClick={() => auth.logout()}>Finalizar</button>

@@ -14,12 +14,17 @@ export async function POST(request: Request) {
     }
 
     // Consulta el usuario en la base de datos
-    const stmt = await db.execute('SELECT  name, code, requirements, step, evaluation_result, form_id, certification_result, challenge_result FROM users WHERE code = ?', [code]);
-    const user = stmt.rows.length ? stmt.rows[0] : null;
-    if (!user) {
+    const stmt = await db.execute('SELECT name, code, requirements, step, evaluation_result, form_id, certification_result, challenge_result FROM users WHERE code = ?', [code]);
+
+    if (stmt.rows.length === 0) {
       return NextResponse.json({ message: 'Invalid code' }, { status: 401 });
     }
-    return NextResponse.json(user);
+
+    if (stmt.rows.length > 1) {
+      return NextResponse.json({ profiles: stmt.rows });
+    }
+
+    return NextResponse.json(stmt.rows[0]);
   } catch (error) {
     console.error('Error in login API:', error);
     return NextResponse.json({ message: 'Internal server error' }, { status: 500 });

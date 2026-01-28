@@ -25,7 +25,7 @@ export function compareAnswers(
     // Verificamos si el candidato realmente tiene esta habilidad en su perfil
     comparableSkillsCount++; // Solo sumamos al total si ambos existen
 
-    const required = requirements[skill];
+    const required = requirements[skill] ? requirements[skill] : 1;
     const got = candidate[skill];
 
     if (got >= required) {

@@ -1,30 +1,23 @@
 
-Actúa como un experto en [Spring Boot].
+Actúa como un experto en [.Net Full Stack].
 
 Tienes un JSON con niveles con descriptores que se debe evaluar en un pre-screening, usa solo los que te entrego aqui. 
 
 {
   "requirements": {
-    "clean-code-solid",
-    "backend-framework-mastery",
-    "api-rest-standards",
-    "spa-frameworks",
-    "architectural-patterns",
-    "cloud-platform-basics",
-    "sql-optimization",
-    "containerization-tech",
-    "unit-testing-mocking",
-    "authentication-authorization",
-    "collaborative-programming",
-    "resilience-fault-tolerance",
-    "messaging-queues-brokers",
-    "secrets-management",
-    "scalability-design",
-    "integration-testing",
-    "ci-cd-automation",
-    "nosql-data-modeling",
-    "monitoring-alerting",
-    "technical-documentation"
+        "backend-framework-mastery",
+        "api-rest-standards",
+        "sql-optimization",
+        "authentication-authorization",
+        "orm-mapping-techniques",
+        "microservices-patterns",
+        "messaging-queues-brokers",
+        "javascript-typescript-core",
+        "legacy-integration",
+        "clean-code-solid",
+        "api-governance",
+        "ci-cd-automation",
+        "technical-documentation"
   }
 }
 

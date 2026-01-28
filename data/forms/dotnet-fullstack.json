@@ -1,0 +1,121 @@
+{
+    "id": "dotnet-fullstack",
+    "title": "Evaluación de Técnica: .NET Full Stack",
+    "categories": [
+        {
+            "id": "backend-architecture-dotnet",
+            "title": "Arquitectura Backend y Framework .NET",
+            "questions": [
+                {
+                    "id": "backend-framework-mastery",
+                    "question": "¿Qué nivel de dominio posees sobre ASP.NET Core, el ciclo de vida de los Middleware y el sistema de Dependency Injection nativo?",
+                    "type": "scale",
+                    "scaleMax": 4,
+                    "example": "Implementación de Middlewares personalizados para manejo global de excepciones y configuración de servicios con diferentes lifetimes (Scoped, Singleton, Transient) según el caso de uso."
+                },
+                {
+                    "id": "api-rest-standards",
+                    "question": "¿Cómo calificarías tu dominio en el diseño de Web APIs bajo estándares RESTful, incluyendo versionado y Richardson Maturity Model?",
+                    "type": "scale",
+                    "scaleMax": 4,
+                    "example": "Uso de 'ApiVersioning' para manejar versiones en la URL o QueryString, y aplicación de 'ActionResult<T>' para asegurar respuestas HTTP semánticamente correctas."
+                },
+                {
+                    "id": "microservices-patterns",
+                    "question": "¿Qué tanta experiencia tienes implementando patrones de microservicios con .NET (API Gateways, Service Discovery, Bounded Contexts)?",
+                    "type": "scale",
+                    "scaleMax": 4,
+                    "example": "Uso de Ocelot o YARP como API Gateway para agregación de servicios y comunicación interna mediante gRPC para alto rendimiento."
+                },
+                {
+                    "id": "clean-code-solid",
+                    "question": "¿En qué medida aplicas principios SOLID y patrones como CQRS o Repository en tus soluciones con C#?",
+                    "type": "scale",
+                    "scaleMax": 4,
+                    "example": "Implementación de MediatR para desacoplar los controladores de la lógica de negocio siguiendo el patrón Command/Query."
+                }
+            ]
+        },
+        {
+            "id": "data-persistence-dotnet",
+            "title": "Persistencia de Datos y Mensajería",
+            "questions": [
+                {
+                    "id": "orm-mapping-techniques",
+                    "question": "¿Qué nivel de experiencia tienes con Entity Framework Core, incluyendo Fluent API y estrategias de carga (Lazy vs Eager)?",
+                    "type": "scale",
+                    "scaleMax": 4,
+                    "example": "Optimización de carga de datos usando '.AsNoTracking()' para consultas de solo lectura y configuración de relaciones complejas mediante 'IEntityTypeConfiguration'."
+                },
+                {
+                    "id": "sql-optimization",
+                    "question": "¿Cuál es tu capacidad para optimizar consultas SQL y realizar tuning de bases de datos desde el código .NET?",
+                    "type": "scale",
+                    "scaleMax": 4,
+                    "example": "Análisis de planes de ejecución en SQL Server y uso de Dapper para escenarios de alto rendimiento donde el ORM tradicional genera overhead excesivo."
+                },
+                {
+                    "id": "messaging-queues-brokers",
+                    "question": "¿Qué experiencia tienes en comunicación asíncrona utilizando Message Brokers en .NET?",
+                    "type": "scale",
+                    "scaleMax": 4,
+                    "example": "Integración de MassTransit o Azure Service Bus para implementar comunicación basada en eventos con reintentos automáticos y Outbox Pattern."
+                }
+            ]
+        },
+        {
+            "id": "security-infrastructure",
+            "title": "Seguridad, DevOps y Documentación",
+            "questions": [
+                {
+                    "id": "authentication-authorization",
+                    "question": "¿Cómo evaluarías tu dominio de IdentityServer, JWT y Policy-based Authorization en .NET?",
+                    "type": "scale",
+                    "scaleMax": 4,
+                    "example": "Creación de políticas de autorización personalizadas (Requirements y Handlers) para validar claims específicos del usuario en un token JWT."
+                },
+                {
+                    "id": "ci-cd-automation",
+                    "question": "¿Cuál es tu nivel de experiencia configurando pipelines de CI/CD para ecosistemas Microsoft?",
+                    "type": "scale",
+                    "scaleMax": 4,
+                    "example": "Configuración de YAML en Azure DevOps o GitHub Actions para compilar, ejecutar pruebas unitarias con xUnit y desplegar en Azure App Services o Docker."
+                },
+                {
+                    "id": "api-governance",
+                    "question": "¿Qué experiencia tienes gestionando el ciclo de vida de APIs y su exposición segura?",
+                    "type": "scale",
+                    "scaleMax": 4,
+                    "example": "Implementación de Swagger/OpenAPI con filtros personalizados para ocultar endpoints o añadir documentación de seguridad (ApiKey/Bearer) mediante Swashbuckle."
+                },
+                {
+                    "id": "legacy-integration",
+                    "question": "¿Qué tanta experiencia tienes integrando aplicaciones modernas con sistemas Legacy (WCF, .NET Framework 4.x o SOAP)?",
+                    "type": "scale",
+                    "scaleMax": 4,
+                    "example": "Consumo de servicios WCF antiguos desde .NET 8 utilizando 'System.ServiceModel' o refactorización de lógica compartida mediante .NET Standard."
+                }
+            ]
+        },
+        {
+            "id": "frontend-soft-skills",
+            "title": "Frontend y Gestión Técnica",
+            "questions": [
+                {
+                    "id": "javascript-typescript-core",
+                    "question": "¿Cuál es tu nivel de dominio en TypeScript y su integración con frameworks modernos?",
+                    "type": "scale",
+                    "scaleMax": 4,
+                    "example": "Uso de Generic Types y Decorators en TypeScript para crear servicios reutilizables en Angular o React que consumen modelos tipados del backend."
+                },
+                {
+                    "id": "technical-documentation",
+                    "question": "¿Cómo calificas tu capacidad para generar documentación técnica (Diagramas, Wikis, RFCs)?",
+                    "type": "scale",
+                    "scaleMax": 4,
+                    "example": "Documentación de arquitectura de sistema utilizando diagramas de secuencia (Mermaid.js) y mantenimiento de guías de estilo de código para el equipo."
+                }
+            ]
+        }
+    ]
+}

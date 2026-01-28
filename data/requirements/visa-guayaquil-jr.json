@@ -1,0 +1,20 @@
+{
+    "id": "visa-guayaquil-ssr",
+    "title": "FullStack Developer Mid-Senior (SSR)",
+    "requirements": {
+        "backend-framework-mastery": 3,
+        "api-rest-standards": 3,
+        "sql-optimization": 3,
+        "authentication-authorization": 3,
+        "orm-mapping-techniques": 3,
+        "microservices-patterns": 3,
+        "messaging-queues-brokers": 3,
+        "javascript-typescript-core": 3,
+        "legacy-integration": 3,
+        "clean-code-solid": 3,
+        "api-governance": 2,
+        "ci-cd-automation": 2,
+        "data-fetching-binding": 3,
+        "technical-documentation": 3
+    }
+}

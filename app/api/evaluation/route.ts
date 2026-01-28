@@ -63,7 +63,10 @@ export async function POST(req: Request) {
           }
 
           // Caso de éxito: Generar certificación
-          const questions = await evaluationGenerator.generate({ formId, answers });
+          const questions = await evaluationGenerator.generate({
+            formId, answers, gaps: comparisonResult.gaps
+              .filter(gap => gap.got >= gap.required).map(gap => gap.skill)
+          });
           await db.execute(
             `UPDATE users
              SET evaluation_result = ?, questions = ?, step = ?

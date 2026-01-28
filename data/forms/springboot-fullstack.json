@@ -1,0 +1,121 @@
+{
+    "id": "springboot-fullstack",
+    "title": "Evaluación Técnica: Spring Boot & Full Stack Development",
+    "categories": [
+        {
+            "id": "backend-architecture",
+            "title": "Arquitectura Backend y Core Framework",
+            "questions": [
+                {
+                    "id": "backend-framework-mastery",
+                    "question": "¿Qué nivel de dominio posees sobre el ecosistema Spring Boot (Spring MVC, Bean Lifecycle, Auto-configuration)?",
+                    "type": "scale",
+                    "scaleMax": 4,
+                    "example": "Capacidad para crear 'Custom Starters', gestionar el ciclo de vida de beans con @PostConstruct/@PreDestroy y personalizar la auto-configuración mediante @ConditionalOnProperty."
+                },
+                {
+                    "id": "api-rest-standards",
+                    "question": "¿Cómo calificarías tu experiencia diseñando APIs RESTful siguiendo estándares industriales?",
+                    "type": "scale",
+                    "scaleMax": 4,
+                    "example": "Implementación de versionado por cabeceras, uso correcto de códigos de estado HTTP (201, 204, 409, 422) e integración de HATEOAS para navegación de recursos."
+                },
+                {
+                    "id": "microservices-patterns",
+                    "question": "¿Qué tanta experiencia tienes implementando patrones de microservicios y límites de contexto (Bounded Contexts)?",
+                    "type": "scale",
+                    "scaleMax": 4,
+                    "example": "Uso de Spring Cloud para Service Discovery, Gateway dinámico y comunicación entre servicios mediante Feign Clients con balanceo de carga."
+                },
+                {
+                    "id": "clean-code-solid",
+                    "question": "¿En qué medida aplicas principios SOLID y patrones de diseño GoF en el desarrollo de aplicaciones Java?",
+                    "type": "scale",
+                    "scaleMax": 4,
+                    "example": "Aplicación del patrón Strategy para evitar bloques if-else masivos en la lógica de negocio y uso de interfaces para cumplir con la Inversión de Dependencias."
+                }
+            ]
+        },
+        {
+            "id": "data-persistence",
+            "title": "Persistencia de Datos e Integración",
+            "questions": [
+                {
+                    "id": "sql-optimization",
+                    "question": "¿Cuál es tu capacidad para optimizar consultas SQL complejas y planes de ejecución?",
+                    "type": "scale",
+                    "scaleMax": 4,
+                    "example": "Identificación de 'N+1 queries' en logs de Hibernate y resolución mediante JOIN FETCH o Entity Graphs, además de optimización de índices en bases de datos relacionales."
+                },
+                {
+                    "id": "orm-mapping-techniques",
+                    "question": "¿Qué nivel de conocimiento tienes sobre estrategias de mapeo y carga en Hibernate/JPA?",
+                    "type": "scale",
+                    "scaleMax": 4,
+                    "example": "Configuración avanzada de herencia (@Inheritance), manejo de estados de entidad (Transient, Managed, Detached) y uso de cachés de primer y segundo nivel."
+                },
+                {
+                    "id": "messaging-queues-brokers",
+                    "question": "¿Qué experiencia tienes integrando brokers de mensajería para comunicación asíncrona?",
+                    "type": "scale",
+                    "scaleMax": 4,
+                    "example": "Implementación de productores y consumidores usando Spring Cloud Stream con RabbitMQ o Kafka, manejando reintentos y Dead Letter Queues (DLQ)."
+                }
+            ]
+        },
+        {
+            "id": "security-governance",
+            "title": "Seguridad, Gobernanza e Infraestructura",
+            "questions": [
+                {
+                    "id": "authentication-authorization",
+                    "question": "¿Cómo evaluarías tu dominio de Spring Security para flujos de autenticación y autorización?",
+                    "type": "scale",
+                    "scaleMax": 4,
+                    "example": "Configuración de un Authorization Server con OAuth2 y OpenID Connect (OIDC), utilizando JWT firmados con RSA y validación de scopes en métodos mediante @PreAuthorize."
+                },
+                {
+                    "id": "api-governance",
+                    "question": "¿Qué experiencia posees en la gobernanza y gestión del ciclo de vida de APIs?",
+                    "type": "scale",
+                    "scaleMax": 4,
+                    "example": "Uso de SpringDoc/Swagger para documentación OpenAPI 3.0, definición de políticas de Rate Limiting y gestión de contratos de API."
+                },
+                {
+                    "id": "ci-cd-automation",
+                    "question": "¿Qué nivel de participación has tenido en la automatización de pipelines CI/CD?",
+                    "type": "scale",
+                    "scaleMax": 4,
+                    "example": "Configuración de pipelines en Jenkins o GitHub Actions que ejecutan Checkstyle, JaCoCo para cobertura de código, construcción de imágenes Docker y despliegue en entornos de staging."
+                },
+                {
+                    "id": "legacy-integration",
+                    "question": "¿Cuál es tu experiencia integrando Spring Boot con sistemas heredados (Legacy)?",
+                    "type": "scale",
+                    "scaleMax": 4,
+                    "example": "Uso de Spring Integration para conectar aplicaciones modernas con servicios SOAP antiguos o sistemas basados en archivos/FTP mediante adaptadores específicos."
+                }
+            ]
+        },
+        {
+            "id": "frontend-documentation",
+            "title": "Frontend y Documentación",
+            "questions": [
+                {
+                    "id": "javascript-typescript-core",
+                    "question": "¿Qué tanto dominas los fundamentos de JavaScript Moderno (ES6+) y TypeScript para el desarrollo Full Stack?",
+                    "type": "scale",
+                    "scaleMax": 4,
+                    "example": "Uso avanzado de Promises/Async-Await, tipado estricto mediante Interfaces y Generics, y gestión de módulos para arquitecturas escalables en el cliente."
+                },
+                {
+                    "id": "technical-documentation",
+                    "question": "¿Cómo calificarías tu capacidad para redactar y mantener documentación técnica arquitectónica?",
+                    "type": "scale",
+                    "scaleMax": 4,
+                    "example": "Creación de diagramas C4 o de secuencia para explicar flujos complejos y mantenimiento de READMEs técnicos que incluyan guías de despliegue y diagramas de arquitectura de datos."
+                }
+            ]
+        }
+    ]
+}

@@ -27,6 +27,10 @@ const ALL_REQUIREMENTS = [
   "pichincha-ssr:springboot-backend",
   "pichincha-sr:dotnet-backend",
   "pichincha-ssr:dotnet-backend",
+  "visa-guayaquil-jr:dotnet-fullstack",
+  "visa-guayaquil-jr:springboot-fullstack",
+  "visa-guayaquil-ssr:dotnet-fullstack",
+  "visa-guayaquil-ssr:springboot-fullstack",
 ] as const;
 
 type AdminView = "candidates" | "forms";
@@ -644,7 +648,7 @@ const CreateUserForm: FC<{ onClose: () => void }> = ({ onClose }) => {
             return (
               <button type="button" key={req} onClick={() => toggleReq(req)}
                 className={`px-4 py-3 rounded-lg border text-left text-sm font-medium transition flex justify-between items-center ${isSelected ? "border-teal-500 bg-teal-50 text-teal-700 ring-1 ring-teal-500" : "border-gray-200 hover:bg-gray-50"}`}>
-                <span>{req}</span>
+                <span>{req.toUpperCase().replaceAll("-", " ").replace(":", " => ")}</span>
                 {isSelected && <Icons.Check className="w-4 h-4 text-teal-600" />}
               </button>
             );

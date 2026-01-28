@@ -1,5 +1,5 @@
 {
-    "id": "qa-data-testing-senior",
+    "id": "qa-data-testing",
     "title": "Evaluación Senior en QA Automatización Data Testing",
     "categories": [
         {
@@ -176,4 +176,23 @@
                     "question": "¿Qué experiencia tienes probando matrices de acceso y permisos (RBAC) en bases de datos?",
                     "type": "scale",
                     "scaleMax": 4,
-                    "example": "Ejecutar pruebas negativas intentando acceder a tablas financieras con un usuario de rol 'Desarrollador' para confirmar que el acceso es
+                    "example": "Ejecutar pruebas negativas intentando acceder a tablas financieras con un usuario de rol 'Desarrollador' para confirmar que el acceso es denegado."
+                },
+                {
+                    "id": "sec-segregacion-datos",
+                    "question": "¿Cómo aseguras la segregación de datos en entornos multi-tenant?",
+                    "type": "scale",
+                    "scaleMax": 4,
+                    "example": "Consultas de validación que aseguren que un cliente con ID 'Tenant A' no reciba ni una sola fila correspondiente al 'Tenant B' en reportes compartidos."
+                },
+                {
+                    "id": "sec-auditoria",
+                    "question": "¿Has validado la generación correcta de logs de auditoría para operaciones críticas de datos?",
+                    "type": "scale",
+                    "scaleMax": 4,
+                    "example": "Verificar que tras una operación de 'UPDATE' masiva, se genere el registro correspondiente en la tabla de auditoría con el usuario, timestamp y query ejecutado."
+                }
+            ]
+        }
+    ]
+}

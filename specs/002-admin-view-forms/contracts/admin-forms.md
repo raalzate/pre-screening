@@ -38,7 +38,7 @@
           "id": "buenas-practicas",
           "question": "¿Cómo calificarías tu capacidad...?",
           "type": "scale",
-          "scaleMax": 4,
+          "scaleMax": 5,
           "example": "Uso de 'Strict Mode'..."
         }
       ]

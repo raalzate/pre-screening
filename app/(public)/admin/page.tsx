@@ -27,7 +27,6 @@ const ALL_REQUIREMENTS = [
   "pichincha-ssr:springboot-backend",
   "pichincha-sr:dotnet-backend",
   "pichincha-ssr:dotnet-backend",
-  "pichincha-qa-datos-sr:qa-data-testing",
 ] as const;
 
 type AdminView = "candidates" | "forms";

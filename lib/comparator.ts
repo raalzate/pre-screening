@@ -18,20 +18,28 @@ export function compareAnswers(
 ): ComparisonResult {
   const gaps: Array<{ skill: string; required: number; got: number }> = [];
   let metCount = 0;
-  const skills = Object.keys(requirements);
+  let comparableSkillsCount = 0;
 
+  const skills = Object.keys(candidate);
   for (const skill of skills) {
+    // Verificamos si el candidato realmente tiene esta habilidad en su perfil
+    comparableSkillsCount++; // Solo sumamos al total si ambos existen
+
     const required = requirements[skill];
-    const got = candidate[skill] ?? 0;
+    const got = candidate[skill];
 
     if (got >= required) {
       metCount++;
     }
 
     gaps.push({ skill, required, got });
+
   }
 
-  const coverageScore = skills.length > 0 ? metCount / skills.length : 1;
+  // Si no hubo ninguna coincidencia de habilidades, el score es 0 para evitar NaN
+  const coverageScore = comparableSkillsCount > 0
+    ? metCount / comparableSkillsCount
+    : 0;
 
   return {
     valid: coverageScore >= 0.6,

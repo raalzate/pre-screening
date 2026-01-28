@@ -1,154 +1,119 @@
 {
   "id": "dotnet-backend",
-  "title": "Pre-Screening Técnico: Perfil .NET Core Backend",
-  "description": "Por favor, indica tu nivel de dominio o experiencia en los siguientes aspectos técnicos.",
+  "title": "Evaluación de Expertiz en Ecosistema .NET",
   "categories": [
     {
-      "id": "core-engineering",
-      "title": "Ingeniería de Software y Core .NET",
+      "id": "backend-architecture",
+      "title": "Arquitectura y Desarrollo Backend",
       "questions": [
         {
-          "id": "buenas-practicas",
-          "question": "¿Cómo calificarías tu nivel de experiencia implementando Inyección de Dependencias (DI) nativa y principios SOLID para garantizar la mantenibilidad?",
+          "id": "backend-framework-mastery",
+          "question": "¿Qué nivel de dominio posees en ASP.NET Core, incluyendo el manejo del Kestrel, Middleware y el ciclo de vida de las solicitudes?",
           "type": "scale",
-          "scaleMax": 4,
-          "example": "Considera si sabes manejar ciclos de vida (Transient, Scoped, Singleton) y evitar fugas de memoria."
+          "scaleMax": 5,
+          "example": "Configuración de un Middleware personalizado para el logueo de tiempo de respuesta y optimización de servicios mediante el uso de IServiceCollection."
         },
         {
-          "id": "lenguaje-de-programacion",
-          "question": "¿Qué grado de dominio posees sobre las características modernas de C# (v10+) y la gestión de memoria avanzada?",
+          "id": "clean-code-solid",
+          "question": "¿Cómo calificarías tu habilidad para aplicar SOLID y Clean Code específicamente en proyectos de C# de gran escala?",
           "type": "scale",
-          "scaleMax": 4,
-          "example": "Considera tu uso de async/await, Span<T>, Records y optimización de recursos."
+          "scaleMax": 5,
+          "example": "Uso de interfaces para desacoplar el acceso a datos y aplicación del principio de segregación de interfaces para evitar 'fat interfaces' en servicios de negocio."
         },
         {
-          "id": "framework",
-          "question": "¿Qué tan profundo es tu conocimiento sobre el funcionamiento interno de ASP.NET Core (Middleware Pipeline y Hosting)?",
+          "id": "architectural-patterns",
+          "question": "¿Qué tanta experiencia tienes implementando patrones como Onion Architecture, Hexagonal o Clean Architecture en .NET?",
           "type": "scale",
-          "scaleMax": 4,
-          "example": "Considera si has creado middlewares personalizados o configurado el pipeline de peticiones desde cero."
-        }
-      ]
-    },
-    {
-      "id": "architecture-design",
-      "title": "Arquitectura y Diseño de Sistemas",
-      "questions": [
-        {
-          "id": "patrones-de-diseno",
-          "question": "¿Con qué frecuencia aplicas patrones de diseño (CQRS, Mediator, Factory) en tus desarrollos habituales?",
-          "type": "scale",
-          "scaleMax": 4,
-          "example": "Considera la implementación de librerías como MediatR para desacoplar lógica."
+          "scaleMax": 5,
+          "example": "Separación de la lógica de dominio en una librería de clases pura (sin dependencias externas) y uso de Application Core para orquestar casos de uso."
         },
         {
-          "id": "arquitectura",
-          "question": "¿Cuál es tu nivel de autonomía para definir o estructurar soluciones bajo Clean Architecture o Microservicios?",
+          "id": "resilience-fault-tolerance",
+          "question": "¿Cuál es tu nivel de conocimiento implementando resiliencia en microservicios .NET utilizando librerías como Polly?",
           "type": "scale",
-          "scaleMax": 4,
-          "example": "Considera tu capacidad para organizar capas (Dominio, Aplicación, Infraestructura) invirtiendo dependencias."
-        },
-        {
-          "id": "integracion",
-          "question": "¿Qué tanta experiencia práctica tienes diseñando integraciones resilientes ante fallos (HTTP/gRPC)?",
-          "type": "scale",
-          "scaleMax": 4,
-          "example": "Considera el uso de políticas de Retry, Circuit Breaker (Polly) y manejo de Timeouts."
+          "scaleMax": 5,
+          "example": "Configuración de una política de 'Circuit Breaker' y 'Retry' con exponencial backoff para llamadas externas vía IHttpClientFactory."
         }
       ]
     },
     {
       "id": "data-persistence",
-      "title": "Persistencia y Datos",
+      "title": "Persistencia de Datos e Integración",
       "questions": [
         {
-          "id": "base-datos-relacionales",
-          "question": "¿Cómo evaluarías tu capacidad para optimizar el rendimiento de consultas complejas en Entity Framework Core o Dapper?",
+          "id": "sql-optimization",
+          "question": "¿Qué tanta experiencia tienes optimizando consultas SQL y trabajando con Entity Framework Core (LINQ optimization)?",
           "type": "scale",
-          "scaleMax": 4,
-          "example": "Considera el uso de proyecciones, Split Queries y análisis del SQL generado."
+          "scaleMax": 5,
+          "example": "Identificación de problemas de 'N+1', uso de AsNoTracking() para consultas de solo lectura y optimización de índices mediante migraciones."
         },
         {
-          "id": "base-datos-nosql",
-          "question": "¿Qué nivel de experiencia tienes integrando Caché Distribuida (Redis) o bases NoSQL?",
+          "id": "nosql-data-modeling",
+          "question": "¿Cómo calificarías tu experiencia integrando y modelando datos en bases de datos NoSQL (ej. MongoDB, CosmosDB) desde .NET?",
           "type": "scale",
-          "scaleMax": 4,
-          "example": "Considera la configuración de expiración de claves y estrategias de caché."
+          "scaleMax": 5,
+          "example": "Diseño de colecciones en MongoDB utilizando el driver oficial de .NET y manejo de documentos embebidos vs referenciados según la frecuencia de acceso."
+        },
+        {
+          "id": "messaging-queues-brokers",
+          "question": "¿Qué nivel de dominio tienes en comunicación asíncrona utilizando Message Brokers (RabbitMQ, Azure Service Bus) con .NET?",
+          "type": "scale",
+          "scaleMax": 5,
+          "example": "Implementación de un consumidor de mensajes utilizando BackgroundServices (Worker Services) y el patrón Pub/Sub con MassTransit."
         }
       ]
     },
     {
-      "id": "devops-quality",
-      "title": "Calidad, Seguridad y DevOps",
+      "id": "quality-security",
+      "title": "Calidad, Pruebas y Seguridad",
       "questions": [
         {
-          "id": "cloud",
-          "question": "¿Qué dominio manejas de los servicios Cloud (Azure/AWS) y su integración nativa con .NET?",
+          "id": "unit-testing-mocking",
+          "question": "¿Qué tan autónomo eres creando suites de pruebas unitarias robustas con xUnit/NUnit y Moq/NSubstitute?",
           "type": "scale",
-          "scaleMax": 4,
-          "example": "Considera el uso de Key Vault, App Configuration o servicios de mensajería."
+          "scaleMax": 5,
+          "example": "Pruebas de servicios de negocio mockeando el DbContext o servicios externos, asegurando un code coverage superior al 80% en lógica crítica."
         },
         {
-          "id": "control-versiones",
-          "question": "¿Cómo describirías tu soltura gestionando flujos de trabajo complejos en Git?",
+          "id": "authentication-authorization",
+          "question": "¿Cuál es tu experiencia implementando seguridad con IdentityServer, JWT o esquemas basados en Policy/Claims en .NET?",
           "type": "scale",
-          "scaleMax": 4,
-          "example": "Considera el manejo de rebases, cherry-picks y resolución de conflictos de merge."
+          "scaleMax": 5,
+          "example": "Configuración de políticas de autorización basadas en Claims personalizadas y validación de tokens JWT en el pipeline de ASP.NET Core."
         },
         {
-          "id": "testing",
-          "question": "¿Qué nivel de cobertura y tipos de pruebas (Unitarias/Integración) sueles implementar en tus proyectos?",
+          "id": "secrets-management",
+          "question": "¿Cómo gestionas la configuración sensible (connection strings, API keys) en entornos productivos de .NET?",
           "type": "scale",
-          "scaleMax": 4,
-          "example": "Considera el uso de xUnit, Moq y WebApplicationFactory para pruebas de integración."
-        },
-        {
-          "id": "contenedores",
-          "question": "¿Qué tan experto te consideras en la containerización de aplicaciones .NET (Docker)?",
-          "type": "scale",
-          "scaleMax": 4,
-          "example": "Considera la optimización de imágenes (multi-stage builds) y reducción de tamaño."
-        },
-        {
-          "id": "despliegue-ci-cd",
-          "question": "¿Qué experiencia tienes creando o manteniendo pipelines de CI/CD (Azure DevOps/GitHub Actions)?",
-          "type": "scale",
-          "scaleMax": 4,
-          "example": "Considera la automatización de builds, tests y despliegues a entornos productivos."
-        },
-        {
-          "id": "seguridad",
-          "question": "¿Cuál es tu nivel de conocimiento implementando protocolos de seguridad modernos (OAuth2, OIDC)?",
-          "type": "scale",
-          "scaleMax": 4,
-          "example": "Considera la configuración de autenticación JWT y autorización basada en políticas."
-        },
-        {
-          "id": "monitoreo-sre-basico",
-          "question": "¿Qué tanto has trabajado con herramientas de observabilidad y diagnóstico en producción?",
-          "type": "scale",
-          "scaleMax": 4,
-          "example": "Considera la implementación de logging estructurado (Serilog) y trazabilidad distribuida."
+          "scaleMax": 5,
+          "example": "Integración de Azure Key Vault o AWS Secrets Manager con el IConfiguration de .NET para inyectar secretos en tiempo de ejecución."
         }
       ]
     },
     {
-      "id": "soft-skills",
-      "title": "Habilidades Blandas y Liderazgo",
+      "id": "infrastructure-devops",
+      "title": "Infraestructura, DevOps y Escalabilidad",
       "questions": [
         {
-          "id": "comunicacion",
-          "question": "¿Cómo calificarías tu habilidad para traducir deuda técnica o decisiones complejas a personas no técnicas?",
+          "id": "containerization-tech",
+          "question": "¿Qué nivel de conocimiento tienes dockerizando aplicaciones .NET y optimizando imágenes (multi-stage builds)?",
           "type": "scale",
-          "scaleMax": 4,
-          "example": "Considera tu capacidad para justificar refactorizaciones en términos de valor de negocio."
+          "scaleMax": 5,
+          "example": "Creación de Dockerfiles eficientes que separan la restauración de paquetes NuGet del proceso de compilación y publicación."
         },
         {
-          "id": "trabajo-en-equipo",
-          "question": "¿Qué nivel de iniciativa tomas en el mentoring técnico y la mejora de procesos del equipo?",
+          "id": "ci-cd-automation",
+          "question": "¿Qué tanta experiencia tienes configurando pipelines de CI/CD para el despliegue automático de soluciones .NET?",
           "type": "scale",
-          "scaleMax": 4,
-          "example": "Considera si realizas code reviews educativos y promueves buenas prácticas."
+          "scaleMax": 5,
+          "example": "Configuración de YAML en Azure Pipelines o GitHub Actions para ejecutar dotnet test, sonarcloud y despliegue a App Services."
+        },
+        {
+          "id": "monitoring-alerting",
+          "question": "¿Cuál es tu experiencia implementando observabilidad en .NET (Application Insights, Serilog, OpenTelemetry)?",
+          "type": "scale",
+          "scaleMax": 5,
+          "example": "Implementación de Structured Logging con Serilog para enviar trazas enriquecidas a Elasticsearch o Application Insights."
         }
       ]
     }

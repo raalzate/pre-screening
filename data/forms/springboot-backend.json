@@ -1,153 +1,126 @@
 {
   "id": "springboot-backend",
-  "title": "Evaluación Técnica - Java Spring Boot Backend",
+  "title": "Evaluación Técnica: Spring Boot & Cloud Architecture",
   "categories": [
     {
-      "id": "core-engineering",
-      "title": "Ingeniería de Software y Core Java",
+      "id": "core-backend-architecture",
+      "title": "Arquitectura Backend y Framework",
       "questions": [
         {
-          "id": "buenas-practicas",
-          "question": "¿Qué nivel de experiencia tienes aplicando principios como SOLID, DRY, KISS y Clean Code para garantizar la mantenibilidad?",
+          "id": "backend-framework-mastery",
+          "question": "¿Cuál es tu nivel de dominio en el ecosistema de Spring (Boot, Data, Security, Context) y el manejo de Inversión de Control?",
           "type": "scale",
-          "scaleMax": 4,
-          "example": "Refactorizar una clase monolítica aplicando el Principio de Responsabilidad Única (SRP) y utilizando Inyección de Dependencias para desacoplar componentes, facilitando los tests unitarios."
+          "scaleMax": 5,
+          "example": "Uso de perfiles condicionales (@Profile), configuración de beans mediante @Configuration y manejo avanzado del ciclo de vida de los componentes."
         },
         {
-          "id": "lenguaje-de-programacion",
-          "question": "¿Cómo evaluarías tu dominio profundo de Java (versiones recientes 17/21), incluyendo gestión de memoria, concurrencia y Streams API?",
+          "id": "api-rest-standards",
+          "question": "¿Qué tanta experiencia posees diseñando APIs RESTful bajo estándares profesionales y versionado en Spring MVC?",
           "type": "scale",
-          "scaleMax": 4,
-          "example": "Uso de CompletableFuture para orquestar llamadas asíncronas a múltiples APIs externas y combinar resultados, o implementación de Virtual Threads para optimizar el throughput en aplicaciones I/O bound."
+          "scaleMax": 5,
+          "example": "Implementación de HATEOAS, negociación de contenido, versionado por headers o URL y uso de Swagger/OpenAPI para documentación técnica activa."
         },
         {
-          "id": "framework",
-          "question": "¿Cuál es tu nivel de experticia en el ecosistema Spring Boot (Ciclo de vida, Auto-configuración, AOP y Transacciones)?",
+          "id": "clean-code-solid",
+          "question": "¿Cómo calificarías tu capacidad para aplicar principios SOLID y patrones de diseño dentro de una aplicación Spring?",
           "type": "scale",
-          "scaleMax": 4,
-          "example": "Creación de una anotación personalizada con AOP para auditoría de métodos sensibles o la implementación de un 'Custom Spring Boot Starter' para estandarizar configuraciones en múltiples microservicios."
+          "scaleMax": 5,
+          "example": "Aplicación del patrón Strategy para múltiples implementaciones de un servicio o uso de decoradores para extender funcionalidades de Repositories."
+        },
+        {
+          "id": "architectural-patterns",
+          "question": "¿Qué experiencia tienes implementando arquitecturas limpias como Hexagonal u Onion en proyectos Spring Boot?",
+          "type": "scale",
+          "scaleMax": 5,
+          "example": "Desacoplamiento total del dominio mediante puertos (interfaces) y adaptadores (Spring Data JPA, RestControllers) para evitar la contaminación del framework."
         }
       ]
     },
     {
-      "id": "architecture-design",
-      "title": "Arquitectura y Diseño de Sistemas",
+      "id": "persistence-resilience",
+      "title": "Persistencia de Datos y Resiliencia",
       "questions": [
         {
-          "id": "patrones-de-diseno",
-          "question": "¿Qué tanta experiencia tienes identificando e implementando patrones de diseño (GoF, Enterprise Integration Patterns) en problemas reales?",
+          "id": "sql-optimization",
+          "question": "¿Cuál es tu nivel de experticia optimizando el acceso a datos y el uso de ORM (Hibernate/JPA)?",
           "type": "scale",
-          "scaleMax": 4,
-          "example": "Implementación del patrón Strategy inyectando un Map<String, ServiceInterface> en Spring para seleccionar dinámicamente la lógica de negocio basada en un parámetro de entrada."
+          "scaleMax": 5,
+          "example": "Resolución del problema de consultas N+1 mediante @EntityGraph o 'join fetch', y afinamiento de transacciones con niveles de aislamiento específicos."
         },
         {
-          "id": "arquitectura",
-          "question": "¿Qué nivel de dominio tienes definiendo y trabajando con arquitecturas modernas (Microservicios, Hexagonal/Clean, Event-Driven)?",
+          "id": "resilience-fault-tolerance",
+          "question": "¿Qué tanta experiencia tienes implementando patrones de tolerancia a fallos mediante Resilience4j en arquitecturas distribuidas?",
           "type": "scale",
-          "scaleMax": 4,
-          "example": "Diseño de una aplicación con Arquitectura Hexagonal donde el dominio está totalmente aislado del framework Spring y de la persistencia, utilizando puertos y adaptadores."
+          "scaleMax": 5,
+          "example": "Configuración de Circuit Breakers y Rate Limiters para proteger servicios críticos contra fallos en cascada de dependencias externas."
         },
         {
-          "id": "integracion",
-          "question": "¿Cómo calificarías tu capacidad para diseñar integraciones robustas (REST, GraphQL, gRPC) y manejar mensajería asíncrona?",
+          "id": "messaging-queues-brokers",
+          "question": "¿Cuál es tu dominio integrando Spring Boot con Message Brokers como RabbitMQ o Apache Kafka?",
           "type": "scale",
-          "scaleMax": 4,
-          "example": "Implementación del patrón Saga (Orquestación o Coreografía) utilizando Kafka o RabbitMQ para manejar transacciones distribuidas entre múltiples microservicios con consistencia eventual."
+          "scaleMax": 5,
+          "example": "Implementación de consumidores concurrentes, manejo de Dead Letter Queues (DLQ) y estrategias de reintento asíncronas."
         }
       ]
     },
     {
-      "id": "data-persistence",
-      "title": "Persistencia y Datos",
+      "id": "security-quality",
+      "title": "Seguridad y Calidad de Software",
       "questions": [
         {
-          "id": "base-datos-relacionales",
-          "question": "¿Qué tan profundo es tu dominio de SQL, modelado de datos y optimización de ORM (JPA/Hibernate) en entornos de alta concurrencia?",
+          "id": "authentication-authorization",
+          "question": "¿Qué tan sólido es tu conocimiento en Spring Security, flujos OAuth2 y JWT?",
           "type": "scale",
-          "scaleMax": 4,
-          "example": "Solución del problema 'N+1 Selects' utilizando @EntityGraph o JOIN FETCH en JPQL, y optimización de consultas mediante análisis del Execution Plan e índices compuestos."
+          "scaleMax": 5,
+          "example": "Configuración de un Resource Server con validación de tokens JWT y autorización basada en métodos mediante @PreAuthorize."
         },
         {
-          "id": "base-datos-nosql",
-          "question": "¿Qué experiencia tienes seleccionando e implementando soluciones NoSQL (MongoDB, Redis, Cassandra) según el caso de uso?",
+          "id": "unit-testing-mocking",
+          "question": "¿Cuál es tu experiencia realizando pruebas unitarias y mocks en Spring Boot (JUnit 5, Mockito)?",
           "type": "scale",
-          "scaleMax": 4,
-          "example": "Implementación de una estrategia de caché 'Look-aside' o 'Write-through' con Redis para reducir la latencia de lectura en datos de acceso frecuente, configurando TTLs y políticas de desalojo."
+          "scaleMax": 5,
+          "example": "Uso de @ExtendWith(MockitoExtension.class) para aislar lógica de negocio y asegurar el 100% de cobertura en servicios críticos."
+        },
+        {
+          "id": "integration-testing",
+          "question": "¿Qué tanto dominas las pruebas de integración en Spring, especialmente con Testcontainers?",
+          "type": "scale",
+          "scaleMax": 5,
+          "example": "Levantamiento de instancias reales de PostgreSQL o Kafka en Docker durante la fase de test para validar la persistencia real."
+        },
+        {
+          "id": "secrets-management",
+          "question": "¿Cómo gestionas la seguridad de credenciales y secretos en aplicaciones Spring Cloud?",
+          "type": "scale",
+          "scaleMax": 5,
+          "example": "Integración de Spring Cloud Vault o AWS Secrets Manager para inyectar propiedades sensibles sin exponerlas en archivos de configuración."
         }
       ]
     },
     {
-      "id": "devops-quality",
-      "title": "Calidad, Seguridad y DevOps",
+      "id": "infrastructure-devops",
+      "title": "Infraestructura y Operaciones",
       "questions": [
         {
-          "id": "cloud",
-          "question": "¿Cuál es tu nivel de conocimiento sobre servicios Cloud (AWS/Azure/GCP) y patrones nativos de la nube?",
+          "id": "containerization-tech",
+          "question": "¿Qué nivel de experiencia tienes dockerizando microservicios Spring Boot de forma optimizada?",
           "type": "scale",
-          "scaleMax": 4,
-          "example": "Uso de Spring Cloud AWS para integrar SQS y S3, manejando credenciales vía roles IAM y utilizando Secrets Manager para la configuración sensible."
+          "scaleMax": 5,
+          "example": "Uso de 'multi-stage builds' y capas de dependencias (layers) para reducir el tiempo de construcción y el tamaño de la imagen final."
         },
         {
-          "id": "control-versiones",
-          "question": "¿Qué tan cómodo te sientes con el manejo avanzado de Git y estrategias de flujo de trabajo (GitFlow, Trunk Based Development)?",
+          "id": "monitoring-alerting",
+          "question": "¿Cómo implementas la observabilidad en Spring Boot mediante Micrometer y Actuator?",
           "type": "scale",
-          "scaleMax": 4,
-          "example": "Resolución de conflictos complejos en rebases interactivos y gestión de 'Feature Flags' para permitir Trunk Based Development sin romper producción."
+          "scaleMax": 5,
+          "example": "Exposición de métricas personalizadas para Prometheus y configuración de 'Health Indicators' para orquestadores como Kubernetes."
         },
         {
-          "id": "testing",
-          "question": "¿Qué nivel de dominio tienes implementando estrategias de pruebas automatizadas (Unitarias, Integración, Contrato y E2E)?",
+          "id": "ci-cd-automation",
+          "question": "¿Qué tanta participación has tenido en la automatización de pipelines de despliegue para artefactos .jar o imágenes Docker?",
           "type": "scale",
-          "scaleMax": 4,
-          "example": "Uso de Testcontainers para levantar instancias reales de PostgreSQL y Kafka durante los tests de integración, asegurando que el código funciona con la infraestructura real y no solo con mocks."
-        },
-        {
-          "id": "contenedores",
-          "question": "¿Qué tanta experiencia tienes en la containerización (Docker) y orquestación (Kubernetes) de aplicaciones Java?",
-          "type": "scale",
-          "scaleMax": 4,
-          "example": "Creación de un Dockerfile 'Multi-stage build' para generar una imagen ligera (distroless) de la aplicación Spring Boot, definiendo correctamente los límites de recursos (CPU/RAM) para Kubernetes."
-        },
-        {
-          "id": "despliegue-ci-cd",
-          "question": "¿Qué capacidad tienes para diseñar y mantener pipelines de CI/CD utilizando herramientas como Jenkins, GitHub Actions o GitLab CI?",
-          "type": "scale",
-          "scaleMax": 4,
-          "example": "Configuración de un pipeline que ejecuta análisis estático (SonarQube), tests, construye la imagen, la firma digitalmente y realiza un despliegue Blue/Green en el clúster."
-        },
-        {
-          "id": "seguridad",
-          "question": "¿Cuál es tu nivel de experiencia implementando seguridad en aplicaciones (OWASP, OAuth2, OIDC, JWT)?",
-          "type": "scale",
-          "scaleMax": 4,
-          "example": "Configuración de Spring Security como Resource Server validando JWTs, implementando CSRF protection y manejando roles y scopes personalizados extraídos del token."
-        },
-        {
-          "id": "monitoreo-sre-basico",
-          "question": "¿Qué experiencia tienes implementando observabilidad, logging centralizado y métricas en sistemas distribuidos?",
-          "type": "scale",
-          "scaleMax": 4,
-          "example": "Instrumentación de la aplicación con Micrometer para exponer métricas de negocio personalizadas a Prometheus y uso de OpenTelemetry para trazabilidad distribuida."
-        }
-      ]
-    },
-    {
-      "id": "soft-skills",
-      "title": "Habilidades Blandas y Liderazgo",
-      "questions": [
-        {
-          "id": "comunicacion",
-          "question": "¿Qué tan efectivo te consideras comunicando conceptos técnicos complejos a audiencias tanto técnicas como no técnicas?",
-          "type": "scale",
-          "scaleMax": 4,
-          "example": "Explicar los trade-offs del Teorema CAP a un Product Owner para justificar por qué se eligió consistencia eventual sobre consistencia fuerte en una feature específica."
-        },
-        {
-          "id": "trabajo-en-equipo",
-          "question": "¿Cómo evaluarías tu habilidad para colaborar, mentorear a juniors y resolver conflictos técnicos de manera constructiva?",
-          "type": "scale",
-          "scaleMax": 4,
-          "example": "Realizar Code Reviews constructivos que no solo señalan errores, sino que explican el 'por qué' y sugieren mejoras educativas, elevando el nivel técnico del equipo."
+          "scaleMax": 5,
+          "example": "Configuración de Jenkinsfiles o GitHub Actions para ejecutar el ciclo 'mvn clean verify' antes de promocionar a entornos productivos."
         }
       ]
     }

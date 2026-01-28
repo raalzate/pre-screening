@@ -28,7 +28,6 @@ export async function POST(req: Request) {
       opportunityTitle: clientConfig.title,
       ...comparisonResult,
     };
-
     const session = await getServerSession(authOptions);
     const userCode = (session?.user as any)?.code;
 

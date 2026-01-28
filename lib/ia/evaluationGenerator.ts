@@ -47,7 +47,8 @@ class EvaluationGenerator extends BaseGenerator<typeof EvaluationInputSchema, ty
     return (input: EvaluationInput) => {
       const answers = JSON.stringify(input.answers, null, 2);
       const formId = input.formId;
-      const numQuestions = 10;
+      const storedGaps = input.gaps;
+      const numQuestions = 15;
 
       return `
         Eres un evaluador técnico experto en escenarios o casos de usos reales. Tu tarea es generar exactamente ${numQuestions} preguntas de opción múltiple (MCQ) de estilo de un caso de uso basadas en las respuestas de un formulario técnico con escalas (0–5). 
@@ -60,6 +61,9 @@ class EvaluationGenerator extends BaseGenerator<typeof EvaluationInputSchema, ty
         Un objeto JSON donde las keys representan categorías técnicas (questionId) and los values son enteros de 0 a 5 que indican el nivel de dominio declarado por el candidato.
         Ejemplo:
         ${answers}
+
+        Haz foco en los siguientes gaps, refuerza las áreas que faltan:
+        ${storedGaps}
 
         Reglas de salida:
 

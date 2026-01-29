@@ -40,3 +40,16 @@ export function groupCandidatesByCode(users: User[]): GroupedCandidate[] {
     // Convert map to array
     return Object.values(groups);
 }
+
+export function isCandidateRejected(candidate: GroupedCandidate): boolean {
+    // A candidate is rejected ONLY if all their profiles have an evaluation_result.valid === false
+    // If they have no evaluation result yet, they are NOT rejected (pending)
+    // If at least one profile is valid, they are NOT rejected (in progress)
+    return candidate.profiles.length > 0 && candidate.profiles.every(profile => {
+        const result = typeof profile.evaluation_result === 'string'
+            ? JSON.parse(profile.evaluation_result)
+            : profile.evaluation_result;
+
+        return result && result.valid === false;
+    });
+}

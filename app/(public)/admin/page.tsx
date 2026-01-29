@@ -14,7 +14,7 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import AdminFormsView from "@/components/admin/AdminFormsView";
 import FormPreview from "@/components/admin/FormPreview";
-import { groupCandidatesByCode, GroupedCandidate, User as AdminUser } from "@/lib/adminUtils";
+import { groupCandidatesByCode, GroupedCandidate, User as AdminUser, isCandidateRejected } from "@/lib/adminUtils";
 
 // --- 1. CONSTANTS & TYPES ---
 
@@ -36,6 +36,8 @@ const ALL_REQUIREMENTS = [
 ] as const;
 
 type AdminView = "candidates" | "forms";
+type CandidateStatusFilter = "all" | "in-progress" | "rejected";
+type CandidateStepFilter = "all" | "pre-screening" | "technical" | "interview";
 
 interface EvaluationGap {
   skill: string;
@@ -290,6 +292,8 @@ export default function App() {
   const [searchQuery, setSearchQuery] = useState("");
   const [view, setView] = useState<AdminView>("candidates");
   const [selectedFormId, setSelectedFormId] = useState<string | null>(null);
+  const [statusFilter, setStatusFilter] = useState<CandidateStatusFilter>("all");
+  const [stepFilter, setStepFilter] = useState<CandidateStepFilter>("technical");
 
   // Auth Guard
   useEffect(() => {
@@ -299,10 +303,24 @@ export default function App() {
   // Derived State
   const filteredUsers = useMemo(() => {
     const q = searchQuery.toLowerCase();
-    return users.filter(u =>
-      u.name.toLowerCase().includes(q) || u.code.toLowerCase().includes(q)
-    );
-  }, [users, searchQuery]);
+    return users.filter(u => {
+      const matchesSearch = u.name.toLowerCase().includes(q) || u.code.toLowerCase().includes(q);
+      const isRejected = isCandidateRejected(u);
+
+      let matchesStatus = true;
+      if (statusFilter === "in-progress") matchesStatus = !isRejected;
+      else if (statusFilter === "rejected") matchesStatus = isRejected;
+
+      if (!matchesStatus || !matchesSearch) return false;
+
+      // Step filtering (only relevant for In-Process or All)
+      if (statusFilter !== "rejected" && stepFilter !== "all") {
+        return u.profiles.some(p => p.step === stepFilter);
+      }
+
+      return true;
+    });
+  }, [users, searchQuery, statusFilter, stepFilter]);
 
   const handleSearch = () => {
     const group = users.find(u => u.code === selectedCode);
@@ -326,6 +344,35 @@ export default function App() {
     }
   };
 
+  const statusCounts = useMemo(() => {
+    const initial = {
+      all: 0,
+      inProgress: 0,
+      rejected: 0,
+      steps: {
+        "pre-screening": 0,
+        technical: 0,
+        interview: 0,
+      },
+    };
+
+    return users.reduce((acc, u) => {
+      const isRejected = isCandidateRejected(u);
+      if (isRejected) {
+        acc.rejected++;
+      } else {
+        acc.inProgress++;
+        // Count unique steps per active candidate
+        const steps = new Set(u.profiles.map((p) => p.step));
+        if (steps.has("pre-screening")) acc.steps["pre-screening"]++;
+        if (steps.has("technical")) acc.steps.technical++;
+        if (steps.has("interview")) acc.steps.interview++;
+      }
+      acc.all++;
+      return acc;
+    }, initial);
+  }, [users]);
+
   if (status === "loading") return <div className="min-h-screen bg-gray-50 flex items-center justify-center"><Spinner size="md" /></div>;
   console.log(userData);
   return (
@@ -347,6 +394,61 @@ export default function App() {
             Formularios
           </button>
         </div>
+
+        {/* --- STATUS FILTER --- */}
+        {view === "candidates" && (
+          <div className="flex gap-4 mb-6 overflow-x-auto pb-2">
+            {[
+              { id: "all", label: "Todos", count: statusCounts.all, color: "bg-gray-100 text-gray-700" },
+              { id: "in-progress", label: "En Proceso", count: statusCounts.inProgress, color: "bg-blue-100 text-blue-700" },
+              { id: "rejected", label: "Rechazados", count: statusCounts.rejected, color: "bg-red-100 text-red-700" },
+            ].map((filter) => (
+              <button
+                key={filter.id}
+                onClick={() => {
+                  setStatusFilter(filter.id as CandidateStatusFilter);
+                  if (filter.id === "in-progress") setStepFilter("technical");
+                }}
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all border-2 whitespace-nowrap ${statusFilter === filter.id
+                  ? "border-blue-600 ring-2 ring-blue-100 bg-white"
+                  : "border-transparent bg-white hover:border-gray-200 text-gray-500"
+                  }`}
+              >
+                {filter.label}
+                <span className={`px-2 py-0.5 rounded-full text-[10px] ${filter.color}`}>
+                  {filter.count}
+                </span>
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* --- STEP FILTER (TAGS) --- */}
+        {view === "candidates" && statusFilter === "in-progress" && (
+          <div className="flex gap-2 mb-8 items-center bg-blue-50/50 p-3 rounded-2xl border border-blue-100/50 w-fit">
+            <span className="text-xs font-bold text-blue-600 px-2 uppercase tracking-wider">Etapa:</span>
+            {[
+              { id: "all", label: "Todos", count: statusCounts.inProgress },
+              { id: "pre-screening", label: "Pre-Screening", count: statusCounts.steps["pre-screening"] },
+              { id: "technical", label: "Validación Técnica", count: statusCounts.steps.technical },
+              { id: "interview", label: "Entrevista", count: statusCounts.steps.interview },
+            ].map((tag) => (
+              <button
+                key={tag.id}
+                onClick={() => setStepFilter(tag.id as CandidateStepFilter)}
+                className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all flex items-center gap-2 ${stepFilter === tag.id
+                  ? "bg-blue-600 text-white shadow-sm scale-105"
+                  : "bg-white text-gray-500 border border-gray-200 hover:border-blue-400 hover:text-blue-600"
+                  }`}
+              >
+                {tag.label}
+                <span className={`opacity-70 ${stepFilter === tag.id ? "text-white" : "text-blue-600"}`}>
+                  {tag.count}
+                </span>
+              </button>
+            ))}
+          </div>
+        )}
 
         {/* --- TOP BAR: SEARCH & ACTIONS --- */}
         {view === "candidates" && (

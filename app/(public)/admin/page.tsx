@@ -27,6 +27,8 @@ const ALL_REQUIREMENTS = [
   "pichincha-ssr:springboot-backend",
   "pichincha-sr:dotnet-backend",
   "pichincha-ssr:dotnet-backend",
+  "pichincha-ssr:reactjs-frontend",
+  "pichincha-sr:reactjs-frontend",
   "visa-guayaquil-jr:dotnet-fullstack",
   "visa-guayaquil-jr:springboot-fullstack",
   "visa-guayaquil-ssr:dotnet-fullstack",

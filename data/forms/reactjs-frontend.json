@@ -1,0 +1,122 @@
+{
+  "id": "reactjs-frontend",
+  "title": "Evaluación Técnica: ReactJS Frontend",
+  "categories": [
+    {
+      "id": "frontend-core-architecture",
+      "title": "Arquitectura y Core Frontend",
+      "questions": [
+        {
+          "id": "javascript-typescript-core",
+          "question": "¿Qué nivel de dominio posees sobre ECMAScript moderno y el sistema de tipos de TypeScript aplicado a componentes complejos?",
+          "type": "scale",
+          "scaleMax": 5,
+          "example": "Uso de Generics en componentes de orden superior (HOCs), Utility Types (Omit, Pick) para interfaces de Props y manejo de Closures en Custom Hooks."
+        },
+        {
+          "id": "spa-frameworks",
+          "question": "¿Cuál es tu experiencia liderando el desarrollo de SPAs robustas con React, incluyendo la toma de decisiones sobre el ecosistema?",
+          "type": "scale",
+          "scaleMax": 5,
+          "example": "Configuración de arquitecturas escalables (Feature-based folder structure), optimización de re-renders con React.memo/useMemo y manejo de límites de error (Error Boundaries)."
+        },
+        {
+          "id": "clean-code-solid",
+          "question": "¿Cómo aplicas los principios SOLID y patrones de diseño específicamente en el desarrollo de interfaces con React?",
+          "type": "scale",
+          "scaleMax": 5,
+          "example": "Aplicación del Single Responsibility Principle (SRP) dividiendo componentes de lógica (Hooks) de componentes de presentación, y uso de Composición sobre Herencia."
+        },
+        {
+          "id": "responsive-layouts",
+          "question": "¿Qué tan avanzado es tu manejo de layouts adaptables y estrategias de diseño moderno (CSS-in-JS, CSS Modules)?",
+          "type": "scale",
+          "scaleMax": 5,
+          "example": "Implementación de estrategias 'Mobile First', uso de Container Queries, y gestión de temas dinámicos mediante CSS Variables o librerías como Tailwind/Styled-components."
+        }
+      ]
+    },
+    {
+      "id": "integration-data-management",
+      "title": "Integración y Persistencia de Datos",
+      "questions": [
+        {
+          "id": "api-rest-standards",
+          "question": "¿Qué tanta experiencia tienes consumiendo servicios RESTful y manejando el ciclo de vida de las peticiones HTTP?",
+          "type": "scale",
+          "scaleMax": 5,
+          "example": "Uso de interceptores en Axios para manejo global de headers, gestión de estados de carga/error y estandarización de respuestas del lado del cliente."
+        },
+        {
+          "id": "orm-mapping-techniques",
+          "question": "¿Cómo gestionas el mapeo de modelos de datos complejos provenientes del backend hacia el estado de tu aplicación frontend?",
+          "type": "scale",
+          "scaleMax": 5,
+          "example": "Implementación de capas de 'Adapters' o 'Mappers' para transformar DTOs del backend en interfaces de dominio consumibles por los componentes de React."
+        },
+        {
+          "id": "sql-optimization",
+          "question": "Desde la perspectiva frontend, ¿cuál es tu capacidad para optimizar el consumo de datos y entender el impacto de las consultas en el rendimiento?",
+          "type": "scale",
+          "scaleMax": 5,
+          "example": "Optimización de fetching mediante paginación, infinite scroll o filtrado eficiente para evitar la sobrecarga de memoria en el navegador con grandes sets de datos."
+        },
+        {
+          "id": "messaging-queues-brokers",
+          "question": "¿Has trabajado con comunicación asíncrona en tiempo real o eventos en el frontend?",
+          "type": "scale",
+          "scaleMax": 5,
+          "example": "Integración con WebSockets o Server-Sent Events (SSE) para actualizar el estado global de la UI ante eventos asíncronos del servidor."
+        }
+      ]
+    },
+    {
+      "id": "security-devops",
+      "title": "Seguridad, Infraestructura y Calidad",
+      "questions": [
+        {
+          "id": "authentication-authorization",
+          "question": "¿Cuál es tu experiencia implementando flujos de seguridad (OAuth2, JWT, RBAC) en aplicaciones React?",
+          "type": "scale",
+          "scaleMax": 5,
+          "example": "Creación de Rutas Protegidas (Guards), persistencia segura de tokens (HttpOnly cookies vs LocalStorage) y manejo de refresco de tokens (Silent Refresh)."
+        },
+        {
+          "id": "microservices-patterns",
+          "question": "¿Qué conocimiento tienes sobre patrones de micro-frontends o integración en arquitecturas de microservicios?",
+          "type": "scale",
+          "scaleMax": 5,
+          "example": "Implementación de Module Federation (Webpack 5) para compartir componentes entre diferentes aplicaciones independientes."
+        },
+        {
+          "id": "ci-cd-automation",
+          "question": "¿Cómo te involucras en la automatización del despliegue y la calidad del código frontend?",
+          "type": "scale",
+          "scaleMax": 5,
+          "example": "Configuración de pipelines en GitHub Actions o GitLab CI para ejecutar Linting, Type-checking y pruebas unitarias (Jest/RTL) antes del despliegue."
+        },
+        {
+          "id": "api-governance",
+          "question": "¿Qué tanto dominas el versionado de APIs y la documentación técnica de contratos de integración?",
+          "type": "scale",
+          "scaleMax": 5,
+          "example": "Uso de herramientas como Swagger o Redoc para validar contratos de API y asegurar la compatibilidad con versiones anteriores en el frontend."
+        },
+        {
+          "id": "legacy-integration",
+          "question": "¿Qué experiencia tienes integrando aplicaciones modernas de React con sistemas legados o embebiendo micro-apps?",
+          "type": "scale",
+          "scaleMax": 5,
+          "example": "Migración progresiva de un monolito a React usando 'Strangler Pattern' o comunicación mediante Custom Events entre tecnologías distintas."
+        },
+        {
+          "id": "technical-documentation",
+          "question": "¿Cómo abordas la creación de documentación técnica para el equipo de desarrollo frontend?",
+          "type": "scale",
+          "scaleMax": 5,
+          "example": "Mantenimiento de un Storybook para la biblioteca de componentes y documentación de decisiones arquitectónicas (ADRs)."
+        }
+      ]
+    }
+  ]
+}

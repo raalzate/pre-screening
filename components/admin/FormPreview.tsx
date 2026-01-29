@@ -11,7 +11,10 @@ const Icons = {
     Check: (props: React.ComponentProps<"svg">) => <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>,
     Trophy: (props: React.ComponentProps<"svg">) => <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" /><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18" /><path d="M4 22h16" /><path d="M10 14.66V17" /><path d="M14 14.66V17" /><path d="M18 2h-6c-2.76 0-5 2.24-5 5v7c0 2.76 2.24 5 5 5h6c2.76 0 5-2.24 5-5V7c0-2.76-2.24-5-5-5z" /></svg>,
     Lightbulb: (props: React.ComponentProps<"svg">) => <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A5 5 0 0 0 8 8c0 1.3.5 2.6 1.5 3.5.8.8 1.3 1.5 1.5 2.5" /><path d="M9 18h6" /><path d="M10 22h4" /></svg>,
-    Target: (props: React.ComponentProps<"svg">) => <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><circle cx="12" cy="12" r="6" /><circle cx="12" cy="12" r="2" /></svg>
+    Target: (props: React.ComponentProps<"svg">) => <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><circle cx="12" cy="12" r="6" /><circle cx="12" cy="12" r="2" /></svg>,
+    Sparkles: (props: React.ComponentProps<"svg">) => <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" /><path d="M5 3v4" /><path d="M19 17v4" /><path d="M3 5h4" /><path d="M17 19h4" /></svg>,
+    Loader2: (props: React.ComponentProps<"svg">) => <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`animate-spin ${props.className}`}><path d="M21 12a9 9 0 1 1-6.219-8.56" /></svg>,
+    X: (props: React.ComponentProps<"svg">) => <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18" /><path d="M6 6l12 12" /></svg>
 };
 
 // --- 2. Componentes de UI Reutilizables ---
@@ -90,6 +93,61 @@ const FormPreview: FC<FormPreviewProps> = ({ formId, onBack }) => {
     const [error, setError] = useState<string | null>(null);
     const [answers, setAnswers] = useState<Record<string, number>>({});
     const [showResult, setShowResult] = useState(false);
+
+    // AI Analysis State
+    const [analysis, setAnalysis] = useState<string | null>(null);
+    const [isAnalyzing, setIsAnalyzing] = useState(false);
+    const [showAnalysisModal, setShowAnalysisModal] = useState(false);
+
+    const handleAnalyze = async () => {
+        if (!resultData) return;
+
+        // 1. Check Cache (TTL 24h)
+        const cacheKey = `ai_analysis_${formId}_${resultData.score}_${resultData.improvements.length}`;
+        const cached = localStorage.getItem(cacheKey);
+        if (cached) {
+            try {
+                const { data, timestamp } = JSON.parse(cached);
+                const oneDay = 24 * 60 * 60 * 1000;
+                if (Date.now() - timestamp < oneDay) {
+                    setAnalysis(data);
+                    setShowAnalysisModal(true);
+                    return;
+                }
+            } catch (e) {
+                console.warn("Error parsing cache", e);
+            }
+        }
+
+        // 2. API Call
+        try {
+            setIsAnalyzing(true);
+            const res = await fetch('/api/admin/forms/analysis', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    formId,
+                    title: form?.title,
+                    answers,
+                    resultData
+                })
+            });
+
+            if (!res.ok) throw new Error("Error al analizar con IA");
+            const { analysis: result } = await res.json();
+
+            setAnalysis(result);
+            localStorage.setItem(cacheKey, JSON.stringify({
+                data: result,
+                timestamp: Date.now()
+            }));
+            setShowAnalysisModal(true);
+        } catch (err: any) {
+            alert(err.message || "No se pudo generar el análisis. Intente nuevamente.");
+        } finally {
+            setIsAnalyzing(false);
+        }
+    };
 
     useEffect(() => {
         // Simulación de fetch
@@ -180,6 +238,60 @@ const FormPreview: FC<FormPreviewProps> = ({ formId, onBack }) => {
                     <span className="text-sm font-medium">Volver a las preguntas</span>
                 </div>
 
+                {/* AI Analysis Modal */}
+                {showAnalysisModal && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 bg-gray-900/60 backdrop-blur-sm animate-in fade-in duration-300">
+                        <div className="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 slide-in-from-bottom-4 duration-500">
+                            {/* Modal Header */}
+                            <div className="p-8 border-b flex items-center justify-between bg-gradient-to-r from-indigo-50 to-white">
+                                <div className="flex items-center gap-3">
+                                    <div className="p-2.5 bg-indigo-600 rounded-2xl shadow-lg shadow-indigo-200">
+                                        <Icons.Sparkles className="w-6 h-6 text-white" />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-xl font-bold text-gray-900">Análisis con IA</h3>
+                                        <p className="text-xs text-indigo-600 font-bold uppercase tracking-wider">Lead Technical Insight</p>
+                                    </div>
+                                </div>
+                                <button
+                                    onClick={() => setShowAnalysisModal(false)}
+                                    className="p-2 hover:bg-white rounded-full text-gray-400 hover:text-gray-900 transition-all border border-transparent hover:border-gray-100"
+                                >
+                                    <Icons.X className="w-6 h-6" />
+                                </button>
+                            </div>
+
+                            {/* Modal Content */}
+                            <div className="flex-1 overflow-y-auto p-8 sm:p-10 custom-scrollbar">
+                                <div className="prose prose-indigo max-w-none text-gray-700 leading-relaxed space-y-4">
+                                    {analysis?.split('\n').map((line, i) => {
+                                        if (line.startsWith('###')) {
+                                            return <h3 key={i} className="text-2xl font-bold text-gray-900 mt-8 mb-4 border-l-4 border-indigo-500 pl-4">{line.replace('###', '').trim()}</h3>
+                                        }
+                                        if (line.startsWith('**') && line.endsWith('**')) {
+                                            return <p key={i} className="font-bold text-gray-800">{line.replace(/\*\*/g, '')}</p>
+                                        }
+                                        if (line.trim().startsWith('-')) {
+                                            return <li key={i} className="ml-4 list-disc pl-2">{line.trim().slice(1).trim()}</li>
+                                        }
+                                        return <p key={i}>{line}</p>
+                                    })}
+                                </div>
+                            </div>
+
+                            {/* Modal Footer */}
+                            <div className="p-6 bg-gray-50/50 border-t flex justify-end">
+                                <button
+                                    onClick={() => setShowAnalysisModal(false)}
+                                    className="px-8 py-3 bg-gray-900 text-white rounded-2xl font-bold hover:bg-gray-800 transition-all active:scale-95 shadow-lg shadow-gray-200"
+                                >
+                                    Entendido
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
                 <div className="bg-white rounded-[2rem] shadow-xl shadow-gray-200/50 border border-gray-100 overflow-hidden">
                     {/* Hero Section */}
                     <div className={`p-10 text-center border-b ${resultData.bg} ${resultData.border}`}>
@@ -254,6 +366,28 @@ const FormPreview: FC<FormPreviewProps> = ({ formId, onBack }) => {
                             className="px-8 py-3 bg-gray-900 text-white rounded-xl font-bold hover:bg-gray-800 shadow-lg shadow-gray-200 transition-all active:scale-95"
                         >
                             Finalizar
+                        </button>
+                        <button
+                            disabled={isAnalyzing}
+                            onClick={handleAnalyze}
+                            className={`
+                                flex items-center justify-center gap-2 px-8 py-3 rounded-xl font-bold transition-all active:scale-95 shadow-lg
+                                ${isAnalyzing
+                                    ? "bg-indigo-100 text-indigo-400 cursor-not-allowed"
+                                    : "bg-indigo-600 text-white hover:bg-indigo-700 shadow-indigo-200"}
+                            `}
+                        >
+                            {isAnalyzing ? (
+                                <>
+                                    <Icons.Loader2 className="w-5 h-5" />
+                                    Analizando...
+                                </>
+                            ) : (
+                                <>
+                                    <Icons.Sparkles className="w-5 h-5" />
+                                    Analizar con IA
+                                </>
+                            )}
                         </button>
                     </div>
                 </div>

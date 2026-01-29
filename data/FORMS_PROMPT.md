@@ -1,12 +1,13 @@
 
-Actúa como un experto en [.Net Full Stack].
+Actúa como un experto en [ReactJS Frontend].
 
 Tienes un JSON con niveles con descriptores que se debe evaluar en un pre-screening, usa solo los que te entrego aqui. 
 
 {
   "requirements": {
-        "backend-framework-mastery",
         "api-rest-standards",
+        "responsive-layouts",
+        "spa-frameworks",
         "sql-optimization",
         "authentication-authorization",
         "orm-mapping-techniques",

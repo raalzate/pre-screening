@@ -60,11 +60,11 @@ class FormAnalysisGenerator extends BaseGenerator<typeof FormAnalysisInputSchema
       1.  ### 📊 Resumen Ejecutivo
           Una breve síntesis (2-3 frases) sobre el nivel de afinidad del candidato con el rol técnico evaluado.
       2.  ### 💪 Fortalezas Detectadas
-          Menciona las áreas donde el candidato parece tener un dominio sólido (basado en que no aparecen en la lista de brechas o son fortalezas relativas).
+          Menciona las áreas donde el candidato parece tener un dominio sólido (basado en que no aparecen en la lista de brechas o son fortalezas relativas), has una lista pero resumida no debes ser tan verboso.
       3.  ### 🔍 Análisis de Brechas Críticas
-          Analiza los puntos específicos donde el candidato falló. Explica el impacto técnico de estas brechas en un entorno de producción real.
+          Analiza los puntos específicos donde el candidato falló. Explica el impacto técnico de estas brechas en un entorno de producción real, resume los puntos y no debes ser tan verboso.
   
-      IMPORTANTE: Mantén un tono profesional, objetivo y técnico. Usa viñetas para que sea fácil de leer. Responde en ESPAÑOL y lo mas simple posible.
+      IMPORTANTE: Mantén un tono profesional, objetivo y técnico. Usa viñetas para que sea fácil de leer. Responde en ESPAÑOL y lo mas simple posible no tan verboso.
     `;
         };
     }

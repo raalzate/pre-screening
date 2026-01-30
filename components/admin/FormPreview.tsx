@@ -2,6 +2,7 @@
 
 import { useEffect, useState, FC, useMemo } from "react";
 import { FormConfig } from "@/types/InputConfig";
+import Markdown from 'react-markdown'
 
 // --- 1. Sistema de Iconos (Optimizados) ---
 const Icons = {
@@ -264,18 +265,7 @@ const FormPreview: FC<FormPreviewProps> = ({ formId, onBack }) => {
                             {/* Modal Content */}
                             <div className="flex-1 overflow-y-auto p-8 sm:p-10 custom-scrollbar">
                                 <div className="prose prose-indigo max-w-none text-gray-700 leading-relaxed space-y-4">
-                                    {analysis?.split('\n').map((line, i) => {
-                                        if (line.startsWith('###')) {
-                                            return <h3 key={i} className="text-2xl font-bold text-gray-900 mt-8 mb-4 border-l-4 border-indigo-500 pl-4">{line.replace('###', '').trim()}</h3>
-                                        }
-                                        if (line.startsWith('**') && line.endsWith('**')) {
-                                            return <p key={i} className="font-bold text-gray-800">{line.replace(/\*\*/g, '')}</p>
-                                        }
-                                        if (line.trim().startsWith('-')) {
-                                            return <li key={i} className="ml-4 list-disc pl-2">{line.trim().slice(1).trim()}</li>
-                                        }
-                                        return <p key={i}>{line}</p>
-                                    })}
+                                    <Markdown>{analysis}</Markdown>
                                 </div>
                             </div>
 

@@ -9,6 +9,7 @@ import React, {
   useMemo,
   useCallback,
 } from "react";
+import Markdown from 'react-markdown'
 import { GapAnalysisRechart } from "@/components/GapAnalysisChart";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
@@ -928,16 +929,6 @@ const InterviewWizard: FC<{
   );
 };
 
-// ... Restoring MarkdownRenderer (Simpler version) ...
-const MarkdownRenderer: FC<{ content: string }> = ({ content }) => {
-  const htmlContent = content
-    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-    .replace(/\n/g, '<br />')
-    .replace(/- (.*?)<br \/>/g, '<li>$1</li>');
-
-  return <div dangerouslySetInnerHTML={{ __html: htmlContent }} />;
-};
-
 
 // ... Restoring CertificationAnalysisCard ...
 const CertificationAnalysisCard: FC<{
@@ -1015,7 +1006,7 @@ const CertificationAnalysisCard: FC<{
                 <h5 className="font-bold text-gray-800 text-sm">Resumen Ejecutivo de Brechas</h5>
               </div>
               <div className="prose prose-sm max-w-none text-gray-700">
-                <MarkdownRenderer content={analysis} />
+                <Markdown>{analysis}</Markdown>
               </div>
             </div>
           )}
@@ -1113,8 +1104,9 @@ const ChallengeResultCard: FC<{
       }
     >
       <h3 className="text-lg font-bold mb-2">{challenge.title}</h3>
-      <div className="prose prose-sm max-w-none bg-gray-50 p-4 rounded-lg border mb-4" dangerouslySetInnerHTML={{ __html: challenge.description }} />
-
+      <div className="prose prose-sm max-w-none bg-gray-50 p-4 rounded-lg border mb-4">
+        <Markdown>{challenge.description}</Markdown>
+      </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <h4 className="font-bold text-xs uppercase text-gray-500 mb-2">Criterios</h4>

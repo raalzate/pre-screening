@@ -74,7 +74,7 @@ class EvaluationGenerator extends BaseGenerator<typeof EvaluationInputSchema, ty
           - debe relacionar al menos dos categorías del objeto (ejemplo: redux y context, o props-state y lifecycle).
           - evita que el usuario use la técnica de descarte, las opciones deben ser muy similares entre ellas
         3. Cada pregunta debe contener:
-          - id (q1..q10)
+          - id (usa strings: "q1", "q2", ..., "q15")
           - question (enunciado estilo escenario)
           - relatedTo (arreglo con las categorías vinculadas, ej: ["redux","context"])
           - options (4 opciones plausibles)

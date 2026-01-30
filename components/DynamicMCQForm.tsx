@@ -27,8 +27,8 @@ export default function DynamicMCQForm({
   // Con esta sola línea proteges todo el componente
   useDisableShortcuts();
 
-  const [answers, setAnswers] = useState<Record<string, string>>({});
-  const answersRef = useRef<Record<string, string>>({});
+  const [answers, setAnswers] = useState<Record<number, string>>({});
+  const answersRef = useRef<Record<number, string>>({});
   const [result, setResult] = useState<{
     score: number;
     total: number;
@@ -46,20 +46,47 @@ export default function DynamicMCQForm({
   const [currentIndex, setCurrentIndex] = useState(0);
   const [timeLeft, setTimeLeft] = useState(TIME_PER_QUESTION);
 
-  const handleChange = (questionId: string, value: string) => {
-    answersRef.current = { ...answersRef.current, [questionId]: value };
-    setAnswers((prev) => ({ ...prev, [questionId]: value }));
+  const handleChange = (index: number, value: string) => {
+    // Mutación directa del ref para evitar problemas con cierres (closures) de React
+    answersRef.current[index] = value;
+    setAnswers((prev) => ({ ...prev, [index]: value }));
   };
 
   const handleSubmit = useCallback(async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     if (!form) return;
 
+    // --- CAPTURA DE EMERGENCIA (DOM-FIRST) ---
+    // Si el evento de cambio (Change) no ha terminado, leemos directamente del DOM
+    let currentDOMAnswer: string | null = null;
+    try {
+      if (e?.currentTarget) {
+        const formData = new FormData(e.currentTarget as HTMLFormElement);
+        currentDOMAnswer = formData.get(`q-${currentIndex}`) as string;
+      }
+    } catch (err) {
+      console.error("DOM Capture error:", err);
+    }
+
+    // Sincronización robusta: Priorizamos lo que hay en el DOM para la pregunta actual
+    const finalAnswers = { ...answers, ...answersRef.current };
+    if (currentDOMAnswer) {
+      finalAnswers[currentIndex] = currentDOMAnswer;
+    }
+
+    console.log("📊 Final DOM-First Submission:", {
+      totalQuestions: form.questions.length,
+      answersCaptured: Object.keys(finalAnswers).length,
+      currentIndex,
+      source: currentDOMAnswer ? "DOM/FormData" : "State/Ref",
+      indices: Object.keys(finalAnswers)
+    });
+
     let correct = 0;
     const details: ResultDetail[] = [];
 
-    form.questions.forEach((q) => {
-      const chosen = answersRef.current[q.id] ?? null;
+    form.questions.forEach((q, index) => {
+      const chosen = finalAnswers[index] ?? null;
       const isCorrect = chosen === q.correctAnswer;
       if (isCorrect) correct++;
       details.push({
@@ -89,7 +116,7 @@ export default function DynamicMCQForm({
     } catch (error) {
       console.error("Error saving result", error);
     }
-  }, [form, api]);
+  }, [form, api, answers, currentIndex]);
 
   const handleNextOrSubmit = useCallback(() => {
     if (!form) return;
@@ -190,7 +217,14 @@ export default function DynamicMCQForm({
               <div className="space-y-3 mt-4">
                 {currentQuestion.options.map((opt) => (
                   <label key={opt} className="flex items-center p-3 border rounded-lg hover:bg-gray-100 transition-colors duration-300 cursor-pointer">
-                    <input type="radio" name={currentQuestion.id} value={opt} checked={answers[currentQuestion.id] === opt} onChange={() => handleChange(currentQuestion.id, opt)} className="mr-3 h-5 w-5 text-blue-600 focus:ring-blue-500 border-gray-300" />
+                    <input
+                      type="radio"
+                      name={"q-" + currentIndex}
+                      value={opt}
+                      checked={answers[currentIndex] === opt}
+                      onChange={() => handleChange(currentIndex, opt)}
+                      className="mr-3 h-5 w-5 text-blue-600 focus:ring-blue-500 border-gray-300"
+                    />
                     <span className="text-gray-800">{opt}</span>
                   </label>
                 ))}
@@ -199,9 +233,22 @@ export default function DynamicMCQForm({
 
             <div className="flex justify-end">
               {currentIndex < form.questions.length - 1 ? (
-                <button type="button" onClick={() => setCurrentIndex((prev) => prev + 1)} className="px-6 py-3 rounded-lg font-semibold bg-blue-600 text-white hover:bg-blue-700 transition-colors">Siguiente</button>
+                <button
+                  type="button"
+                  onClick={() => setCurrentIndex((prev) => prev + 1)}
+                  disabled={!answers[currentIndex]}
+                  className="px-6 py-3 rounded-lg font-semibold bg-blue-600 text-white hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Siguiente
+                </button>
               ) : (
-                <button type="submit" className="px-6 py-3 rounded-lg font-semibold bg-green-600 text-white hover:bg-green-700 transition-colors">Enviar Respuestas</button>
+                <button
+                  type="submit"
+                  disabled={!answers[currentIndex]}
+                  className="px-6 py-3 rounded-lg font-semibold bg-green-600 text-white hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Enviar Respuestas
+                </button>
               )}
             </div>
           </form>

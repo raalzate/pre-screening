@@ -57,12 +57,14 @@ export async function initDb() {
     console.error("Error inspecting table:", e);
   }
 
+  const coreColumns = "name, code, requirements, step, form_id, evaluation_result, questions, certification_result, challenge_result";
+
   if (needsMigration) {
     console.log("Migrating 'users' table to composite primary key...");
     await db.batch([
       "ALTER TABLE users RENAME TO users_old",
       `CREATE TABLE users (${usersTableSchema})`,
-      "INSERT INTO users SELECT * FROM users_old",
+      `INSERT INTO users (${coreColumns}) SELECT ${coreColumns} FROM users_old`,
       "DROP TABLE users_old"
     ], "write");
     console.log("Migration complete.");
@@ -91,13 +93,14 @@ export async function initDb() {
     await db.batch([
       "ALTER TABLE history_candidates RENAME TO history_old",
       `CREATE TABLE history_candidates (${historySchema})`,
-      "INSERT INTO history_candidates SELECT * FROM history_old",
+      `INSERT INTO history_candidates (${coreColumns}) SELECT ${coreColumns} FROM history_old`,
       "DROP TABLE history_old"
     ], "write");
     console.log("History migration complete.");
   } else {
     await db.execute(`CREATE TABLE IF NOT EXISTS history_candidates (${historySchema});`);
   }
+
 
   // Asegurar que las columnas existan en bases de datos ya creadas (Idempotent column add)
   const optionalColumns = [
@@ -121,4 +124,63 @@ export async function initDb() {
       }
     }
   }
+
+  // Form analyses table
+  await db.execute(`
+    CREATE TABLE IF NOT EXISTS form_analyses (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      form_id TEXT NOT NULL,
+      analysis_text TEXT NOT NULL,
+      score INTEGER NOT NULL,
+      total_possible INTEGER NOT NULL,
+      percentage INTEGER NOT NULL,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP
+    );
+  `);
 }
+
+// Helper functions for Form Analysis
+export async function saveFormAnalysis(data: {
+  formId: string;
+  analysisText: string;
+  score: number;
+  totalPossible: number;
+  percentage: number;
+}) {
+  return await db.execute({
+    sql: `
+      INSERT INTO form_analyses (form_id, analysis_text, score, total_possible, percentage)
+      VALUES (?, ?, ?, ?, ?)
+    `,
+    args: [data.formId, data.analysisText, data.score, data.totalPossible, data.percentage]
+  });
+}
+
+export async function getFormAnalysesByFormId(formId: string) {
+  const result = await db.execute({
+    sql: "SELECT * FROM form_analyses WHERE form_id = ? ORDER BY created_at DESC",
+    args: [formId]
+  });
+  return result.rows;
+}
+
+export async function getHistoryCandidates() {
+  const result = await db.execute("SELECT * FROM history_candidates ORDER BY moved_at DESC");
+  return result.rows;
+}
+
+export async function restoreCandidate(code: string) {
+  const columns = "name, email, code, requirements, step, form_id, evaluation_result, questions, certification_result, challenge_result, interview_feedback, interview_status, technical_level, interviewer_name";
+
+  return await db.batch([
+    {
+      sql: `INSERT INTO users (${columns}) SELECT ${columns} FROM history_candidates WHERE code = ?`,
+      args: [code]
+    },
+    {
+      sql: "DELETE FROM history_candidates WHERE code = ?",
+      args: [code]
+    }
+  ], "write");
+}
+

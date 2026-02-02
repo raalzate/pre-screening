@@ -36,7 +36,7 @@ const ALL_REQUIREMENTS = [
   "visa-guayaquil-ssr:springboot-fullstack",
 ] as const;
 
-type AdminView = "candidates" | "forms";
+type AdminView = "candidates" | "forms" | "history";
 type CandidateStatusFilter = "all" | "in-progress" | "rejected";
 type CandidateStepFilter = "all" | "pre-screening" | "technical" | "interview";
 
@@ -133,6 +133,33 @@ const useUserList = () => {
   return { users, loading };
 };
 
+const useHistoryList = () => {
+  const [users, setUsers] = useState<GroupedCandidate[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const refreshAction = useCallback(() => {
+    setLoading(true);
+    fetch("/api/admin/candidates/history")
+      .then((res) => res.json())
+      .then((data) => {
+        if (Array.isArray(data)) {
+          const grouped = groupCandidatesByCode(data);
+          setUsers(grouped);
+        } else {
+          setUsers([]);
+        }
+      })
+      .catch((err) => console.error(err))
+      .finally(() => setLoading(false));
+  }, []);
+
+  useEffect(() => {
+    refreshAction();
+  }, [refreshAction]);
+
+  return { users, loading, refreshHistory: refreshAction };
+};
+
 // --- 2. UI LIBRARY (ATOMIC COMPONENTS) ---
 
 const Icons = {
@@ -216,8 +243,6 @@ const Tabs: FC<{ tabs: { id: string; label: string; icon?: ReactNode }[]; active
   </div>
 );
 
-
-
 // --- 4. SUB-COMPONENTS ---
 
 const InfoRow: FC<{ label: string; value: ReactNode; copyable?: boolean }> = ({ label, value, copyable }) => {
@@ -282,6 +307,7 @@ export default function App() {
 
   // Hooks
   const { users } = useUserList();
+  const { users: historyUsers } = useHistoryList();
   const { data: userData, loading: userLoading, error: userError, fetchCandidate } = useCandidate();
 
   // State
@@ -295,6 +321,9 @@ export default function App() {
   const [selectedFormId, setSelectedFormId] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<CandidateStatusFilter>("all");
   const [stepFilter, setStepFilter] = useState<CandidateStepFilter>("technical");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [restoring, setRestoring] = useState(false);
 
   // Auth Guard
   useEffect(() => {
@@ -302,9 +331,14 @@ export default function App() {
   }, [status, router]);
 
   // Derived State
+  const currentSourceList = view === "history" ? historyUsers : users;
+
   const filteredUsers = useMemo(() => {
     const q = searchQuery.toLowerCase();
-    return users.filter(u => {
+    const start = startDate ? new Date(startDate) : null;
+    const end = endDate ? new Date(endDate) : null;
+
+    return currentSourceList.filter((u: GroupedCandidate) => {
       const matchesSearch = u.name.toLowerCase().includes(q) || u.code.toLowerCase().includes(q);
       const isRejected = isCandidateRejected(u);
 
@@ -314,17 +348,30 @@ export default function App() {
 
       if (!matchesStatus || !matchesSearch) return false;
 
-      // Step filtering (only relevant for In-Process or All)
-      if (statusFilter !== "rejected" && stepFilter !== "all") {
-        return u.profiles.some(p => p.step === stepFilter);
+      // Date range filtering (only for history)
+      if (view === "history" && (start || end)) {
+        // We check if at least one profile matches the date range
+        return u.profiles.some((p: any) => {
+          if (!p.moved_at) return false;
+          const movedAt = new Date(p.moved_at);
+          if (start && movedAt < start) return false;
+          if (end && movedAt > end) return false;
+          return true;
+        });
+      }
+
+      // Step filtering (only relevant for In-Process or All) - and only for active candidates
+      if (view !== "history" && statusFilter !== "rejected" && stepFilter !== "all") {
+        return u.profiles.some((p: any) => p.step === stepFilter);
       }
 
       return true;
     });
-  }, [users, searchQuery, statusFilter, stepFilter]);
+  }, [currentSourceList, searchQuery, statusFilter, stepFilter, view, startDate, endDate]);
 
   const handleSearch = () => {
-    const group = users.find(u => u.code === selectedCode);
+    const source = view === "history" ? historyUsers : users;
+    const group = source.find((u: GroupedCandidate) => u.code === selectedCode);
     if (group) {
       setSelectedGroupedCandidate(group);
       setSelectedProfileIndex(0);
@@ -336,12 +383,37 @@ export default function App() {
     }
   };
 
+
   const handleProfileSwitch = (index: number) => {
     if (selectedGroupedCandidate && selectedGroupedCandidate.profiles[index]) {
       setSelectedProfileIndex(index);
       const profile = selectedGroupedCandidate.profiles[index];
       fetchCandidate(profile.code, profile.requirements);
       setActiveTab("profile"); // Reset to profile tab when switching
+    }
+  };
+
+  const handleRestore = async () => {
+    if (!userData?.code) return;
+    if (!confirm("¿Estás seguro de que deseas restaurar este candidato al proceso activo?")) return;
+
+    setRestoring(true);
+    try {
+      const res = await fetch("/api/admin/candidates/restore", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: userData.code }),
+      });
+
+      if (!res.ok) throw new Error("Error al restaurar");
+
+      // Reload lists
+      window.location.reload(); // Simplest way to ensure everything is in sync
+    } catch (err) {
+      console.error(err);
+      alert("Error al restaurar el candidato");
+    } finally {
+      setRestoring(false);
     }
   };
 
@@ -357,14 +429,16 @@ export default function App() {
       },
     };
 
-    return users.reduce((acc, u) => {
+    const source = view === "history" ? historyUsers : users;
+
+    return source.reduce((acc: any, u: GroupedCandidate) => {
       const isRejected = isCandidateRejected(u);
       if (isRejected) {
         acc.rejected++;
       } else {
         acc.inProgress++;
         // Count unique steps per active candidate
-        const steps = new Set(u.profiles.map((p) => p.step));
+        const steps = new Set(u.profiles.map((p: any) => p.step));
         if (steps.has("pre-screening")) acc.steps["pre-screening"]++;
         if (steps.has("technical")) acc.steps.technical++;
         if (steps.has("interview")) acc.steps.interview++;
@@ -372,7 +446,8 @@ export default function App() {
       acc.all++;
       return acc;
     }, initial);
-  }, [users]);
+  }, [users, historyUsers, view]);
+
 
   if (status === "loading") return <div className="min-h-screen bg-gray-50 flex items-center justify-center"><Spinner size="md" /></div>;
   console.log(userData);
@@ -389,7 +464,13 @@ export default function App() {
             Candidatos
           </button>
           <button
-            onClick={() => setView("forms")}
+            onClick={() => { setView("history"); setSelectedFormId(null); }}
+            className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${view === "history" ? "bg-blue-600 text-white shadow-md" : "text-gray-500 hover:text-blue-600"}`}
+          >
+            Historial
+          </button>
+          <button
+            onClick={() => { setView("forms"); setSelectedFormId(null); }}
             className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${view === "forms" ? "bg-blue-600 text-white shadow-md" : "text-gray-500 hover:text-blue-600"}`}
           >
             Formularios
@@ -452,49 +533,83 @@ export default function App() {
         )}
 
         {/* --- TOP BAR: SEARCH & ACTIONS --- */}
-        {view === "candidates" && (
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-4 mb-8 flex flex-col md:flex-row gap-4 items-center justify-between">
-            <div className="flex-1 w-full flex flex-col md:flex-row gap-3">
-              <div className="relative flex-1">
-                <Icons.Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
-                <input
-                  className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition outline-none"
-                  placeholder="Filtrar candidatos..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
+        {(view === "candidates" || view === "history") && (
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-4 mb-8 flex flex-col gap-4">
+            <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
+              <div className="flex-1 w-full flex flex-col md:flex-row gap-3">
+                <div className="relative flex-1">
+                  <Icons.Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+                  <input
+                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition outline-none"
+                    placeholder="Filtrar candidatos..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+                </div>
+                <select
+                  value={selectedCode}
+                  onChange={(e) => setSelectedCode(e.target.value)}
+                  className="flex-[2] py-2.5 px-4 rounded-xl border border-gray-200 bg-white focus:ring-2 focus:ring-blue-500 outline-none"
+                >
+                  <option value="">-- Seleccionar Candidato --</option>
+                  {filteredUsers.map((group, i) => (
+                    <option key={group.code + i} value={group.code} style={{ textTransform: 'uppercase' }}>
+                      {group.name.toUpperCase()} ({group.profiles.length} PERFILES)
+                    </option>
+                  ))}
+                </select>
+                <button
+                  onClick={handleSearch}
+                  disabled={userLoading || !selectedCode}
+                  className="bg-blue-600 text-white px-6 py-2.5 rounded-xl font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition shadow-md hover:shadow-lg flex items-center justify-center gap-2"
+                >
+                  {userLoading ? <Spinner /> : "Consultar"}
+                </button>
               </div>
-              <select
-                value={selectedCode}
-                onChange={(e) => setSelectedCode(e.target.value)}
-                className="flex-[2] py-2.5 px-4 rounded-xl border border-gray-200 bg-white focus:ring-2 focus:ring-blue-500 outline-none"
-              >
-                <option value="">-- Seleccionar Candidato --</option>
-                {filteredUsers.map((group, i) => (
-                  <option key={group.code + i} value={group.code} style={{ textTransform: 'uppercase' }}>
-                    {group.name.toUpperCase()} ({group.profiles.length} PERFILES)
-                  </option>
-                ))}
-              </select>
-              <button
-                onClick={handleSearch}
-                disabled={userLoading || !selectedCode}
-                className="bg-blue-600 text-white px-6 py-2.5 rounded-xl font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition shadow-md hover:shadow-lg flex items-center justify-center gap-2"
-              >
-                {userLoading ? <Spinner /> : "Consultar"}
-              </button>
+              {view === "candidates" && (
+                <button
+                  onClick={() => setIsModalOpen(true)}
+                  className="bg-teal-600 text-white px-5 py-2.5 rounded-xl font-bold hover:bg-teal-700 transition flex items-center gap-2 shadow-md hover:shadow-lg whitespace-nowrap w-full md:w-auto justify-center"
+                >
+                  <Icons.Plus className="w-5 h-5" /> Nuevo Candidato
+                </button>
+              )}
             </div>
-            <button
-              onClick={() => setIsModalOpen(true)}
-              className="bg-teal-600 text-white px-5 py-2.5 rounded-xl font-bold hover:bg-teal-700 transition flex items-center gap-2 shadow-md hover:shadow-lg whitespace-nowrap w-full md:w-auto justify-center"
-            >
-              <Icons.Plus className="w-5 h-5" /> Nuevo Candidato
-            </button>
+
+            {/* Advanced Filters (Date range for History) */}
+            {view === "history" && (
+              <div className="flex flex-col md:flex-row gap-4 items-end bg-gray-50 p-4 rounded-xl border border-gray-100">
+                <div className="flex-1 space-y-1 w-full">
+                  <label className="text-xs font-bold text-gray-500 uppercase px-1">Movido desde:</label>
+                  <input
+                    type="date"
+                    value={startDate}
+                    onChange={(e) => setStartDate(e.target.value)}
+                    className="w-full py-2 px-3 rounded-lg border border-gray-200 bg-white focus:ring-2 focus:ring-blue-500 outline-none text-sm"
+                  />
+                </div>
+                <div className="flex-1 space-y-1 w-full">
+                  <label className="text-xs font-bold text-gray-500 uppercase px-1">Hasta:</label>
+                  <input
+                    type="date"
+                    value={endDate}
+                    onChange={(e) => setEndDate(e.target.value)}
+                    className="w-full py-2 px-3 rounded-lg border border-gray-200 bg-white focus:ring-2 focus:ring-blue-500 outline-none text-sm"
+                  />
+                </div>
+                <button
+                  onClick={() => { setStartDate(""); setEndDate(""); }}
+                  className="text-xs font-bold text-blue-600 hover:text-blue-800 transition py-2 px-2"
+                >
+                  Limpiar Fechas
+                </button>
+              </div>
+            )}
           </div>
         )}
 
         {/* --- MAIN CONTENT --- */}
-        {view === "candidates" && (
+        {(view === "candidates" || view === "history") && (
           <>
             {/* --- ERROR STATE --- */}
             {userError && (
@@ -543,6 +658,17 @@ export default function App() {
                 )}
                 <div className="mb-6 bg-white rounded-xl border border-gray-200">
                   <CandidateHeader user={userData} />
+                  {view === "history" && (
+                    <div className="px-6 pb-6 pt-0 flex justify-end">
+                      <button
+                        onClick={handleRestore}
+                        disabled={restoring}
+                        className="bg-green-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-green-700 transition flex items-center gap-2 shadow-md disabled:bg-gray-400"
+                      >
+                        {restoring ? <Spinner /> : <><Icons.Check className="w-4 h-4" /> Restaurar Proceso</>}
+                      </button>
+                    </div>
+                  )}
                 </div>
                 <Tabs
                   activeTab={activeTab}

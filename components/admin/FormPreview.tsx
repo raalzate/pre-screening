@@ -103,24 +103,7 @@ const FormPreview: FC<FormPreviewProps> = ({ formId, onBack }) => {
     const handleAnalyze = async () => {
         if (!resultData) return;
 
-        // 1. Check Cache (TTL 24h)
-        const cacheKey = `ai_analysis_${formId}_${resultData.score}_${resultData.improvements.length}`;
-        const cached = localStorage.getItem(cacheKey);
-        if (cached) {
-            try {
-                const { data, timestamp } = JSON.parse(cached);
-                const oneDay = 24 * 60 * 60 * 1000;
-                if (Date.now() - timestamp < oneDay) {
-                    setAnalysis(data);
-                    setShowAnalysisModal(true);
-                    return;
-                }
-            } catch (e) {
-                console.warn("Error parsing cache", e);
-            }
-        }
-
-        // 2. API Call
+        // API Call (Persistence is now handled in the backend)
         try {
             setIsAnalyzing(true);
             const res = await fetch('/api/admin/forms/analysis', {
@@ -138,10 +121,6 @@ const FormPreview: FC<FormPreviewProps> = ({ formId, onBack }) => {
             const { analysis: result } = await res.json();
 
             setAnalysis(result);
-            localStorage.setItem(cacheKey, JSON.stringify({
-                data: result,
-                timestamp: Date.now()
-            }));
             setShowAnalysisModal(true);
         } catch (err: any) {
             alert(err.message || "No se pudo generar el análisis. Intente nuevamente.");
@@ -149,6 +128,7 @@ const FormPreview: FC<FormPreviewProps> = ({ formId, onBack }) => {
             setIsAnalyzing(false);
         }
     };
+
 
     useEffect(() => {
         // Simulación de fetch
@@ -182,7 +162,7 @@ const FormPreview: FC<FormPreviewProps> = ({ formId, onBack }) => {
                 totalScore += answer;
                 maxPossibleScore += q.scaleMax;
 
-                if (answer < q.scaleMax * 0.65) {
+                if (answer < q.scaleMax) {
                     improvements.push({ id: q.id, question: q.question, score: answer, example: q.example || "" });
                 }
             });

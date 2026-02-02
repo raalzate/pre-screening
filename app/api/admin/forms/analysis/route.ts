@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { formAnalysisGenerator } from '@/lib/ia/formAnalysisGenerator';
+import { initDb, saveFormAnalysis } from '@/lib/db';
 
 export async function POST(req: Request) {
     try {
@@ -18,11 +19,22 @@ export async function POST(req: Request) {
             return NextResponse.json({ message: 'Missing required fields' }, { status: 400 });
         }
 
+        await initDb();
+
         const { analysis } = await formAnalysisGenerator.generate({
             formId,
             title,
             answers,
             resultData,
+        });
+
+        // Persist analysis in DB
+        await saveFormAnalysis({
+            formId,
+            analysisText: analysis,
+            score: resultData.score,
+            totalPossible: resultData.totalPossible,
+            percentage: resultData.percentage
         });
 
         return NextResponse.json({ analysis });
@@ -31,3 +43,4 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: 'Failed to generate analysis' }, { status: 500 });
     }
 }
+

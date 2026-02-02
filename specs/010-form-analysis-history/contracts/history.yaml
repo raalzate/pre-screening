@@ -1,0 +1,61 @@
+openapi: 3.0.0
+info:
+  title: Form Analysis History API
+  version: 1.0.0
+paths:
+  /api/admin/forms/history/{id}:
+    get:
+      summary: Get history of AI analyses for a form
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: A list of analyses
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AnalysisRecord'
+        '401':
+          description: Unauthorized
+  /api/admin/forms/analysis:
+    post:
+      summary: Generate and save an AI analysis
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                formId: { type: string }
+                title: { type: string }
+                answers: { type: object }
+                resultData: { type: object }
+      responses:
+        '200':
+          description: Analysis generated and saved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  analysis: { type: string }
+
+components:
+  schemas:
+    AnalysisRecord:
+      type: object
+      properties:
+        id: { type: integer }
+        form_id: { type: string }
+        analysis_text: { type: string }
+        score: { type: integer }
+        total_possible: { type: integer }
+        percentage: { type: integer }
+        created_at: { type: string, format: date-time }

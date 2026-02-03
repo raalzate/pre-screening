@@ -91,7 +91,7 @@ export const authOptions: NextAuthOptions = {
       // ya que la lógica de validación ya ocurrió en 'authorize'
       return true;
     },
-    async jwt({ token, user }) {
+    async jwt({ token, user, account }) {
       // Al iniciar sesión, solo guardamos los datos básicos en el token (JWT)
       // para mantener la cookie pequeña (evita error 431).
       if (user) {
@@ -101,10 +101,22 @@ export const authOptions: NextAuthOptions = {
         token.name = user.name;
         // Persist the specific requirements chosen
         token.requirements = (user as any).requirements;
+
+        // Role assignment
+        if (account?.provider === "google") {
+          token.role = "admin";
+        } else {
+          token.role = "candidate";
+        }
       }
       return token;
     },
     async session({ session, token }) {
+      // Devolver el rol al objeto session
+      if (session.user) {
+        (session.user as any).role = token.role;
+      }
+
       // Cuando se solicita la sesión, recuperamos los datos completos de la DB
       // usando el código guardado en el JWT.
       if (token.code) {
@@ -129,7 +141,8 @@ export const authOptions: NextAuthOptions = {
           if (user) {
             session.user = {
               ...session.user,
-              ...user
+              ...user,
+              role: token.role as string
             } as any;
           }
         } catch (error) {

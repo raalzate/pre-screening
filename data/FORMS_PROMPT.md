@@ -1,24 +1,24 @@
 
-Actúa como un experto en [ReactJS Frontend].
+Actúa como un experto en [Lider tecnico].
 
 Tienes un JSON con niveles con descriptores que se debe evaluar en un pre-screening, usa solo los que te entrego aqui. 
 
 {
   "requirements": {
-        "api-rest-standards",
-        "responsive-layouts",
-        "spa-frameworks",
-        "sql-optimization",
-        "authentication-authorization",
-        "orm-mapping-techniques",
-        "microservices-patterns",
-        "messaging-queues-brokers",
-        "javascript-typescript-core",
-        "legacy-integration",
-        "clean-code-solid",
-        "api-governance",
-        "ci-cd-automation",
-        "technical-documentation"
+      "clean-code-solid",
+    "backend-framework-mastery",
+    "spa-frameworks",
+    "authentication-authorization",
+    "api-rest-standards",
+    "orm-mapping-techniques",
+    "database-transactions",
+    "sql-optimization",
+    "mentoring-coaching",
+    "unit-testing-mocking",
+    "secrets-management",
+    "microservices-patterns",
+    "javascript-typescript-core",
+    "agile-frameworks"
   }
 }
 

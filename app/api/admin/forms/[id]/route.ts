@@ -11,7 +11,7 @@ export async function GET(
     try {
         const session = await getServerSession(authOptions);
 
-        if (!session || !session.user) {
+        if (!session || !session.user || (session.user as any).role !== 'admin') {
             return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
         }
 

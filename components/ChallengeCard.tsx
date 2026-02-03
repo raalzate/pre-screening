@@ -124,10 +124,17 @@ export default function ChallengeContainer({
 
   const cleanDiagram = useMemo(() => {
     if (!challenge?.mermaid) return null;
-    return challenge.mermaid.replace(/```mermaid|```/g, "").trim();
+
+    return challenge.mermaid
+      .replace(/```mermaid|```/g, "") // Limpiar bloques
+      .replaceAll("&quot;", '"')      // Restaurar comillas
+      // 1. Eliminamos 'activate' y 'deactivate' seguidos de cualquier palabra
+      // Usamos una expresión regular para borrar la línea completa y no dejar basura como "de"
+      .replace(/^\s*(activate|deactivate)\s+.+$/gm, "")
+      // 2. En lugar de borrar todos los (), mejor limpiamos espacios raros
+      // Si realmente quieres quitar paréntesis de los mensajes, hazlo solo en el texto del mensaje
+      .trim();
   }, [challenge?.mermaid]);
-
-
 
 
   if (loading) {
@@ -179,7 +186,7 @@ export default function ChallengeContainer({
       </section>
 
       {cleanDiagram && (
-        <div className="p-4 border rounded-lg bg-gray-50 shadow-inner">
+        <div className="p-4 border rounded-lg bg-gray-50 shadow-inner" data-diagram={cleanDiagram}>
           <Mermaid key={cleanDiagram} chart={cleanDiagram} />
         </div>
       )}

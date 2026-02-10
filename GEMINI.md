@@ -32,7 +32,6 @@ TypeScript / Next.js (App Router): Follow standard conventions
 ## Recent Changes
 - 010-form-analysis-history: Added TypeScript / Next.js 15 (App Router) + `@libsql/client`, `genkit`, `react-markdown`
 - 008-admin-process-step-filters: Added TypeScript / Next.js 15 (App Router) + React 19, Recharts
-- 007-admin-candidate-filters: Added TypeScript / Next.js 15 (App Router) + React 19, Recharts, Zod
 
 
 <!-- MANUAL ADDITIONS START -->

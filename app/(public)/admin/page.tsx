@@ -84,7 +84,7 @@ const useCandidate = () => {
     setError(null);
     setData(null);
     try {
-      let url = `/api/user?code=${encodeURIComponent(code)}`;
+      let url = `/api/user?code=${encodeURIComponent(code.trim())}`;
       if (requirements) {
         url += `&requirements=${encodeURIComponent(requirements)}`;
       }
@@ -334,7 +334,7 @@ export default function App() {
   const currentSourceList = view === "history" ? historyUsers : users;
 
   const filteredUsers = useMemo(() => {
-    const q = searchQuery.toLowerCase();
+    const q = searchQuery.toLowerCase().trim();
     const start = startDate ? new Date(startDate) : null;
     const end = endDate ? new Date(endDate) : null;
 
@@ -954,7 +954,7 @@ const InterviewWizard: FC<{
     onSave(finalHistory);
   };
 
-  const handleDecision = (correct: boolean) => {
+  const handleDecision = (result: "correct" | "incorrect" | "intermediate") => {
     if (!currentSection || !currentQuestion) return;
 
     // 1. Record Result
@@ -963,7 +963,7 @@ const InterviewWizard: FC<{
       questionId: currentQuestion.id,
       question: currentQuestion.text,
       guide: currentQuestion.guide,
-      result: correct ? "Correcto" : "Incorrecto",
+      result: result === "correct" ? "Correcto" : result === "intermediate" ? "Intermedio" : "Incorrecto",
       timestamp: new Date().toISOString(),
     };
 
@@ -971,8 +971,8 @@ const InterviewWizard: FC<{
     setHistory(newHistory);
 
     // 2. Logic Flow
-    if (correct) {
-      // If Correct -> Next Question in SAME Section
+    if (result === "correct" || result === "intermediate") {
+      // If Correct or Intermediate -> Next Question in SAME Section
       const nextQIndex = currentQuestionIndex + 1;
       if (nextQIndex < currentSection.questions.length) {
         setCurrentQuestionIndex(nextQIndex);
@@ -1048,7 +1048,7 @@ const InterviewWizard: FC<{
         {/* Footer / Controls */}
         <div className="p-6 border-t bg-gray-50 flex gap-4">
           <button
-            onClick={() => handleDecision(false)}
+            onClick={() => handleDecision("incorrect")}
             className="flex-1 py-4 bg-white border-2 border-red-100 hover:border-red-400 hover:bg-red-50 text-red-700 font-bold rounded-xl transition flex flex-col items-center gap-1 group shadow-sm hover:shadow-md"
           >
             <span className="text-2xl mb-1">❌</span>
@@ -1057,7 +1057,16 @@ const InterviewWizard: FC<{
           </button>
 
           <button
-            onClick={() => handleDecision(true)}
+            onClick={() => handleDecision("intermediate")}
+            className="flex-1 py-4 bg-white border-2 border-yellow-100 hover:border-yellow-400 hover:bg-yellow-50 text-yellow-700 font-bold rounded-xl transition flex flex-col items-center gap-1 group shadow-sm hover:shadow-md"
+          >
+            <span className="text-2xl mb-1">⚠️</span>
+            <span className="text-sm">Intermedio / Parcial</span>
+            <span className="text-xs text-yellow-500 font-normal group-hover:text-yellow-600">(Siguiente pregunta)</span>
+          </button>
+
+          <button
+            onClick={() => handleDecision("correct")}
             className="flex-1 py-4 bg-white border-2 border-green-100 hover:border-green-400 hover:bg-green-50 text-green-700 font-bold rounded-xl transition flex flex-col items-center gap-1 group shadow-sm hover:shadow-md"
           >
             <span className="text-2xl mb-1">✅</span>
@@ -1321,6 +1330,22 @@ const InterviewFeedbackCard: FC<{
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
+  // Requirements Handling
+  const availableRequirements = useMemo(() => {
+    return (userData.requirements || "").split(',').map(r => r.trim()).filter(Boolean);
+  }, [userData.requirements]);
+
+  const [selectedRequirement, setSelectedRequirement] = useState<string>(availableRequirements[0] || "");
+
+  // Update selected requirement when userData changes
+  useEffect(() => {
+    const reqs = (userData.requirements || "").split(',').map(r => r.trim()).filter(Boolean);
+    if (reqs.length > 0) {
+      setSelectedRequirement(reqs[0]);
+    }
+  }, [userData]);
+
+
   // Interview Plan State
   const [interviewPlan, setInterviewPlan] = useState<InterviewPlan | null>(null);
   const [generatingPlan, setGeneratingPlan] = useState(false);
@@ -1338,6 +1363,10 @@ const InterviewFeedbackCard: FC<{
     setMessage(null);
 
     try {
+      if (!selectedRequirement) {
+        throw new Error("Debes seleccionar un perfil/requerimiento para calificar.");
+      }
+
       const response = await fetch("/api/user/feedback", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -1346,12 +1375,16 @@ const InterviewFeedbackCard: FC<{
           feedback,
           status,
           technicalLevel,
+          requirement: selectedRequirement,
         }),
       });
 
-      if (!response.ok) throw new Error("Error al guardar el feedback");
+      if (!response.ok) {
+        const errData = await response.json();
+        throw new Error(errData.message || "Error al guardar el feedback");
+      }
 
-      setMessage({ type: "success", text: "Feedback guardado correctamente" });
+      setMessage({ type: "success", text: "Feedback guardado y perfil archivado correctamente" });
       onUpdate();
     } catch (err: any) {
       setMessage({ type: "error", text: err.message });
@@ -1438,6 +1471,33 @@ const InterviewFeedbackCard: FC<{
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
+
+          {/* Requirement Selector */}
+          {availableRequirements.length > 1 && (
+            <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg mb-4">
+              <label className="block text-sm font-bold text-yellow-800 mb-1">
+                ⚠️ Este candidato tiene múltiples perfiles activos.
+              </label>
+              <p className="text-xs text-yellow-700 mb-2">Selecciona a cuál perfil corresponde este feedback. El perfil seleccionado se moverá al historial, los otros seguirán activos.</p>
+              <select
+                value={selectedRequirement}
+                onChange={(e) => setSelectedRequirement(e.target.value)}
+                className="w-full px-3 py-2 border border-yellow-300 rounded focus:ring-yellow-500 focus:border-yellow-500 text-sm bg-white"
+                required
+              >
+                {availableRequirements.map(req => (
+                  <option key={req} value={req}>{req}</option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          {/* If single requirement, show it as info but hidden input */}
+          {availableRequirements.length === 1 && (
+            <input type="hidden" value={availableRequirements[0]} />
+          )}
+
+
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-1">Feedback de la Entrevista</label>
             <textarea
@@ -1493,7 +1553,7 @@ const InterviewFeedbackCard: FC<{
               disabled={loading}
               className="bg-indigo-600 text-white font-bold px-6 py-2 rounded-lg hover:bg-indigo-700 transition disabled:bg-indigo-300 flex items-center shadow-md ml-auto"
             >
-              {loading ? <Spinner /> : "Guardar Feedback"}
+              {loading ? <Spinner /> : "Guardar y Archivar"}
             </button>
           </div>
         </form>

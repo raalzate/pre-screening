@@ -51,8 +51,8 @@ curl "http://localhost:3000/api/user?code=12345"
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url, "http://n");
-    const code = searchParams.get("code");
-    const requirements = searchParams.get("requirements");
+    const code = searchParams.get("code")?.trim();
+    const requirements = searchParams.get("requirements")?.trim();
 
     if (code) {
       // Buscar usuario por code y optional requirements
@@ -67,7 +67,26 @@ export async function GET(request: Request) {
       const result = await db.execute(query, args);
 
       if (result.rows.length === 0) {
-        return NextResponse.json({ message: "Usuario no encontrado" }, { status: 404 });
+        // Fallback: Buscar en history_candidates
+        let historyQuery = "SELECT * FROM history_candidates WHERE code = ?";
+        const historyArgs = [code];
+
+        if (requirements) {
+          historyQuery += " AND requirements = ?";
+          historyArgs.push(requirements);
+        }
+
+        // Ordenar por fecha de movimiento descendente para obtener el más reciente si hay varios
+        historyQuery += " ORDER BY moved_at DESC LIMIT 1";
+
+        const historyResult = await db.execute(historyQuery, historyArgs);
+
+        if (historyResult.rows.length === 0) {
+          return NextResponse.json({ message: "Usuario no encontrado" }, { status: 404 });
+        }
+
+        const user = { ...historyResult.rows[0] };
+        return NextResponse.json(user);
       }
 
       // Convertir a objeto plano

@@ -65,7 +65,7 @@ class InterviewTreeGenerator extends BaseGenerator<typeof InterviewPlanInputSche
       - Si responde BIEN -> Pasa a la siguiente pregunta de la MISMA sección.
       - Si responde MAL -> Salta inmediatamente a la SIGUIENTE SECCIÓN (para no frustrar y probar otro tema).
       
-      Asegúrate de que las preguntas cubran todo el espectro del reto descrito.
+      Asegúrate de que las preguntas cubran todo el espectro del reto descrito (que las preguntas sea concretas y no tan largas, máximo 25 palabras).
     `;
         };
     }

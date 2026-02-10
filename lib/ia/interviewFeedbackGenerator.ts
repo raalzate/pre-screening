@@ -38,23 +38,19 @@ class InterviewFeedbackGenerator extends BaseGenerator<typeof FeedbackInputSchem
         return (input: FeedbackInput) => {
             const { candidateName, history } = input;
             return `
-      Actúa como un reclutador técnico experto y senior.
-      
-      Tienes el historial de una entrevista técnica realizada a un candidato${candidateName ? ` llamado ${candidateName}` : ""}.
-      La entrevista se estructuró en secciones temáticas.
-      
-      Aquí está el historial de preguntas y respuestas (donde "Correcto" significa que respondió satisfactoriamente y "Incorrecto" que falló o no supo):
-      
-      ${JSON.stringify(history, null, 2)}
-      
-      Genera un feedback detallado y profesional para el candidato (y para el reclutador).
-      El feedback debe incluir:
-      1. **Resumen General:** Una visión rápida de su desempeño.
-      2. **Fortalezas:** Áreas donde demostró conocimiento (preguntas correctas).
-      3. **Áreas de Mejora:** Temas donde falló (preguntas incorrectas o saltadas).
-      4. **Recomendación Final:** ¿Parece un perfil sólido, junior, mid o senior basado en esto? (Estimación).
-      
-      Usa formato Markdown para que sea legible. Sé constructivo pero directo sobre las brechas técnicas.
+      Actúa como un Reclutador Técnico Senior. Analiza el siguiente historial de entrevista y genera un feedback ejecutivo ultra-conciso.
+
+Candidato: ${candidateName || "N/A"} 
+Contexto: ${JSON.stringify(history)}
+
+Instrucciones de formato:
+
+Resumen: Una sola frase sobre el desempeño global (resumen detallado máximo 100 palabras).
+Fortalezas: Máximo 3-6 puntos clave (solo keywords/temas).
+Brechas: Máximo 3-6 puntos críticos a mejorar (solo keywords/temas).
+Nivel Estimado: Junior, Semi Senior, o Senior en una palabra y agrega el porque.
+
+Restricción: Sé directo, constructivo y evita introducciones innecesarias.
     `;
         };
     }

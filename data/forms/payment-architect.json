@@ -1,0 +1,134 @@
+{
+    "id": "payment-architect",
+    "title": "Evaluación Pre-Screening: Arquitecto/a de Soluciones en Medios de Pago",
+    "categories": [
+        {
+            "id": "arquitectura-software",
+            "title": "Arquitectura de Software",
+            "questions": [
+                {
+                    "id": "architectural-patterns",
+                    "question": "¿Qué tanta experiencia tienes diseñando y defendiendo ante directores (C-Level) arquitecturas limpias y estructuradas (ej. Hexagonal, Clean Architecture) aplicadas a ecosistemas financieros en la nube?",
+                    "type": "scale",
+                    "scaleMax": 5,
+                    "example": "Presentar y justificar el uso de Arquitectura Hexagonal en Azure para aislar el core transaccional de las integraciones con redes adquirentes y emisoras."
+                },
+                {
+                    "id": "distributed-transactions",
+                    "question": "¿Qué nivel de dominio posees coordinando transacciones distribuidas y estrategias de compensación en arquitecturas de pagos complejas?",
+                    "type": "scale",
+                    "scaleMax": 5,
+                    "example": "Orquestación del patrón Saga para manejar la autorización, retención y posible reverso de una tarjeta a través de múltiples microservicios financieros."
+                },
+                {
+                    "id": "event-driven-architecture",
+                    "question": "¿Cuál es tu nivel de experiencia diseñando arquitecturas orientadas a eventos (EDA) para manejar el ciclo de vida asíncrono de un pago?",
+                    "type": "scale",
+                    "scaleMax": 5,
+                    "example": "Uso de brokers de mensajería (ej. Kafka, Azure Event Hubs) para publicar eventos de 'Transacción Aprobada' que disparan procesos paralelos de notificaciones, evaluación de fraude y conciliación."
+                },
+                {
+                    "id": "scalability-design",
+                    "question": "¿Qué tanta experiencia tienes diseñando estrategias de escalabilidad para soportar picos transaccionales críticos (ej. Black Friday) en entornos Cloud como Azure?",
+                    "type": "scale",
+                    "scaleMax": 5,
+                    "example": "Diseño de políticas de auto-escalado horizontal dinámico basadas en métricas de negocio (Transactions Per Second) manteniendo latencias operativas estrictas bajo alta carga."
+                },
+                {
+                    "id": "domain-driven-design",
+                    "question": "¿Cómo calificarías tu experiencia aplicando Domain-Driven Design (DDD) para modelar el complejo dominio de la adquirencia y emisión de tarjetas?",
+                    "type": "scale",
+                    "scaleMax": 5,
+                    "example": "Definición de Bounded Contexts claros entre 'Autorización', 'Compensación' y 'Liquidación', identificando correctamente Entidades y Value Objects (ej. CardToken, Money)."
+                }
+            ]
+        },
+        {
+            "id": "desarrollo-backend-arquitectura",
+            "title": "Desarrollo Backend y Arquitectura",
+            "questions": [
+                {
+                    "id": "integration-patterns",
+                    "question": "¿Qué nivel de dominio tienes implementando patrones de integración empresarial (EIP) enfocados en protocolos de mensajería financiera como ISO 8583 e ISO 20022?",
+                    "type": "scale",
+                    "scaleMax": 5,
+                    "example": "Uso del patrón Message Translator o Content-Based Router para recibir tramas ISO 8583 nativas, convertirlas a JSON y enrutarlas al sistema de autorización correspondiente."
+                },
+                {
+                    "id": "resilience-fault-tolerance",
+                    "question": "¿Cómo evalúas tu experiencia aplicando patrones de tolerancia a fallos en pasarelas de pago para garantizar la continuidad del negocio ante caídas de terceros?",
+                    "type": "scale",
+                    "scaleMax": 5,
+                    "example": "Implementación de patrones Circuit Breaker y Fallback en la comunicación con un autorizador bancario externo para evitar fallos en cascada en el Gateway principal."
+                },
+                {
+                    "id": "microservices-patterns",
+                    "question": "¿Qué tanta experiencia tienes diseñando ecosistemas de microservicios con un fuerte desacoplamiento lógico y físico para procesos financieros End-to-End?",
+                    "type": "scale",
+                    "scaleMax": 5,
+                    "example": "Separación de los servicios de Adquirencia (conexión con comercios) de los servicios de Emisión (manejo de saldo), escalando independientemente el motor de autorización de transacciones."
+                }
+            ]
+        },
+        {
+            "id": "seguridad-identidad",
+            "title": "Seguridad e Identidad",
+            "questions": [
+                {
+                    "id": "encryption-standards",
+                    "question": "¿Qué tanta experiencia práctica tienes con estándares de cifrado estrictos, integración con Cajas HSM y gestión de llaves criptográficas en medios de pago?",
+                    "type": "scale",
+                    "scaleMax": 5,
+                    "example": "Rotación de llaves maestras, generación de criptogramas (ARQC/ARPC), y cifrado de PANs en reposo/tránsito utilizando módulos HSM físicos o en la nube cumpliendo con normativas PCI-DSS."
+                },
+                {
+                    "id": "authentication-authorization",
+                    "question": "¿Cómo calificarías tu nivel implementando flujos de autenticación y control de acceso robustos para APIs que manejan información financiera sensible?",
+                    "type": "scale",
+                    "scaleMax": 5,
+                    "example": "Implementación de arquitecturas de seguridad Zero Trust empleando Mutual TLS (mTLS) y OAuth 2.0 para la comunicación segura B2B entre agregadores de pago y bancos."
+                }
+            ]
+        },
+        {
+            "id": "ingenieria-datos-persistencia",
+            "title": "Ingeniería de Datos y Persistencia",
+            "questions": [
+                {
+                    "id": "database-transactions",
+                    "question": "¿Qué tanta experiencia tienes gestionando transacciones ACID, niveles de aislamiento estricto y bloqueos en bases de datos para asegurar consistencia absoluta de fondos?",
+                    "type": "scale",
+                    "scaleMax": 5,
+                    "example": "Diseño de modelos relacionales que emplean bloqueos pesimistas o control de concurrencia optimista para evitar condiciones de carrera (doble gasto) durante la autorización de compras."
+                }
+            ]
+        },
+        {
+            "id": "infraestructura-operaciones",
+            "title": "Infraestructura y Operaciones",
+            "questions": [
+                {
+                    "id": "observability-stack",
+                    "question": "¿Qué nivel de dominio tienes diseñando e implementando stacks de observabilidad y trazabilidad para auditar y rastrear transacciones financieras?",
+                    "type": "scale",
+                    "scaleMax": 5,
+                    "example": "Inyección de un Transaction-ID o Trace-ID único desde el Gateway de entrada, propagándolo a través de múltiples microservicios y colas para facilitar el troubleshooting en herramientas como Datadog o Azure Monitor."
+                },
+                {
+                    "id": "api-governance",
+                    "question": "¿Qué tanta experiencia tienes definiendo la gobernanza, el ciclo de vida y políticas de seguridad en APIs expuestas directamente a comercios y pasarelas clientes?",
+                    "type": "scale",
+                    "scaleMax": 5,
+                    "example": "Configuración centralizada en un API Gateway de políticas de Rate Limiting, Throttling por comercio, enmascaramiento de datos sensibles y estrategias formales de versionado de endpoints."
+                },
+                {
+                    "id": "legacy-integration",
+                    "question": "¿Qué nivel de conocimiento práctico tienes integrando arquitecturas modernas Cloud/Microservicios con sistemas heredados (Mainframes) o Core Bancarios monolíticos?",
+                    "type": "scale",
+                    "scaleMax": 5,
+                    "example": "Implementación de una Capa de Anticorrupción (ACL) o adaptadores especializados para traducir mensajería síncrona moderna (REST/JSON) a protocolos legacy como IBM MQ o sockets TCP en tramas fijas."
+                }
+            ]
+        }
+    ]
+}

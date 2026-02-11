@@ -34,6 +34,7 @@ const ALL_REQUIREMENTS = [
   "visa-guayaquil-jr:springboot-fullstack",
   "visa-guayaquil-ssr:dotnet-fullstack",
   "visa-guayaquil-ssr:springboot-fullstack",
+  "diners-payment-sr:payment-architect",
 ] as const;
 
 type AdminView = "candidates" | "forms" | "history";

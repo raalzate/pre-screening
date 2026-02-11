@@ -1,0 +1,20 @@
+{
+    "id": "payment-architect-sr",
+    "title": "Arquitecto/a de Soluciones en Medios de Pago - Senior",
+    "requirements": {
+        "architectural-patterns": 5,
+        "integration-patterns": 5,
+        "resilience-fault-tolerance": 5,
+        "database-transactions": 5,
+        "distributed-transactions": 5,
+        "encryption-standards": 5,
+        "authentication-authorization": 5,
+        "microservices-patterns": 4,
+        "event-driven-architecture": 4,
+        "scalability-design": 4,
+        "observability-stack": 4,
+        "domain-driven-design": 4,
+        "api-governance": 3,
+        "legacy-integration": 3
+    }
+}

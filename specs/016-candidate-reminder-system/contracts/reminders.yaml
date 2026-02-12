@@ -1,0 +1,49 @@
+openapi: 3.0.0
+info:
+  title: Candidate Reminder API
+  version: 1.0.0
+paths:
+  /api/admin/reminders:
+    post:
+      summary: Send a reminder email to a candidate
+      security:
+        - adminAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                candidateCode:
+                  type: string
+      responses:
+        '200':
+          description: Reminder sent successfully
+        '400':
+          description: Invalid request or candidate not in pre-screening
+        '403':
+          description: Unauthorized (Admin only)
+        '404':
+          description: Candidate not found
+
+  /api/admin/candidates/{code}:
+    delete:
+      summary: Permanently delete a candidate
+      security:
+        - adminAuth: []
+      parameters:
+        - name: code
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Candidate deleted successfully
+        '400':
+          description: Deletion criteria not met (reminder_count < 3)
+        '403':
+          description: Unauthorized (Admin only)
+        '404':
+          description: Candidate not found

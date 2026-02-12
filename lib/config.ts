@@ -10,6 +10,11 @@ const configSchema = z.object({
     TURSO_DB_TOKEN: z.string().optional(),
     RESEND_API_KEY: z.string().optional(),
     EMAIL_FROM: z.string().optional(),
+    SMTP_HOST: z.string().optional(),
+    SMTP_PORT: z.string().optional(),
+    SMTP_SECURE: z.string().optional(),
+    SMTP_USER: z.string().optional(),
+    SMTP_PASS: z.string().optional(),
     OPENAI_API_KEY: z.string().optional(),
 });
 

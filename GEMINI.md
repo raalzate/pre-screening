@@ -11,6 +11,8 @@ Auto-generated from all feature plans. Last updated: 2026-01-22
 - Turso (SQLite) - Read access for candidate lis (007-admin-candidate-filters)
 - TypeScript / Next.js 15 (App Router) + `@libsql/client`, `genkit`, `react-markdown` (010-form-analysis-history)
 - Turso (LibSQL / SQLite) (010-form-analysis-history)
+- TypeScript / Next.js 15 (App Router) + `@libsql/client` (Turso), `next-auth` (015-secure-cert-questions)
+- TypeScript / Next.js 15 (App Router) + `@libsql/client` (Turso), `next-auth`, `nodemailer` (016-candidate-reminder-system)
 
 - TypeScript / Next.js (App Router) + React, Tailwind CSS (for UI) (001-admin-tech-tab-visibility)
 
@@ -30,8 +32,9 @@ npm test && npm run lint
 TypeScript / Next.js (App Router): Follow standard conventions
 
 ## Recent Changes
+- 016-candidate-reminder-system: Added TypeScript / Next.js 15 (App Router) + `@libsql/client` (Turso), `next-auth`, `nodemailer`
+- 015-secure-cert-questions: Added TypeScript / Next.js 15 (App Router) + `@libsql/client` (Turso), `next-auth`
 - 010-form-analysis-history: Added TypeScript / Next.js 15 (App Router) + `@libsql/client`, `genkit`, `react-markdown`
-- 008-admin-process-step-filters: Added TypeScript / Next.js 15 (App Router) + React 19, Recharts
 
 
 <!-- MANUAL ADDITIONS START -->

@@ -11,14 +11,34 @@ export async function GET() {
     const code = (session?.user as any)?.code;
     const requirements = (session?.user as any)?.requirements;
 
-    const user = (await db.execute('SELECT questions FROM users WHERE code = ? AND requirements = ?', [code, requirements])).rows[0];
+    const user = (await db.execute('SELECT questions, certification_started_at FROM users WHERE code = ? AND requirements = ?', [code, requirements])).rows[0];
 
     if (!user) {
       return NextResponse.json({ message: 'Invalid code' }, { status: 401 });
     }
+
+    // Set start time if not already set
+    if (!user.certification_started_at) {
+      await db.execute('UPDATE users SET certification_started_at = datetime("now") WHERE code = ? AND requirements = ?', [code, requirements]);
+    }
     // Filtrar solo el formulario asignado al usuario
-    const questions = user.questions ? user.questions : null;
-    return NextResponse.json({ ...JSON.parse(questions as string) });
+    const questionsStr = user.questions ? user.questions : null;
+    if (!questionsStr) {
+      return NextResponse.json({ questions: [] });
+    }
+
+    const fullForm = JSON.parse(questionsStr as string);
+
+    // US1: Stripping correct answers and rationales
+    const sanitizedQuestions = fullForm.questions?.map((q: any) => {
+      const { correctAnswer, rationale, ...sanitized } = q;
+      return sanitized;
+    }) ?? [];
+
+    return NextResponse.json({
+      ...fullForm,
+      questions: sanitizedQuestions
+    });
   } catch (error) {
     console.error('Error reading forms :', error);
     return NextResponse.json({ error: 'Failed to load forms' }, { status: 500 });
@@ -28,32 +48,60 @@ export async function GET() {
 
 
 
+import { calculateCertificationResult } from '@/lib/ia/certification';
+
 export async function POST(req: Request) {
   try {
-    const { result } = (await req.json()) as { result: any };
-
+    const { answers } = (await req.json()) as { answers: Record<number, string> };
 
     const session = await getServerSession(authOptions);
     const userCode = (session?.user as any)?.code;
     const requirements = (session?.user as any)?.requirements;
 
-    if (userCode) {
-      await db.execute(`
+    if (!userCode) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // Fetch full questions from DB for validation
+    const userStmt = await db.execute('SELECT questions, name, email, certification_started_at FROM users WHERE code = ? AND requirements = ?', [userCode, requirements]);
+    const userData = userStmt.rows[0];
+
+    if (!userData || !userData.questions) {
+      return NextResponse.json({ error: "Questions not found" }, { status: 404 });
+    }
+
+    const fullForm = JSON.parse(userData.questions as string);
+
+    // T012: Server-side time validation
+    if (userData.certification_started_at) {
+      const startTime = new Date(userData.certification_started_at as string).getTime();
+      const now = new Date().getTime();
+      const elapsedSeconds = (now - startTime) / 1000;
+
+      const timeLimitPerQuestion = 125;
+      const bufferFactor = 1.5;
+      const allowedTime = fullForm.questions.length * timeLimitPerQuestion * bufferFactor;
+
+      if (elapsedSeconds > allowedTime) {
+        return NextResponse.json({ error: "Time limit exceeded. Submission blocked." }, { status: 403 });
+      }
+    }
+
+    const result = calculateCertificationResult(answers, fullForm.questions);
+
+    await db.execute(`
                 UPDATE users
                 SET certification_result = ?, step = ?
                 WHERE code = ? AND requirements = ?
             `, [JSON.stringify(result), 'challenge', userCode, requirements]);
 
-      // Enviar correo de notificación de fin de certificación
-      try {
-        const userStmt = await db.execute("SELECT name, email FROM users WHERE code = ? AND requirements = ?", [userCode, requirements]);
-        const user = userStmt.rows[0];
-        if (user && user.email) {
-          await sendCertificationCompleteEmail(user.name as string, user.email as string, userCode);
-        }
-      } catch (emailErr) {
-        console.error("❌ Error enviando correo de fin de certificación:", emailErr);
+    // Enviar correo de notificación de fin de certificación
+    try {
+      if (userData.email) {
+        await sendCertificationCompleteEmail(userData.name as string, userData.email as string, userCode);
       }
+    } catch (emailErr) {
+      console.error("❌ Error enviando correo de fin de certificación:", emailErr);
     }
 
     return NextResponse.json(result);

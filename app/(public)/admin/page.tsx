@@ -175,6 +175,8 @@ const Icons = {
   Target: (props: any) => <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg>,
   Search: (props: any) => <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>,
   Plus: (props: any) => <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>,
+  Bell: (props: any) => <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"></path><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"></path></svg>,
+  Trash: (props: any) => <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path></svg>,
 };
 
 const Spinner = ({ size = "sm" }: { size?: "sm" | "md" }) => (
@@ -325,6 +327,8 @@ export default function App() {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [restoring, setRestoring] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Auth Guard
   useEffect(() => {
@@ -709,6 +713,10 @@ export default function App() {
                           <InfoRow label="Código" value={userData.code} copyable />
                           <InfoRow label="Requisito" value={<Badge>{userData.requirements}</Badge>} />
                           <InfoRow label="Etapa" value={userData.step} />
+                          <InfoRow label="Recordatorios" value={userData.reminder_count || 0} />
+                          {userData.last_reminder_at && (
+                            <InfoRow label="Último Envío" value={new Date(userData.last_reminder_at).toLocaleString()} />
+                          )}
                         </dl>
                       </Card>
 
@@ -725,6 +733,47 @@ export default function App() {
                           )}
                         </Card>
                       )}
+
+                      {/* ADMINISTRATIVE ACTIONS CARD */}
+                      <Card title="Acciones" icon={<Icons.Plus className="w-5 h-5" />}>
+                        <div className="space-y-4">
+                          <button
+                            onClick={async () => {
+                              if (userData.step !== 'pre-screening') {
+                                alert("Los recordatorios solo están disponibles para la etapa de pre-screening.");
+                                return;
+                              }
+                              try {
+                                const res = await fetch("/api/admin/reminders", {
+                                  method: "POST",
+                                  headers: { "Content-Type": "application/json" },
+                                  body: JSON.stringify({ candidateCode: userData.code }),
+                                });
+                                if (!res.ok) throw new Error(await res.text());
+                                alert("Recordatorio enviado correctamente");
+                                fetchCandidate(userData.code, userData.requirements);
+                              } catch (e: any) {
+                                alert("Error al enviar recordatorio: " + e.message);
+                              }
+                            }}
+                            disabled={userData.step !== 'pre-screening'}
+                            className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition shadow-sm disabled:bg-gray-300 disabled:cursor-not-allowed"
+                          >
+                            <Icons.Bell className="w-5 h-5" /> Enviar Recordatorio
+                          </button>
+
+                          <button
+                            onClick={() => setIsDeleteModalOpen(true)}
+                            disabled={(userData.reminder_count || 0) < 3}
+                            className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-red-50 text-red-600 border border-red-200 rounded-xl font-bold hover:bg-red-100 transition shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            <Icons.Trash className="w-5 h-5" /> Eliminar Candidato
+                          </button>
+                          <p className="text-[10px] text-gray-400 text-center italic">
+                            * Eliminación permitida solo tras 3 recordatorios.
+                          </p>
+                        </div>
+                      </Card>
                     </div>
                   )}
 
@@ -779,6 +828,48 @@ export default function App() {
       {/* --- ADD CANDIDATE MODAL --- */}
       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Crear Nuevo Candidato">
         <CreateUserForm onClose={() => setIsModalOpen(false)} />
+      </Modal>
+
+      <Modal isOpen={isDeleteModalOpen} onClose={() => setIsDeleteModalOpen(false)} title="Confirmar Eliminación">
+        {userData && (
+          <div className="space-y-4">
+            <div className="p-4 bg-red-50 rounded-lg border border-red-100 flex items-start gap-3">
+              <Icons.X className="w-6 h-6 text-red-500 shrink-0 mt-0.5" />
+              <div>
+                <p className="font-bold text-red-800">Esta acción es irreversible</p>
+                <p className="text-sm text-red-700">El candidato <strong>{userData.name}</strong> ({userData.code}) será eliminado permanentemente de la base de datos.</p>
+              </div>
+            </div>
+            <div className="flex gap-3 justify-end pt-4">
+              <button
+                onClick={() => setIsDeleteModalOpen(false)}
+                className="px-4 py-2 text-gray-600 font-medium hover:bg-gray-100 rounded-lg transition"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={async () => {
+                  setIsDeleting(true);
+                  try {
+                    const res = await fetch(`/api/admin/candidates/${userData.code}`, { method: "DELETE" });
+                    if (!res.ok) throw new Error(await res.text());
+                    alert("Candidato eliminado con éxito");
+                    window.location.reload();
+                  } catch (e: any) {
+                    alert("Error al eliminar: " + e.message);
+                  } finally {
+                    setIsDeleting(false);
+                    setIsDeleteModalOpen(false);
+                  }
+                }}
+                disabled={isDeleting}
+                className="px-6 py-2 bg-red-600 text-white font-bold rounded-lg hover:bg-red-700 transition flex items-center gap-2"
+              >
+                {isDeleting ? <Spinner /> : "Sí, Eliminar Permanentemente"}
+              </button>
+            </div>
+          </div>
+        )}
       </Modal>
     </div>
   );

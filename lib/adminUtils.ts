@@ -13,6 +13,8 @@ export interface User {
     interview_status?: string;
     technical_level?: string;
     interviewer_name?: string;
+    reminder_count?: number;
+    last_reminder_at?: string;
 }
 
 export interface GroupedCandidate {

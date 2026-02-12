@@ -182,3 +182,28 @@ export async function sendRejectionEmail(name: string, email: string) {
     html,
   });
 }
+
+export async function sendCandidateReminderEmail(name: string, email: string, code: string) {
+  const loginUrl = `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/login?code=${code}`;
+
+  const title = `¡Hola, ${name}! ¿Continuamos?`;
+  const body = `
+    <p>Hemos notado que has iniciado tu proceso de selección con nosotros pero aún no has completado la etapa de <strong>Pre-screening</strong>.</p>
+    <p>En Sofka valoramos mucho tu interés y no queremos que pierdas la oportunidad de formar parte de nuestro equipo. El proceso es sencillo y solo te tomará unos minutos más.</p>
+    <p>Haz clic en el botón de abajo para retomar justo donde quedaste.</p>
+  `;
+
+  const html = getSofkaTemplate(title, body, loginUrl, "Continuar Proceso");
+
+  if (!process.env.SMTP_USER) {
+    console.error("ERROR SMTP: SMTP_USER not set.");
+    return;
+  }
+
+  await transporter.sendMail({
+    from: `"Talento Sofka" <${process.env.SMTP_USER}>`,
+    to: email,
+    subject: 'Recordatorio: Tu proceso de selección en Sofka te espera',
+    html,
+  });
+}

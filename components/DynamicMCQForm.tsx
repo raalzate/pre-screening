@@ -82,39 +82,14 @@ export default function DynamicMCQForm({
       indices: Object.keys(finalAnswers)
     });
 
-    let correct = 0;
-    const details: ResultDetail[] = [];
-
-    form.questions.forEach((q, index) => {
-      const chosen = finalAnswers[index] ?? null;
-      const isCorrect = chosen === q.correctAnswer;
-      if (isCorrect) correct++;
-      details.push({
-        questionId: q.id,
-        correct: isCorrect,
-        chosen,
-        correctAnswer: q.correctAnswer,
-        rationale: q.rationale,
-        relatedTo: q.relatedTo,
-      });
-    });
-
-    const wrongTopics: string[] = [];
-    details.forEach((d) => {
-      if (!d.correct) wrongTopics.push(...d.relatedTo);
-    });
-
-    const analysis = wrongTopics.length === 0
-      ? "Excelente, el candidato respondió correctamente todas las preguntas."
-      : `El candidato mostró debilidades en las áreas: ${[...new Set(wrongTopics)].join(", ")}.`;
-
-    const finalResult = { score: correct, total: form.questions.length, details, analysis };
-    setResult(finalResult);
-
     try {
-      await api.post("/certification", { result: finalResult });
+      // US1: Sending only answers to server for validation
+      const response = await api.post("/certification", { answers: finalAnswers });
+      // US1: Result is now calculated and returned by the server
+      setResult(response.data);
     } catch (error) {
       console.error("Error saving result", error);
+      alert("Hubo un error al enviar tus respuestas. Por favor intenta de nuevo.");
     }
   }, [form, api, answers, currentIndex]);
 

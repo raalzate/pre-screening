@@ -108,7 +108,9 @@ export async function initDb() {
     { name: "interview_feedback", type: "TEXT NULL" },
     { name: "interview_status", type: "TEXT NULL" },
     { name: "technical_level", type: "TEXT NULL" },
-    { name: "interviewer_name", type: "TEXT NULL" }
+    { name: "interviewer_name", type: "TEXT NULL" },
+    { name: "reminder_count", type: "INTEGER DEFAULT 0" },
+    { name: "last_reminder_at", type: "TEXT NULL" }
   ];
 
   const tables = ["users", "history_candidates"];

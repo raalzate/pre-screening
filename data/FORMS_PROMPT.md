@@ -1,24 +1,24 @@
 
-Actúa como un experto en [Lider tecnico].
+Actúa como un experto en [Arquitecto/a de Soluciones en Medios de Pago - Senior].
 
 Tienes un JSON con niveles con descriptores que se debe evaluar en un pre-screening, usa solo los que te entrego aqui. 
 
 {
   "requirements": {
-      "clean-code-solid",
-    "backend-framework-mastery",
-    "spa-frameworks",
-    "authentication-authorization",
-    "api-rest-standards",
-    "orm-mapping-techniques",
+    "architectural-patterns",
+    "integration-patterns",
+    "resilience-fault-tolerance",
     "database-transactions",
-    "sql-optimization",
-    "mentoring-coaching",
-    "unit-testing-mocking",
-    "secrets-management",
+    "distributed-transactions",
+    "encryption-standards",
+    "authentication-authorization,
     "microservices-patterns",
-    "javascript-typescript-core",
-    "agile-frameworks"
+    "event-driven-architecture":,
+    "scalability-design",
+    "observability-stack",
+    "domain-driven-design",
+    "api-governance",
+    "legacy-integration"
   }
 }
 
@@ -150,3 +150,15 @@ Ten en cuenta las siguientes especificaciones:
   * **5 = Experiencia sólida y autónoma en proyectos reales:** Ha liderado o participado con autonomía en proyectos de cierta envergadura; comprende la mayoría de los matices y trade-offs; puede explicar cómo resolvió retos.
 
 IMPORTANTE: recuerda que la pregunta es para un pre-screening, debe ser indicar que tanto conoce, que tanto dominas, etc, no son preguntas cerradas. Tambien puedes ingnoara descriptores que no sean relevantes para la tecnologia.
+
+Usa este contexto tambien para las preguntas:
+
+ADN Transaccional: Dominio profundo de protocolos de mensajería financiera ISO 8583 e ISO 20022.
+
+Maestría en Medios de Pago: Conocimiento "End-to-End" del ciclo de vida de tarjetas (Crédito, Débito, Prepago) y clara diferenciación técnica entre los roles de Adquirencia y Emisión (autorización, compensación y liquidación).
+
+Seguridad Hardcore: Experiencia probada con Cajas HSM (Hardware Security Modules), gestión de llaves criptográficas y cifrado.
+
+Estrategia Cloud: Conocimientos sólidos en Microsoft Azure (Certificación mínima AZ-900 o experiencia equivalente diseñando en la nube).
+
+Habilidades de Negociación: Capacidad demostrable para exponer y defender soluciones técnicas ante C-Levels y Directores.

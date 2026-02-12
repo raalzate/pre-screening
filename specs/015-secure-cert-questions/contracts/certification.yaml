@@ -1,0 +1,93 @@
+openapi: 3.0.0
+info:
+  title: Certification API
+  version: 1.0.0
+paths:
+  /api/certification:
+    get:
+      summary: Get certification questions (sanitized)
+      responses:
+        '200':
+          description: A list of questions without answers
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CertificationProfile'
+    post:
+      summary: Submit certification answers and get result
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                answers:
+                  type: object
+                  additionalProperties:
+                    type: string
+      responses:
+        '200':
+          description: Evaluation result with score and details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CertificationResult'
+
+components:
+  schemas:
+    CertificationProfile:
+      type: object
+      properties:
+        formId:
+          type: string
+        questions:
+          type: array
+          items:
+            $ref: '#/components/schemas/SanitizedQuestion'
+    SanitizedQuestion:
+      type: object
+      properties:
+        id:
+          type: string
+        question:
+          type: string
+        options:
+          type: array
+          items:
+            type: string
+        relatedTo:
+          type: array
+          items:
+            type: string
+    CertificationResult:
+      type: object
+      properties:
+        score:
+          type: integer
+        total:
+          integer
+        analysis:
+          type: string
+        details:
+          type: array
+          items:
+            $ref: '#/components/schemas/ResultDetail'
+    ResultDetail:
+      type: object
+      properties:
+        questionId:
+          type: string
+        correct:
+          type: boolean
+        chosen:
+          type: string
+          nullable: true
+        correctAnswer:
+          type: string
+        rationale:
+          type: string
+        relatedTo:
+          type: array
+          items:
+            type: string

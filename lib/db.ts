@@ -139,6 +139,47 @@ export async function initDb() {
       created_at TEXT DEFAULT CURRENT_TIMESTAMP
     );
   `);
+
+  // Admin notifications table
+  await db.execute(`
+    CREATE TABLE IF NOT EXISTS admin_notifications (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      type TEXT NOT NULL,
+      candidate_name TEXT NULL,
+      candidate_code TEXT NULL,
+      message TEXT NOT NULL,
+      is_read INTEGER DEFAULT 0,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP
+    );
+  `);
+}
+
+// Helper functions for Admin Notifications
+export async function createAdminNotification(data: {
+  type: string;
+  candidateName?: string;
+  candidateCode?: string;
+  message: string;
+}) {
+  return await db.execute({
+    sql: `
+      INSERT INTO admin_notifications (type, candidate_name, candidate_code, message)
+      VALUES (?, ?, ?, ?)
+    `,
+    args: [data.type, data.candidateName || null, data.candidateCode || null, data.message]
+  });
+}
+
+export async function getUnreadAdminNotifications() {
+  const result = await db.execute("SELECT * FROM admin_notifications WHERE is_read = 0 ORDER BY created_at DESC");
+  return result.rows;
+}
+
+export async function markNotificationAsRead(id: number) {
+  return await db.execute({
+    sql: "UPDATE admin_notifications SET is_read = 1 WHERE id = ?",
+    args: [id]
+  });
 }
 
 // Helper functions for Form Analysis
@@ -181,6 +222,23 @@ export async function restoreCandidate(code: string) {
     },
     {
       sql: "DELETE FROM history_candidates WHERE code = ?",
+      args: [code]
+    }
+  ], "write");
+}
+
+export async function withdrawCandidate(code: string) {
+  const columns = "name, email, code, requirements, step, form_id, evaluation_result, questions, certification_result, challenge_result, interview_feedback, interview_status, technical_level, interviewer_name";
+
+  return await db.batch([
+    {
+      sql: `INSERT INTO history_candidates (${columns}, moved_at) 
+            SELECT name, email, code, requirements, 'feedback', form_id, evaluation_result, questions, certification_result, challenge_result, interview_feedback, 'withdrawn', technical_level, interviewer_name, CURRENT_TIMESTAMP 
+            FROM users WHERE code = ?`,
+      args: [code]
+    },
+    {
+      sql: "DELETE FROM users WHERE code = ?",
       args: [code]
     }
   ], "write");

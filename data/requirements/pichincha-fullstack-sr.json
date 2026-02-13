@@ -1,0 +1,24 @@
+{
+    "id": "fullstack-java-angular-senior",
+    "title": "Evaluación Técnica Fullstack Senior (Java Spring Boot & Angular)",
+    "requirements": {
+        "javascript-typescript-core": 5,
+        "algorithms-data-structures": 4,
+        "architectural-patterns": 5,
+        "clean-code-solid": 5,
+        "unit-testing-mocking": 5,
+        "performance-profiling": 4,
+        "backend-framework-mastery": 5,
+        "spa-frameworks": 5,
+        "microservices-patterns": 5,
+        "micro-frontends-implementation": 3,
+        "messaging-queues-brokers": 4,
+        "offline-online-sync": 3,
+        "gateway-security-policies": 4,
+        "client-security-hardening": 4,
+        "technical-storytelling": 4,
+        "time-focus-management": 3,
+        "ownership-accountability": 5,
+        "consensus-building-non-tech": 4
+    }
+}

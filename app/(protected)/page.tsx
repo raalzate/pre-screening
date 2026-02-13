@@ -5,13 +5,36 @@ import { useEffect, useState, useMemo } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import createApiClient from '@/lib/apiClient';
 import { toast } from 'react-hot-toast';
+import { createPortal } from 'react-dom';
+
+const Icons = {
+  X: (props: any) => <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>,
+  Alert: (props: any) => <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>,
+};
 
 export default function Home() {
   const [formIds, setFormIds] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
+  const [isWithdrawing, setIsWithdrawing] = useState(false);
   const auth = useAuth();
   const api = useMemo(() => createApiClient(), []);
+
+  const handleWithdraw = async () => {
+    try {
+      setIsWithdrawing(true);
+      await api.post('/user/withdraw', {});
+      toast.success('Te has dado de baja correctamente.');
+      setTimeout(() => {
+        auth.logout();
+      }, 1500);
+    } catch (err: any) {
+      console.error("Error withdrawing:", err);
+      toast.error('Hubo un error al procesar tu solicitud.');
+      setIsWithdrawing(false);
+    }
+  };
 
   const isEvaluationComplete = useMemo(() => {
     try {
@@ -125,7 +148,6 @@ export default function Home() {
             </div>
 
             <div className="p-8">
-
               <div className="space-y-4">
                 <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2">
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-indigo-500" viewBox="0 0 20 20" fill="currentColor">
@@ -144,16 +166,25 @@ export default function Home() {
                 <p className="text-sm text-gray-500 text-center sm:text-left">
                   Gracias por participar en nuestro proceso de selección.
                 </p>
-                <button
-                  onClick={() => auth.logout()}
-                  className="flex items-center gap-2 px-6 py-2 bg-gray-800 text-white rounded-lg font-bold hover:bg-black transition-all shadow-md active:scale-95"
-                >
-                  Cerrar Sesión
-                </button>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setIsWithdrawModalOpen(true)}
+                    className="px-6 py-2 text-red-600 border border-red-200 rounded-lg font-bold hover:bg-red-50 transition-all shadow-sm active:scale-95"
+                  >
+                    Darse de Baja
+                  </button>
+                  <button
+                    onClick={() => auth.logout()}
+                    className="flex items-center gap-2 px-6 py-2 bg-gray-800 text-white rounded-lg font-bold hover:bg-black transition-all shadow-md active:scale-95"
+                  >
+                    Cerrar Sesión
+                  </button>
+                </div>
               </div>
             </div>
           </div>
         </div>
+        {renderWithdrawModal()}
       </div>
     );
   }
@@ -166,7 +197,13 @@ export default function Home() {
           <p className="text-lg text-gray-700">
             Has finalizado tu proceso de evaluación. Un miembro de nuestro equipo se pondrá en contacto contigo pronto con los siguientes pasos. ¡Gracias por tu tiempo!
           </p>
-          <div className="mt-8">
+          <div className="mt-8 flex justify-center gap-4">
+            <button
+              onClick={() => setIsWithdrawModalOpen(true)}
+              className="px-6 py-3 text-red-600 border border-red-200 rounded-lg font-semibold hover:bg-red-50 transition"
+            >
+              Darse de baja
+            </button>
             <button
               onClick={() => auth.logout()}
               className="px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition"
@@ -175,6 +212,7 @@ export default function Home() {
             </button>
           </div>
         </div>
+        {renderWithdrawModal()}
       </div>
     );
   }
@@ -200,14 +238,88 @@ export default function Home() {
     );
   }
 
+  function renderWithdrawModal() {
+    if (!isWithdrawModalOpen) return null;
+    return createPortal(
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 animate-in fade-in duration-200">
+        <div className="bg-white rounded-xl shadow-xl max-w-md w-full mx-4 p-6 relative animate-in slide-in-from-top-2 duration-300">
+          <div className="flex justify-between items-center mb-5">
+            <div className="flex items-center gap-3 text-red-600">
+              <Icons.Alert className="w-6 h-6" />
+              <h3 className="text-xl font-bold text-gray-800">Darse de Baja</h3>
+            </div>
+            <button onClick={() => setIsWithdrawModalOpen(false)} className="text-gray-400 hover:text-gray-600 transition">
+              <Icons.X className="w-6 h-6" />
+            </button>
+          </div>
+
+          <div className="space-y-4">
+            <p className="text-gray-600 leading-relaxed">
+              ¿Estás seguro de que deseas darte de baja del proceso de selección?
+            </p>
+            <div className="bg-red-50 p-4 rounded-lg border border-red-100">
+              <p className="text-sm text-red-800 font-medium">
+                Esta acción es permanente:
+              </p>
+              <ul className="text-sm text-red-700 mt-2 list-disc list-inside space-y-1">
+                <li>Tu acceso a esta plataforma será revocado inmediatamente.</li>
+                <li>Tus perfiles activos serán eliminados de la lista de selección actual.</li>
+                <li>No recibirás más recordatorios sobre este proceso.</li>
+              </ul>
+            </div>
+          </div>
+
+          <div className="mt-8 flex gap-3">
+            <button
+              disabled={isWithdrawing}
+              onClick={() => setIsWithdrawModalOpen(false)}
+              className="flex-1 px-4 py-2.5 bg-gray-100 text-gray-700 rounded-lg font-bold hover:bg-gray-200 transition active:scale-95 disabled:opacity-50"
+            >
+              Cancelar
+            </button>
+            <button
+              disabled={isWithdrawing}
+              onClick={handleWithdraw}
+              className="flex-[1.5] px-4 py-2.5 bg-red-600 text-white rounded-lg font-bold hover:bg-red-700 transition shadow-lg shadow-red-200 active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2"
+            >
+              {isWithdrawing ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  Procesando...
+                </>
+              ) : 'Confirmar Baja'}
+            </button>
+          </div>
+        </div>
+      </div>,
+      document.body
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
-      <header className="bg-white shadow-sm">
-        <div className="container mx-auto px-4 py-6">
-          <h1 className="text-3xl font-bold text-gray-800">
-            Hola {auth.user?.name?.toUpperCase() ?? 'Usuario'}, bienvenido a la plataforma de evaluación
-          </h1>
-          <p className="mt-2 text-gray-600 font-semibold">{getInstructionalHeader()}</p>
+      <header className="bg-white shadow-sm border-b">
+        <div className="container mx-auto px-4 py-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-800">
+              Hola {auth.user?.name?.toUpperCase() ?? 'Usuario'}, bienvenido a la plataforma de evaluación
+            </h1>
+            <p className="mt-2 text-gray-600 font-semibold">{getInstructionalHeader()}</p>
+          </div>
+          <div className="flex gap-3">
+            <button
+              onClick={() => setIsWithdrawModalOpen(true)}
+              className="px-4 py-2 text-sm font-bold text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg border border-red-200 transition-all active:scale-95"
+            >
+              Darse de Baja
+            </button>
+            <button
+              onClick={() => auth.logout()}
+              className="px-4 py-2 text-sm font-bold text-gray-600 hover:text-gray-900 transition-all active:scale-95"
+            >
+              Cerrar Sesión
+            </button>
+          </div>
         </div>
       </header>
 
@@ -215,7 +327,7 @@ export default function Home() {
         <div className="flex flex-col md:flex-row gap-8">
           {/* Columna Izquierda: Proceso de Evaluación */}
           <div className="w-full md:w-1/2">
-            <div className="p-6 mb-8 bg-white rounded-lg shadow-md">
+            <div className="p-6 mb-8 bg-white rounded-lg shadow-md border border-gray-100">
               <h2 className="text-2xl font-semibold text-gray-800 mb-4">
                 Proceso de Evaluación
               </h2>
@@ -261,28 +373,27 @@ export default function Home() {
             <h2 className="text-2xl font-semibold text-gray-800 mb-4">
               Selecciona tu evaluación
             </h2>
-            <div className="grid grid-cols-1 gap-8">
+            <div className="grid grid-cols-1 gap-6">
               {formIds.map((id, index) => {
                 const idParts = auth.user?.requirements?.split('-') || [];
                 const seniorityCode = idParts.at(-1)?.toUpperCase();
                 const seniority = seniorityLevels[seniorityCode || ''] || seniorityCode || 'N/A';
-                const isRecommended = index === 0; // Asume que el primer formulario es el recomendado
+                const isRecommended = index === 0;
 
                 return (
                   <Link key={id} href={`/forms/${id}`}>
-                    <div className="block p-6 bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300 transform hover:-translate-y-1 relative">
+                    <div className="block p-6 bg-white rounded-lg shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 relative border border-gray-100 group">
                       {isRecommended && (
-                        <div className="absolute top-2 right-2 bg-yellow-500 text-white text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1">
-                          {/* Ícono de estrella */}
+                        <div className="absolute top-2 right-2 bg-yellow-500 text-white text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1 shadow-sm">
                           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
                             <path fillRule="evenodd" d="M10.868 2.884c.365-.732 1.432-.732 1.797 0l1.206 2.428 2.684.39c.803.116 1.127 1.059.54 1.636l-1.948 1.898.46 2.678c.139.805-.705 1.423-1.427 1.045L10 12.396l-2.407 1.267c-.722.378-1.566-.24-1.427-1.045l.46-2.678-1.948-1.898c-.587-.577-.263-1.52.54-1.636l2.684-.39 1.206-2.428z" clipRule="evenodd" />
                           </svg>
                           Ingresar aquí
                         </div>
                       )}
-                      <h2 className="text-xl font-semibold text-gray-700">{id.replace(/-/g, ' + ')}</h2>
-                      <p className="mt-2 text-gray-500">
-                        <span className="font-semibold text-gray-600">Nivel:</span> {seniority}
+                      <h2 className="text-xl font-bold text-gray-800 group-hover:text-blue-600 transition-colors">{id.replace(/-/g, ' + ')}</h2>
+                      <p className="mt-2 text-gray-600">
+                        <span className="font-semibold">Nivel:</span> {seniority}
                       </p>
                     </div>
                   </Link>
@@ -292,6 +403,7 @@ export default function Home() {
           </div>
         </div>
       </main>
+      {renderWithdrawModal()}
     </div>
   );
 }

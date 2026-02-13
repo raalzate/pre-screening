@@ -1,0 +1,15 @@
+# Docker ignore patterns
+node_modules/
+.git/
+Dockerfile*
+.dockerignore
+*.log*
+.env*
+coverage/
+.next/
+dist/
+build/
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

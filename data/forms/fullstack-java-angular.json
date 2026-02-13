@@ -1,0 +1,162 @@
+{
+  "id": "fullstack-java-angular",
+  "title": "Evaluación de Experiencia: Fullstack Senior (Spring Boot & Angular)",
+  "categories": [
+    {
+      "id": "cat-core-dev",
+      "title": "Fundamentos y Desarrollo Core",
+      "questions": [
+        {
+          "id": "javascript-typescript-core",
+          "question": "¿Cómo calificarías tu dominio de TypeScript avanzado y los mecanismos internos de JavaScript (Event Loop, Closures)?",
+          "type": "scale",
+          "scaleMax": 5,
+          "example": "Uso de Utility Types (Pick, Omit, Partial), Generics avanzados para componentes reutilizables y comprensión profunda del Hoisting y manejo de memoria en el navegador."
+        },
+        {
+          "id": "backend-framework-mastery",
+          "question": "¿Qué nivel de profundidad tienes en el ecosistema de Spring Boot y sus mecanismos internos (Inversión de Control, AOP, Ciclo de vida de Beans)?",
+          "type": "scale",
+          "scaleMax": 5,
+          "example": "Creación de anotaciones personalizadas con AOP para logging o seguridad, configuración de Contextos de Spring y manejo avanzado de perfiles y propiedades externas."
+        },
+        {
+          "id": "spa-frameworks",
+          "question": "¿Qué tan experto te consideras en el ciclo de vida de Angular, Detección de Cambios y programación reactiva?",
+          "type": "scale",
+          "scaleMax": 5,
+          "example": "Optimización de rendimiento usando ChangeDetectionStrategy.OnPush, manejo complejo de flujos con RxJS (switchMap vs mergeMap) y uso de Signals."
+        },
+        {
+          "id": "algorithms-data-structures",
+          "question": "¿Qué experiencia tienes aplicando estructuras de datos y algoritmos para optimizar la complejidad (Big O) en lógica de negocio crítica?",
+          "type": "scale",
+          "scaleMax": 5,
+          "example": "Elegir un HashMap sobre una lista para búsquedas O(1) en procesamiento masivo de datos o refactorizar bucles anidados para reducir complejidad cuadrática."
+        }
+      ]
+    },
+    {
+      "id": "cat-architecture",
+      "title": "Arquitectura y Diseño de Sistemas",
+      "questions": [
+        {
+          "id": "architectural-patterns",
+          "question": "¿Qué experiencia tienes implementando patrones arquitectónicos robustos (Hexagonal, Onion) en aplicaciones Java?",
+          "type": "scale",
+          "scaleMax": 5,
+          "example": "Separación estricta de capas de dominio, aplicación e infraestructura usando Puertos y Adaptadores para desacoplar el framework de la lógica de negocio."
+        },
+        {
+          "id": "microservices-patterns",
+          "question": "¿Has diseñado o implementado patrones de microservicios y definición de Bounded Contexts en entornos distribuidos?",
+          "type": "scale",
+          "scaleMax": 5,
+          "example": "Uso de Spring Cloud para Service Discovery (Eureka/Consul), Config Server y patrones de comunicación entre servicios manteniendo la independencia de despliegue."
+        },
+        {
+          "id": "micro-frontends-implementation",
+          "question": "¿Qué nivel de familiaridad tienes con la arquitectura de Micro Frontends para escalar equipos de frontend?",
+          "type": "scale",
+          "scaleMax": 5,
+          "example": "Implementación de Module Federation con Webpack/Angular para cargar módulos remotos dinámicamente o uso de Web Components para compartir UI entre aplicaciones."
+        }
+      ]
+    },
+    {
+      "id": "cat-integration-perf",
+      "title": "Integración, Rendimiento y Seguridad",
+      "questions": [
+        {
+          "id": "messaging-queues-brokers",
+          "question": "¿Qué experiencia tienes implementando comunicación asíncrona basada en eventos usando Brokers?",
+          "type": "scale",
+          "scaleMax": 5,
+          "example": "Configuración de productores/consumidores en Kafka o RabbitMQ con Spring Cloud Stream, manejando dlq (dead-letter queues) y garantizando la entrega de mensajes."
+        },
+        {
+          "id": "performance-profiling",
+          "question": "¿Has realizado análisis de profiling y optimización de rendimiento tanto en la JVM como en el navegador?",
+          "type": "scale",
+          "scaleMax": 5,
+          "example": "Uso de JProfiler/VisualVM para detectar memory leaks en Java y Chrome DevTools para analizar el 'Main Thread blocking' y optimizar el bundle size de Angular."
+        },
+        {
+          "id": "offline-online-sync",
+          "question": "¿Qué experiencia tienes manejando estados de conectividad y sincronización de datos en el frontend?",
+          "type": "scale",
+          "scaleMax": 5,
+          "example": "Uso de Service Workers y IndexedDB para funcionalidad PWA, implementando estrategias de 'Background Sync' cuando la red se recupera."
+        },
+        {
+          "id": "gateway-security-policies",
+          "question": "¿Qué tan familiarizado estás con la seguridad a nivel de Gateway y orquestación de APIs?",
+          "type": "scale",
+          "scaleMax": 5,
+          "example": "Configuración de Spring Cloud Gateway con filtros de seguridad, Rate Limiting y validación de tokens JWT antes de enrutar al microservicio."
+        },
+        {
+          "id": "client-security-hardening",
+          "question": "¿Cómo evalúas tu capacidad para asegurar aplicaciones cliente contra vulnerabilidades web comunes?",
+          "type": "scale",
+          "scaleMax": 5,
+          "example": "Implementación estricta de Content Security Policy (CSP), uso de Interceptors Http para manejo seguro de tokens (XSRF) y sanitización de DOM (DomSanitizer)."
+        }
+      ]
+    },
+    {
+      "id": "cat-quality",
+      "title": "Calidad de Código y Testing",
+      "questions": [
+        {
+          "id": "clean-code-solid",
+          "question": "¿Qué tanto aplicas los principios SOLID y Clean Code en tu día a día, tanto en Java como en TypeScript?",
+          "type": "scale",
+          "scaleMax": 5,
+          "example": "Refactorización de clases monolíticas aplicando el Principio de Responsabilidad Única y uso de Inyección de Dependencias para facilitar el testeo."
+        },
+        {
+          "id": "unit-testing-mocking",
+          "question": "¿Qué nivel de experiencia tienes escribiendo pruebas unitarias robustas y aisladas?",
+          "type": "scale",
+          "scaleMax": 5,
+          "example": "Uso avanzado de JUnit 5 y Mockito para servicios Java; Jasmine/Karma o Jest para componentes Angular, simulando dependencias con Spies y Mocks."
+        }
+      ]
+    },
+    {
+      "id": "cat-soft-skills",
+      "title": "Habilidades Blandas y Liderazgo",
+      "questions": [
+        {
+          "id": "technical-storytelling",
+          "question": "¿Qué tan efectivo eres comunicando decisiones técnicas complejas a audiencias variadas?",
+          "type": "scale",
+          "scaleMax": 5,
+          "example": "Explicar la necesidad de refactorizar un monolito a microservicios a un Product Owner utilizando metáforas de negocio y enfocándose en el ROI."
+        },
+        {
+          "id": "ownership-accountability",
+          "question": "¿Cómo calificas tu sentido de propiedad sobre los productos que desarrollas?",
+          "type": "scale",
+          "scaleMax": 5,
+          "example": "Hacerse cargo de un incidente en producción de principio a fin, coordinando la solución y liderando el post-mortem para evitar recurrencia."
+        },
+        {
+          "id": "consensus-building-non-tech",
+          "question": "¿Qué experiencia tienes facilitando acuerdos con equipos no técnicos?",
+          "type": "scale",
+          "scaleMax": 5,
+          "example": "Negociar el alcance de un MVP con el equipo de negocio para cumplir con una fecha límite sin sacrificar la calidad técnica crítica."
+        },
+        {
+          "id": "time-focus-management",
+          "question": "¿Qué tan bien gestionas tu tiempo y el 'Deep Work' en un entorno ágil?",
+          "type": "scale",
+          "scaleMax": 5,
+          "example": "Bloqueo de agenda para tareas complejas de arquitectura y agrupación de reuniones operativas para minimizar el cambio de contexto."
+        }
+      ]
+    }
+  ]
+}

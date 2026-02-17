@@ -16,6 +16,7 @@ const configSchema = z.object({
     SMTP_USER: z.string().optional(),
     SMTP_PASS: z.string().optional(),
     OPENAI_API_KEY: z.string().optional(),
+    DEFAULT_RECRUITER_EMAIL: z.string().default('raul.alzate@sofka.com.co'),
 });
 
 const result = configSchema.safeParse(process.env);

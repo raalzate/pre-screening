@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import { db, initDb } from '@/lib/db';
 import { sendCandidateWelcomeEmail } from "@/lib/email";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import { config } from "@/lib/config";
 
 /*
 curl -X POST http://localhost:3000/api/user \
@@ -17,15 +20,19 @@ export async function POST(request: Request) {
       return NextResponse.json({ message: "Missing fields" }, { status: 400 });
     }
 
+    const session = await getServerSession(authOptions);
+    const createdBy = (session?.user as any)?.email || config.DEFAULT_RECRUITER_EMAIL;
+
     await db.execute(`
-      INSERT INTO users (name, email, code, requirements, step, form_id)
-      VALUES (?, ?, ?, ?, ?, ?)
+      INSERT INTO users (name, email, code, requirements, step, form_id, created_by)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
       ON CONFLICT(code, requirements) DO UPDATE SET
         name=excluded.name,
         email=excluded.email,
         step=excluded.step,
-        form_id=excluded.form_id
-    `, [name, email, code, requirements, step, form_id]);
+        form_id=excluded.form_id,
+        created_by=excluded.created_by
+    `, [name, email, code, requirements, step, form_id, createdBy]);
 
     // Send email to candidate
     if (email) {

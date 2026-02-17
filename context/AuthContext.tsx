@@ -23,6 +23,7 @@ interface User {
   technical_level: string;
   interviewer_name: string;
   form_id: string;
+  retry_count?: number;
 }
 
 export interface AuthContextType {

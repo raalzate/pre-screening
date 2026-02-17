@@ -15,6 +15,7 @@ export interface User {
     interviewer_name?: string;
     reminder_count?: number;
     last_reminder_at?: string;
+    retry_count?: number;
 }
 
 export interface GroupedCandidate {

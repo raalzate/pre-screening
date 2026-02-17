@@ -9,7 +9,8 @@ import path from "path";
 import { db } from "@/lib/db";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { sendEvaluationCompleteEmail, sendRejectionEmail } from "@/lib/email";
+import { sendEvaluationCompleteEmail, sendRejectionEmail, sendRecruiterNotification } from "@/lib/email";
+import { config } from "@/lib/config";
 
 export async function POST(req: Request) {
   try {
@@ -51,13 +52,22 @@ export async function POST(req: Request) {
 
             // Enviar correo de rechazo
             try {
-              const userStmt = await db.execute("SELECT name, email FROM users WHERE code = ? AND requirements = ?", [userCode, requirements]);
+              const userStmt = await db.execute("SELECT name, email, created_by FROM users WHERE code = ? AND requirements = ?", [userCode, requirements]);
               const user = userStmt.rows[0];
               if (user && user.email) {
                 await sendRejectionEmail(user.name as string, user.email as string);
+
+                // Notify Recruiter
+                const recruiterEmail = (user.created_by as string) || config.DEFAULT_RECRUITER_EMAIL;
+                await sendRecruiterNotification(
+                  recruiterEmail,
+                  user.name as string,
+                  'REJECTION',
+                  `El candidato no cumplió con los requerimientos técnicos para ${requirements}.`
+                );
               }
             } catch (emailErr) {
-              console.error("❌ Error enviando correo de rechazo:", emailErr);
+              console.error("❌ Error enviando correos de rechazo/notificación:", emailErr);
             }
             return;
           }

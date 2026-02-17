@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { challengeGenerator } from "@/lib/ia/challengeGenerator";
-import { db } from '@/lib/db';
+import { db, createAdminNotification } from '@/lib/db';
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 
@@ -29,6 +29,24 @@ export async function POST(req: Request) {
                 SET challenge_result = ?, step = ?
                 WHERE code = ? AND requirements = ?
             `, [JSON.stringify(challenge), "interview", userCode, requirements]);
+
+    // Registrar notificación para el administrador
+    try {
+      const userResult = await db.execute({
+        sql: "SELECT name FROM users WHERE code = ?",
+        args: [userCode]
+      });
+      const userName = userResult.rows[0]?.name as string;
+
+      await createAdminNotification({
+        type: 'INTERVIEW_READY',
+        candidateName: userName,
+        candidateCode: userCode,
+        message: `El candidato ${userName} ha pasado a la etapa de entrevista`
+      });
+    } catch (notifErr) {
+      console.error("❌ Error creando notificación de entrevista:", notifErr);
+    }
   }
 
   return NextResponse.json(challenge);

@@ -5,6 +5,7 @@ import { useState, useMemo } from "react";
 import ResultChart from "./ResultChart";
 import { useAuth } from "@/context/AuthContext";
 import createApiClient from "@/lib/apiClient";
+import RetryButton from "./evaluation/RetryButton";
 
 function DynamicForm({
   form,
@@ -80,6 +81,9 @@ function DynamicForm({
               >
                 Cerrar Sesión
               </button>
+              <div className="pt-2">
+                <RetryButton retryCount={auth.user?.retry_count || 0} />
+              </div>
             </div>
           </div>
         </div>

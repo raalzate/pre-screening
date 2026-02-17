@@ -110,7 +110,9 @@ export async function initDb() {
     { name: "technical_level", type: "TEXT NULL" },
     { name: "interviewer_name", type: "TEXT NULL" },
     { name: "reminder_count", type: "INTEGER DEFAULT 0" },
-    { name: "last_reminder_at", type: "TEXT NULL" }
+    { name: "last_reminder_at", type: "TEXT NULL" },
+    { name: "retry_count", type: "INTEGER DEFAULT 0" },
+    { name: "created_by", type: "TEXT NULL" }
   ];
 
   const tables = ["users", "history_candidates"];
@@ -213,7 +215,7 @@ export async function getHistoryCandidates() {
 }
 
 export async function restoreCandidate(code: string) {
-  const columns = "name, email, code, requirements, step, form_id, evaluation_result, questions, certification_result, challenge_result, interview_feedback, interview_status, technical_level, interviewer_name";
+  const columns = "name, email, code, requirements, step, form_id, evaluation_result, questions, certification_result, challenge_result, interview_feedback, interview_status, technical_level, interviewer_name, created_by";
 
   return await db.batch([
     {
@@ -228,12 +230,12 @@ export async function restoreCandidate(code: string) {
 }
 
 export async function withdrawCandidate(code: string) {
-  const columns = "name, email, code, requirements, step, form_id, evaluation_result, questions, certification_result, challenge_result, interview_feedback, interview_status, technical_level, interviewer_name";
+  const columns = "name, email, code, requirements, step, form_id, evaluation_result, questions, certification_result, challenge_result, interview_feedback, interview_status, technical_level, interviewer_name, created_by";
 
   return await db.batch([
     {
       sql: `INSERT INTO history_candidates (${columns}, moved_at) 
-            SELECT name, email, code, requirements, 'feedback', form_id, evaluation_result, questions, certification_result, challenge_result, interview_feedback, 'withdrawn', technical_level, interviewer_name, CURRENT_TIMESTAMP 
+            SELECT name, email, code, requirements, 'feedback', form_id, evaluation_result, questions, certification_result, challenge_result, interview_feedback, 'withdrawn', technical_level, interviewer_name, created_by, CURRENT_TIMESTAMP 
             FROM users WHERE code = ?`,
       args: [code]
     },
@@ -243,4 +245,15 @@ export async function withdrawCandidate(code: string) {
     }
   ], "write");
 }
-
+export async function deleteCandidatePermanently(code: string, requirements: string) {
+  return await db.batch([
+    {
+      sql: "DELETE FROM users WHERE code = ? AND requirements = ?",
+      args: [code, requirements]
+    },
+    {
+      sql: "DELETE FROM history_candidates WHERE code = ? AND requirements = ?",
+      args: [code, requirements]
+    }
+  ], "write");
+}

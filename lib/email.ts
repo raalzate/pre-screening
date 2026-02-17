@@ -183,6 +183,42 @@ export async function sendRejectionEmail(name: string, email: string) {
   });
 }
 
+export async function sendRecruiterNotification(
+  recruiterEmail: string,
+  candidateName: string,
+  eventType: 'REJECTION' | 'RETRY',
+  details: string
+) {
+  const title = eventType === 'REJECTION'
+    ? 'Candidato Rechazado por el Sistema'
+    : 'Candidato ha Iniciado un Reintento';
+
+  const subject = eventType === 'REJECTION'
+    ? `Notificación: Candidato ${candidateName} Rechazado`
+    : `Notificación: Candidato ${candidateName} ha solicitado un Reintento`;
+
+  const body = `
+    <p>Hola,</p>
+    <p>Te informamos sobre una actualización del candidato <strong>${candidateName}</strong>:</p>
+    <div style="background-color: #f1f5f9; padding: 15px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #0ea5e9;">
+      <p style="margin: 0;"><strong>Evento:</strong> ${eventType === 'REJECTION' ? 'Rechazo Automático' : 'Nuevo Intento de Evaluación'}</p>
+      <p style="margin: 5px 0 0 0;"><strong>Detalles:</strong> ${details}</p>
+    </div>
+    <p>Por favor, ten esto en cuenta para la gestión del proceso y la agenda de entrevistas.</p>
+  `;
+
+  const html = getSofkaTemplate(title, body, "#", "Ver Panel Admin");
+
+  if (!process.env.SMTP_USER) return;
+
+  await transporter.sendMail({
+    from: `"Sistema de Alertas Sofka" <${process.env.SMTP_USER}>`,
+    to: recruiterEmail,
+    subject: subject,
+    html,
+  });
+}
+
 export async function sendCandidateReminderEmail(name: string, email: string, code: string) {
   const loginUrl = `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/login?code=${code}`;
 
@@ -204,6 +240,28 @@ export async function sendCandidateReminderEmail(name: string, email: string, co
     from: `"Talento Sofka" <${process.env.SMTP_USER}>`,
     to: email,
     subject: 'Recordatorio: Tu proceso de selección en Sofka te espera',
+    html,
+  });
+}
+
+export async function sendCandidateDeletionEmail(name: string, email: string, reason: string) {
+  const title = `Actualización de tu proceso de selección`;
+  const body = `
+    <p>Hola, ${name}.</p>
+    <p>Te escribimos para informarte que hemos realizado una actualización en nuestro sistema de reclutamiento y tu perfil ha sido retirado del proceso actual.</p>
+    <p><strong>Motivo de la actualización:</strong> ${reason}</p>
+    <p>Agradecemos profundamente el interés que has mostrado en formar parte de Sofka y el tiempo dedicado a las evaluaciones.</p>
+    <p>Te deseamos mucho éxito en tus futuros proyectos profesionales.</p>
+  `;
+
+  const html = getSofkaTemplate(title, body, "#", "Ver otras vacantes");
+
+  if (!process.env.SMTP_USER) return;
+
+  await transporter.sendMail({
+    from: `"Talento Sofka" <${process.env.SMTP_USER}>`,
+    to: email,
+    subject: 'Actualización sobre tu proceso de selección - Sofka',
     html,
   });
 }

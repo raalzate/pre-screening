@@ -16,6 +16,7 @@ import { useRouter } from "next/navigation";
 import AdminFormsView from "@/components/admin/AdminFormsView";
 import FormPreview from "@/components/admin/FormPreview";
 import { groupCandidatesByCode, GroupedCandidate, User as AdminUser, isCandidateRejected } from "@/lib/adminUtils";
+import { DeleteCandidateDialog } from "../../(protected)/admin/candidates/components/DeleteCandidateDialog";
 
 // --- 1. CONSTANTS & TYPES ---
 
@@ -714,6 +715,9 @@ export default function App() {
                           <InfoRow label="Código" value={userData.code} copyable />
                           <InfoRow label="Requisito" value={<Badge>{userData.requirements}</Badge>} />
                           <InfoRow label="Etapa" value={userData.step} />
+                          {userData.retry_count !== undefined && (
+                            <InfoRow label="Reintentos" value={userData.retry_count} />
+                          )}
                           <InfoRow label="Recordatorios" value={userData.reminder_count || 0} />
                           {userData.last_reminder_at && (
                             <InfoRow label="Último Envío" value={new Date(userData.last_reminder_at).toLocaleString()} />
@@ -765,14 +769,10 @@ export default function App() {
 
                           <button
                             onClick={() => setIsDeleteModalOpen(true)}
-                            disabled={(userData.reminder_count || 0) < 3}
-                            className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-red-50 text-red-600 border border-red-200 rounded-xl font-bold hover:bg-red-100 transition shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-red-50 text-red-600 border border-red-200 rounded-xl font-bold hover:bg-red-100 transition shadow-sm active:scale-95"
                           >
                             <Icons.Trash className="w-5 h-5" /> Eliminar Candidato
                           </button>
-                          <p className="text-[10px] text-gray-400 text-center italic">
-                            * Eliminación permitida solo tras 3 recordatorios.
-                          </p>
                         </div>
                       </Card>
                     </div>
@@ -826,52 +826,41 @@ export default function App() {
         )}
       </div>
 
-      {/* --- ADD CANDIDATE MODAL --- */}
       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Crear Nuevo Candidato">
         <CreateUserForm onClose={() => setIsModalOpen(false)} />
       </Modal>
 
-      <Modal isOpen={isDeleteModalOpen} onClose={() => setIsDeleteModalOpen(false)} title="Confirmar Eliminación">
-        {userData && (
-          <div className="space-y-4">
-            <div className="p-4 bg-red-50 rounded-lg border border-red-100 flex items-start gap-3">
-              <Icons.X className="w-6 h-6 text-red-500 shrink-0 mt-0.5" />
-              <div>
-                <p className="font-bold text-red-800">Esta acción es irreversible</p>
-                <p className="text-sm text-red-700">El candidato <strong>{userData.name}</strong> ({userData.code}) será eliminado permanentemente de la base de datos.</p>
-              </div>
-            </div>
-            <div className="flex gap-3 justify-end pt-4">
-              <button
-                onClick={() => setIsDeleteModalOpen(false)}
-                className="px-4 py-2 text-gray-600 font-medium hover:bg-gray-100 rounded-lg transition"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={async () => {
-                  setIsDeleting(true);
-                  try {
-                    const res = await fetch(`/api/admin/candidates/${userData.code}`, { method: "DELETE" });
-                    if (!res.ok) throw new Error(await res.text());
-                    alert("Candidato eliminado con éxito");
-                    window.location.reload();
-                  } catch (e: any) {
-                    alert("Error al eliminar: " + e.message);
-                  } finally {
-                    setIsDeleting(false);
-                    setIsDeleteModalOpen(false);
-                  }
-                }}
-                disabled={isDeleting}
-                className="px-6 py-2 bg-red-600 text-white font-bold rounded-lg hover:bg-red-700 transition flex items-center gap-2"
-              >
-                {isDeleting ? <Spinner /> : "Sí, Eliminar Permanentemente"}
-              </button>
-            </div>
-          </div>
-        )}
-      </Modal>
+      <DeleteCandidateDialog
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        candidateName={userData?.name || ""}
+        isDeleting={isDeleting}
+        onConfirm={async (reason: string, customReason?: string) => {
+          setIsDeleting(true);
+          try {
+            const res = await fetch("/api/admin/candidates/delete", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                candidateCode: userData?.code,
+                requirements: userData?.requirements,
+                reason,
+                customReason
+              }),
+            });
+
+            if (!res.ok) throw new Error(await res.text());
+
+            alert("Candidato eliminado y notificado exitosamente.");
+            window.location.reload();
+          } catch (e: any) {
+            alert("Error al eliminar candidato: " + e.message);
+          } finally {
+            setIsDeleting(false);
+            setIsDeleteModalOpen(false);
+          }
+        }}
+      />
     </div>
   );
 };

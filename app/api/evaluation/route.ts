@@ -2,6 +2,7 @@
 
 import { compareAnswers } from "@/lib/comparator";
 import { evaluationGenerator, EvaluationInput } from "@/lib/ia/evaluationGenerator";
+import { rejectionFeedbackGenerator } from "@/lib/ia/rejectionFeedbackGenerator";
 import { NextResponse } from "next/server";
 import { waitUntil } from "@vercel/functions";
 import fs from "fs/promises";
@@ -40,15 +41,32 @@ export async function POST(req: Request) {
           if (!comparisonResult.valid) {
             // Caso de rechazo automático
             const name = (session.user as any).name || "Candidato";
-            const feedback = `Hola ${name},\n\nAgradecemos tu interés en Sofka. Tras evaluar tu pre-screening técnico, hemos identificado que en este momento existe una brecha significativa respecto a los requerimientos del rol.\n\nPor el momento no continuaremos con tu proceso, pero te invitamos a seguir fortaleciendo tu perfil para futuras oportunidades.`;
+
+            let feedback = `Hola ${name},\n\nAgradecemos tu interés en Sofka. Tras evaluar tu pre-screening técnico, hemos identificado que en este momento existe una brecha significativa respecto a los requerimientos del rol.\n\nPor el momento no continuaremos con tu proceso, pero te invitamos a seguir fortalecer tu perfil para futuras oportunidades.`;
+            let mentoringStatus = 'fallback';
+
+            try {
+              const aiFeedback = await rejectionFeedbackGenerator.generate({
+                opportunityTitle: clientConfig.title,
+                requirementsDescription: clientConfig.description,
+                gaps: comparisonResult.gaps,
+                candidateName: name
+              });
+              feedback = aiFeedback.feedback;
+              mentoringStatus = 'success';
+            } catch (aiErr) {
+              console.error("❌ Error generando feedback de IA (usando fallback):", aiErr);
+            }
+
+            const rejectedResult = { ...result, mentoringStatus };
 
             await db.execute(
               `UPDATE users
                SET evaluation_result = ?, step = ?, interview_status = ?, interview_feedback = ?, interviewer_name = ?
                WHERE code = ? AND requirements = ?`,
-              [JSON.stringify(result), 'feedback', 'no_pasa', feedback, 'IA Assistant', userCode, requirements]
+              [JSON.stringify(rejectedResult), 'feedback', 'no_pasa', feedback, 'IA Assistant', userCode, requirements]
             );
-            console.log("❌ Candidato rechazado automáticamente por falta de cobertura:", userCode, requirements);
+            console.log("❌ Candidato rechazado automáticamente con feedback de IA:", userCode, requirements);
 
             // Enviar correo de rechazo
             try {

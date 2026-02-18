@@ -17,6 +17,7 @@ Auto-generated from all feature plans. Last updated: 2026-01-22
 - TypeScript / Next.js 15 (App Router) + `@libsql/client` (Turso), `next-auth`, `nodemailer`, `genkit` (for potential email content) (018-secure-candidate-deletion)
 - TypeScript / Next.js 15 (App Router) + `@libsql/client` (Turso), `zod`, `next-auth` (019-candidate-retry-system)
 - Turso (SQLite/LibSQL) (021-admin-interview-notification)
+- TypeScript / Next.js 15 (App Router) + `@genkit-ai/googleai`, `genkit`, `zod`, `@libsql/client` (Turso) (022-ai-rejection-feedback)
 
 - TypeScript / Next.js (App Router) + React, Tailwind CSS (for UI) (001-admin-tech-tab-visibility)
 
@@ -36,9 +37,9 @@ npm test && npm run lint
 TypeScript / Next.js (App Router): Follow standard conventions
 
 ## Recent Changes
+- 022-ai-rejection-feedback: Added TypeScript / Next.js 15 (App Router) + `@genkit-ai/googleai`, `genkit`, `zod`, `@libsql/client` (Turso)
+- 022-ai-rejection-feedback: Added [if applicable, e.g., PostgreSQL, CoreData, files or N/A]
 - 021-admin-interview-notification: Added TypeScript / Next.js 15 (App Router) + `@libsql/client` (Turso), `next-auth`
-- 019-candidate-retry-system: Added TypeScript / Next.js 15 (App Router) + `@libsql/client` (Turso), `zod`, `next-auth`
-- 018-secure-candidate-deletion: Added TypeScript / Next.js 15 (App Router) + `@libsql/client` (Turso), `next-auth`, `nodemailer`, `genkit` (for potential email content)
 
 
 <!-- MANUAL ADDITIONS START -->

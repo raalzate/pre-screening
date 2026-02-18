@@ -7,6 +7,7 @@ import createApiClient from '@/lib/apiClient';
 import { toast } from 'react-hot-toast';
 import { createPortal } from 'react-dom';
 import RetryButton from '@/components/evaluation/RetryButton';
+import ReactMarkdown from 'react-markdown';
 
 const Icons = {
   X: (props: any) => <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>,
@@ -157,9 +158,13 @@ export default function Home() {
                   Feedback Detallado
                 </h3>
                 <div className="bg-indigo-50 border-l-4 border-indigo-400 p-6 rounded-r-xl">
-                  <p className="text-gray-700 leading-relaxed whitespace-pre-wrap italic font-medium">
-                    &quot;{auth.user.interview_feedback || 'Tu entrevista está siendo procesada. Vuelve pronto para ver el feedback.'}&quot;
-                  </p>
+                  <div className="text-gray-700 leading-relaxed whitespace-pre-wrap prose prose-sm max-w-none">
+                    {auth.user.interview_feedback ? (
+                      <ReactMarkdown>{auth.user.interview_feedback}</ReactMarkdown>
+                    ) : (
+                      <p className="italic font-medium">Tu entrevista está siendo procesada. Vuelve pronto para ver el feedback.</p>
+                    )}
+                  </div>
                 </div>
               </div>
 
@@ -173,12 +178,6 @@ export default function Home() {
                     className="px-6 py-2 text-red-600 border border-red-200 rounded-lg font-bold hover:bg-red-50 transition-all shadow-sm active:scale-95"
                   >
                     Darse de Baja
-                  </button>
-                  <button
-                    onClick={() => auth.logout()}
-                    className="flex items-center gap-2 px-6 py-2 bg-gray-800 text-white rounded-lg font-bold hover:bg-black transition-all shadow-md active:scale-95"
-                  >
-                    Cerrar Sesión
                   </button>
                   <div className="sm:w-auto w-full">
                     <RetryButton retryCount={auth.user?.retry_count || 0} />

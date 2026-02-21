@@ -15,8 +15,16 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import AdminFormsView from "@/components/admin/AdminFormsView";
 import FormPreview from "@/components/admin/FormPreview";
+import { toast } from "react-hot-toast";
 import { groupCandidatesByCode, GroupedCandidate, User as AdminUser, isCandidateRejected } from "@/lib/adminUtils";
 import { DeleteCandidateDialog } from "../../(protected)/admin/candidates/components/DeleteCandidateDialog";
+
+// UI Components
+import Button from "@/components/ui/Button";
+import Card from "@/components/ui/Card";
+import Badge from "@/components/ui/Badge";
+import Modal from "@/components/ui/Modal";
+import Input from "@/components/ui/Input";
 
 // --- 1. CONSTANTS & TYPES ---
 
@@ -179,69 +187,25 @@ const Icons = {
   Plus: (props: any) => <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>,
   Bell: (props: any) => <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"></path><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"></path></svg>,
   Trash: (props: any) => <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path></svg>,
+  Trophy: (props: any) => <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" /><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18" /><path d="M4 22h16" /><path d="M10 14.66V17" /><path d="M14 14.66V17" /><path d="M18 2h-6c-2.76 0-5 2.24-5 5v7c0 2.76 2.24 5 5 5h6c2.76 0 5-2.24 5-5V7c0-2.76-2.24-5-5-5z" /></svg>,
 };
 
 const Spinner = ({ size = "sm" }: { size?: "sm" | "md" }) => (
-  <div className={`animate-spin rounded-full border-2 border-current border-t-transparent ${size === "sm" ? "h-4 w-4" : "h-6 w-6"}`} />
+  <div className={`animate-spin rounded-full border-2 border-sofka-light-blue/30 border-t-sofka-light-blue ${size === "sm" ? "h-4 w-4" : "h-6 w-6"}`} />
 );
-
-const Badge: FC<{ children: ReactNode; variant?: "success" | "danger" | "warning" | "neutral" }> = ({ children, variant = "neutral" }) => {
-  const colors = {
-    success: "bg-green-100 text-green-800",
-    danger: "bg-red-100 text-red-800",
-    warning: "bg-yellow-100 text-yellow-800",
-    neutral: "bg-gray-100 text-gray-800",
-  };
-  return (
-    <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${colors[variant]}`}>
-      {children}
-    </span>
-  );
-};
-
-const Card: FC<{ children: ReactNode; className?: string; title?: ReactNode; icon?: ReactNode; action?: ReactNode }> = ({ children, className = "", title, icon, action }) => (
-  <div className={`bg-white shadow-sm rounded-xl border border-gray-200 overflow-hidden ${className}`}>
-    {(title || icon) && (
-      <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
-        <div className="flex items-center gap-3">
-          {icon && <span className="text-gray-500">{icon}</span>}
-          {title && <h3 className="font-bold text-gray-800 text-lg">{title}</h3>}
-        </div>
-        {action && <div>{action}</div>}
-      </div>
-    )}
-    <div className="p-6">{children}</div>
-  </div>
-);
-
-const Modal: FC<{ isOpen: boolean; onClose: () => void; children: ReactNode; title: string }> = ({ isOpen, onClose, children, title }) => {
-  if (!isOpen) return null;
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
-      <div className="absolute inset-0 bg-gray-900/60 backdrop-blur-sm transition-opacity" onClick={onClose} />
-      <div className="relative bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-        <header className="flex justify-between items-center px-6 py-4 border-b border-gray-100 bg-gray-50">
-          <h2 className="text-xl font-bold text-gray-800">{title}</h2>
-          <button onClick={onClose} className="p-1 hover:bg-gray-200 rounded-full transition"><Icons.X className="w-5 h-5 text-gray-500" /></button>
-        </header>
-        <div className="p-6 overflow-y-auto">{children}</div>
-      </div>
-    </div>
-  );
-};
 
 const Tabs: FC<{ tabs: { id: string; label: string; icon?: ReactNode }[]; activeTab: string; onChange: (id: string) => void }> = ({ tabs, activeTab, onChange }) => (
-  <div className="flex gap-2 border-b border-gray-200 mb-6 overflow-x-auto pb-1">
+  <div className="flex gap-2 border-b border-gray-100 mb-8 overflow-x-auto pb-0">
     {tabs.map((tab) => (
       <button
         key={tab.id}
         onClick={() => onChange(tab.id)}
-        className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-t-lg border-b-2 transition-colors whitespace-nowrap ${activeTab === tab.id
-          ? "border-blue-600 text-blue-700 bg-blue-50/50"
-          : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+        className={`flex items-center gap-2 px-6 py-3 text-sm font-extrabold transition-all duration-300 whitespace-nowrap border-b-2 -mb-[2px] ${activeTab === tab.id
+          ? "border-sofka-light-blue text-sofka-blue bg-sofka-light-blue/5"
+          : "border-transparent text-gray-500 hover:text-sofka-light-blue hover:bg-gray-50"
           }`}
       >
-        {tab.icon}
+        {tab.icon && <span className={activeTab === tab.id ? "text-sofka-light-blue" : "text-gray-400"}>{tab.icon}</span>}
         {tab.label}
       </button>
     ))}
@@ -266,7 +230,7 @@ const InfoRow: FC<{ label: string; value: ReactNode; copyable?: boolean }> = ({ 
       <dd className="text-sm font-semibold text-gray-900 flex items-center gap-2">
         {value}
         {copyable && typeof value === 'string' && (
-          <button onClick={handleCopy} className="text-gray-400 hover:text-blue-600 transition" title="Copiar">
+          <button onClick={handleCopy} className="text-gray-400 hover:text-sofka-blue transition" title="Copiar">
             {copied ? <Icons.Check className="w-4 h-4 text-green-500" /> : <Icons.Copy className="w-4 h-4" />}
           </button>
         )}
@@ -276,30 +240,30 @@ const InfoRow: FC<{ label: string; value: ReactNode; copyable?: boolean }> = ({ 
 };
 
 const CandidateHeader: FC<{ user: UserData }> = ({ user }) => (
-  <div className="top-0 z-30  m-4 shadow-sm flex flex-col md:flex-row justify-between items-center gap-4">
+  <div className="top-0 z-30 m-4 flex flex-col md:flex-row justify-between items-center gap-4">
     <div className="flex items-center gap-4">
-      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold text-xl shadow-lg">
+      <div className="w-14 h-14 rounded-2xl bg-sofka-blue flex items-center justify-center text-white font-bold text-2xl shadow-md">
         {user.name.charAt(0)}
       </div>
       <div>
-        <h1 className="text-xl font-bold text-gray-900">{user.name}</h1>
-        <div className="flex items-center gap-2 text-sm text-gray-500">
-          <Icons.Target className="w-4 h-4" />
-          {user.requirements}
+        <h1 className="text-xl font-extrabold text-sofka-blue">{user.name}</h1>
+        <div className="flex items-center gap-2 text-sm text-gray-500 mt-1">
+          <Icons.Target className="w-4 h-4 text-sofka-orange" />
+          <span className="font-semibold">{user.requirements}</span>
           <span className="text-gray-300">|</span>
-          <span className="font-mono bg-gray-100 px-2 py-0.5 rounded text-xs">{user.code}</span>
+          <Badge variant="neutral" className="font-mono text-[10px]">{user.code}</Badge>
         </div>
       </div>
     </div>
     <div className="flex gap-3">
-      <a
-        href={`/login?code=${user.code}`}
-        target="_blank"
-        rel="noreferrer"
-        className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition"
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => window.open(`/login?code=${user.code}`, '_blank')}
+        className="gap-2"
       >
         <Icons.ExternalLink className="w-4 h-4" /> Link Candidato
-      </a>
+      </Button>
     </div>
   </div>
 );
@@ -418,7 +382,7 @@ export default function App() {
       window.location.reload(); // Simplest way to ensure everything is in sync
     } catch (err) {
       console.error(err);
-      alert("Error al restaurar el candidato");
+      toast.error("Error al restaurar el candidato");
     } finally {
       setRestoring(false);
     }
@@ -463,170 +427,194 @@ export default function App() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
         {/* --- VIEW TOGGLE --- */}
-        <div className="flex bg-white p-1 rounded-xl shadow-sm border border-gray-200 mb-8 w-fit">
-          <button
+        <div className="flex bg-white p-1.5 rounded-xl shadow-sm border border-gray-200 mb-8 w-fit gap-1">
+          <Button
+            variant={view === "candidates" ? "primary" : "ghost"}
+            size="sm"
             onClick={() => {
               setView("candidates");
               setSelectedFormId(null);
               setSelectedCode("");
               setData(null);
             }}
-            className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${view === "candidates" ? "bg-blue-600 text-white shadow-md" : "text-gray-500 hover:text-blue-600"}`}
+            className="px-6 font-bold"
           >
             Candidatos
-          </button>
-          <button
+          </Button>
+          <Button
+            variant={view === "history" ? "primary" : "ghost"}
+            size="sm"
             onClick={() => {
               setView("history");
               setSelectedFormId(null);
               setSelectedCode("");
               setData(null);
             }}
-            className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${view === "history" ? "bg-blue-600 text-white shadow-md" : "text-gray-500 hover:text-blue-600"}`}
+            className="px-6 font-bold"
           >
             Historial
-          </button>
-          <button
+          </Button>
+          <Button
+            variant={view === "forms" ? "primary" : "ghost"}
+            size="sm"
             onClick={() => {
               setView("forms");
               setSelectedFormId(null);
               setSelectedCode("");
               setData(null);
             }}
-            className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${view === "forms" ? "bg-blue-600 text-white shadow-md" : "text-gray-500 hover:text-blue-600"}`}
+            className="px-6 font-bold"
           >
             Formularios
-          </button>
+          </Button>
+
         </div>
 
         {/* --- STATUS FILTER --- */}
         {view === "candidates" && (
           <div className="flex gap-4 mb-6 overflow-x-auto pb-2">
             {[
-              { id: "all", label: "Todos", count: statusCounts.all, color: "bg-gray-100 text-gray-700" },
-              { id: "in-progress", label: "En Proceso", count: statusCounts.inProgress, color: "bg-blue-100 text-blue-700" },
-              { id: "rejected", label: "Rechazados", count: statusCounts.rejected, color: "bg-red-100 text-red-700" },
+              { id: "all", label: "Todos", count: statusCounts.all, variant: "neutral" as const },
+              { id: "in-progress", label: "En Proceso", count: statusCounts.inProgress, variant: "primary" as const },
+              { id: "rejected", label: "Rechazados", count: statusCounts.rejected, variant: "danger" as const },
             ].map((filter) => (
-              <button
+              <Button
                 key={filter.id}
+                variant={statusFilter === filter.id ? "primary" : "outline"}
+                size="sm"
                 onClick={() => {
                   setStatusFilter(filter.id as CandidateStatusFilter);
                   if (filter.id === "in-progress") setStepFilter("technical");
                 }}
-                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all border-2 whitespace-nowrap ${statusFilter === filter.id
-                  ? "border-blue-600 ring-2 ring-blue-100 bg-white"
-                  : "border-transparent bg-white hover:border-gray-200 text-gray-500"
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl transition-all border-2 whitespace-nowrap ${statusFilter === filter.id ? "border-sofka-blue" : "border-gray-100"
                   }`}
               >
                 {filter.label}
-                <span className={`px-2 py-0.5 rounded-full text-[10px] ${filter.color}`}>
+                <Badge variant={filter.variant}>
                   {filter.count}
-                </span>
-              </button>
+                </Badge>
+              </Button>
             ))}
           </div>
         )}
 
         {/* --- STEP FILTER (TAGS) --- */}
         {view === "candidates" && statusFilter === "in-progress" && (
-          <div className="flex gap-2 mb-8 items-center bg-blue-50/50 p-3 rounded-2xl border border-blue-100/50 w-fit">
-            <span className="text-xs font-bold text-blue-600 px-2 uppercase tracking-wider">Etapa:</span>
+          <div className="flex gap-2 mb-8 items-center bg-sofka-gray/30 p-3 rounded-2xl border border-gray-100 w-fit">
+            <span className="text-xs font-bold text-sofka-blue px-2 uppercase tracking-wider">Etapa:</span>
             {[
               { id: "all", label: "Todos", count: statusCounts.inProgress },
               { id: "pre-screening", label: "Pre-Screening", count: statusCounts.steps["pre-screening"] },
               { id: "technical", label: "Validación Técnica", count: statusCounts.steps.technical },
               { id: "interview", label: "Entrevista", count: statusCounts.steps.interview },
             ].map((tag) => (
-              <button
+              <Button
                 key={tag.id}
+                variant={stepFilter === tag.id ? "primary" : "ghost"}
+                size="sm"
                 onClick={() => setStepFilter(tag.id as CandidateStepFilter)}
-                className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all flex items-center gap-2 ${stepFilter === tag.id
-                  ? "bg-blue-600 text-white shadow-sm scale-105"
-                  : "bg-white text-gray-500 border border-gray-200 hover:border-blue-400 hover:text-blue-600"
+                className={`px-4 py-1.5 rounded-full transition-all border ${stepFilter === tag.id ? 'border-sofka-blue border-transparent shadow-sm' : 'border-gray-200'
                   }`}
               >
                 {tag.label}
-                <span className={`opacity-70 ${stepFilter === tag.id ? "text-white" : "text-blue-600"}`}>
+                <Badge variant={stepFilter === tag.id ? "primary" : "neutral"} className="ml-2">
                   {tag.count}
-                </span>
-              </button>
+                </Badge>
+              </Button>
             ))}
           </div>
         )}
 
         {/* --- TOP BAR: SEARCH & ACTIONS --- */}
         {(view === "candidates" || view === "history") && (
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-4 mb-8 flex flex-col gap-4">
-            <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
-              <div className="flex-1 w-full flex flex-col md:flex-row gap-3">
-                <div className="relative flex-1">
-                  <Icons.Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
-                  <input
-                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition outline-none"
-                    placeholder="Filtrar candidatos..."
+          <Card className="mb-8" action={
+            view === "candidates" && (
+              <Button variant="secondary" size="sm" onClick={() => router.push("/admin/studio/requirements/new")} className="gap-2">
+                <Icons.Plus className="w-4 h-4" /> Nuevo Perfil
+              </Button>
+            )
+          }>
+            <div className="flex flex-col md:flex-row gap-4 items-end">
+              <div className="flex-1 w-full space-y-4 md:space-y-0 md:grid md:grid-cols-3 md:gap-4">
+                <div className="relative">
+                  <Icons.Search className="absolute left-3 top-[38px] text-gray-400 w-4 h-4 z-10" />
+                  <Input
+                    label="Buscador"
+                    placeholder="Nombre o código..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-10"
                   />
                 </div>
-                <select
-                  value={selectedCode}
-                  onChange={(e) => setSelectedCode(e.target.value)}
-                  className="flex-[2] py-2.5 px-4 rounded-xl border border-gray-200 bg-white focus:ring-2 focus:ring-blue-500 outline-none"
-                >
-                  <option value="">-- Seleccionar Candidato --</option>
-                  {filteredUsers.map((group, i) => (
-                    <option key={group.code + i} value={group.code} style={{ textTransform: 'uppercase' }}>
-                      {group.name.toUpperCase()} ({group.profiles.length} PERFILES)
-                    </option>
-                  ))}
-                </select>
-                <button
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-1">Candidato</label>
+                  <select
+                    value={selectedCode}
+                    onChange={(e) => setSelectedCode(e.target.value)}
+                    className="w-full py-2.5 px-4 rounded-xl border border-gray-200 bg-white focus:ring-2 focus:ring-sofka-light-blue outline-none text-sm transition-all"
+                  >
+                    <option value="">-- Seleccionar --</option>
+                    {filteredUsers.map((group, i) => (
+                      <option key={group.code + i} value={group.code} style={{ textTransform: 'uppercase' }}>
+                        {group.name.toUpperCase()} ({group.profiles.length})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <Button
                   onClick={handleSearch}
                   disabled={userLoading || !selectedCode}
-                  className="bg-blue-600 text-white px-6 py-2.5 rounded-xl font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition shadow-md hover:shadow-lg flex items-center justify-center gap-2"
+                  isLoading={userLoading}
+                  className="w-full h-[42px]"
                 >
-                  {userLoading ? <Spinner /> : "Consultar"}
-                </button>
+                  Consultar
+                </Button>
               </div>
-              {view === "candidates" && (
-                <button
-                  onClick={() => setIsModalOpen(true)}
-                  className="bg-teal-600 text-white px-5 py-2.5 rounded-xl font-bold hover:bg-teal-700 transition flex items-center gap-2 shadow-md hover:shadow-lg whitespace-nowrap w-full md:w-auto justify-center"
-                >
-                  <Icons.Plus className="w-5 h-5" /> Nuevo Candidato
-                </button>
-              )}
             </div>
+          </Card>
+        )}
 
-            {/* Advanced Filters (Date range for History) */}
-            {view === "history" && (
-              <div className="flex flex-col md:flex-row gap-4 items-end bg-gray-50 p-4 rounded-xl border border-gray-100">
-                <div className="flex-1 space-y-1 w-full">
-                  <label className="text-xs font-bold text-gray-500 uppercase px-1">Movido desde:</label>
-                  <input
-                    type="date"
-                    value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
-                    className="w-full py-2 px-3 rounded-lg border border-gray-200 bg-white focus:ring-2 focus:ring-blue-500 outline-none text-sm"
-                  />
-                </div>
-                <div className="flex-1 space-y-1 w-full">
-                  <label className="text-xs font-bold text-gray-500 uppercase px-1">Hasta:</label>
-                  <input
-                    type="date"
-                    value={endDate}
-                    onChange={(e) => setEndDate(e.target.value)}
-                    className="w-full py-2 px-3 rounded-lg border border-gray-200 bg-white focus:ring-2 focus:ring-blue-500 outline-none text-sm"
-                  />
-                </div>
-                <button
-                  onClick={() => { setStartDate(""); setEndDate(""); }}
-                  className="text-xs font-bold text-blue-600 hover:text-blue-800 transition py-2 px-2"
-                >
-                  Limpiar Fechas
-                </button>
-              </div>
-            )}
+        {view === "candidates" && (
+          <div className="mb-8 flex justify-end">
+            <Button
+              onClick={() => setIsModalOpen(true)}
+              variant="accent"
+              className="gap-2 shadow-md"
+            >
+              <Icons.Plus className="w-5 h-5" /> Nuevo Candidato
+            </Button>
+          </div>
+        )}
+
+        {/* Advanced Filters (Date range for History) */}
+        {view === "history" && (
+          <div className="flex flex-col md:flex-row gap-4 items-end bg-white p-4 rounded-xl border border-gray-100 mb-8">
+            <div className="flex-1 space-y-1 w-full">
+              <label className="text-xs font-bold text-gray-500 uppercase px-1">Movido desde:</label>
+              <input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="w-full py-2 px-3 rounded-lg border border-gray-200 bg-white focus:ring-2 focus:ring-sofka-light-blue outline-none text-sm"
+              />
+            </div>
+            <div className="flex-1 space-y-1 w-full">
+              <label className="text-xs font-bold text-gray-500 uppercase px-1">Hasta:</label>
+              <input
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                className="w-full py-2 px-3 rounded-lg border border-gray-200 bg-white focus:ring-2 focus:ring-sofka-light-blue outline-none text-sm"
+              />
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => { setStartDate(""); setEndDate(""); }}
+              className="text-sofka-blue font-bold"
+            >
+              Limpiar Fechas
+            </Button>
           </div>
         )}
 
@@ -657,41 +645,42 @@ export default function App() {
 
                 {/* --- PROFILE TABS (if multiple profiles) --- */}
                 {selectedGroupedCandidate && selectedGroupedCandidate.profiles.length > 1 && (
-                  <div className="mb-6 bg-white rounded-xl border border-gray-200 p-4">
-                    <h4 className="text-sm font-semibold text-gray-700 mb-3">Perfiles del Candidato:</h4>
+                  <Card className="mb-6" title="Perfiles del Candidato" icon={<Icons.User className="w-4 h-4 text-sofka-light-blue" />}>
                     <div className="flex gap-2 flex-wrap">
                       {selectedGroupedCandidate.profiles.map((profile, index) => (
-                        <button
+                        <Button
                           key={`${profile.code}-${profile.requirements}-${index}`}
+                          variant={selectedProfileIndex === index ? "primary" : "ghost"}
                           onClick={() => handleProfileSwitch(index)}
-                          className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${selectedProfileIndex === index
-                            ? "bg-blue-600 text-white shadow-md"
-                            : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                            }`}
+                          className="h-auto py-2 border border-gray-100"
                         >
                           <div className="flex flex-col items-start">
-                            <span className="font-bold">{profile.requirements.toUpperCase().replace('-', ' ')}</span>
-                            <span className="text-xs opacity-75">{profile.form_id.replace('-', ' ')}</span>
+                            <span className="font-bold text-xs uppercase">{profile.requirements.replace('-', ' ')}</span>
+                            <span className="text-[10px] opacity-75">{profile.form_id.replace('-', ' ')}</span>
                           </div>
-                        </button>
+                        </Button>
                       ))}
                     </div>
-                  </div>
+                  </Card>
                 )}
-                <div className="mb-6 bg-white rounded-xl border border-gray-200">
+
+                <div className="mb-6 bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
                   <CandidateHeader user={userData} />
                   {view === "history" && (
                     <div className="px-6 pb-6 pt-0 flex justify-end">
-                      <button
+                      <Button
+                        variant="success"
                         onClick={handleRestore}
                         disabled={restoring}
-                        className="bg-green-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-green-700 transition flex items-center gap-2 shadow-md disabled:bg-gray-400"
+                        isLoading={restoring}
+                        className="gap-2"
                       >
-                        {restoring ? <Spinner /> : <><Icons.Check className="w-4 h-4" /> Restaurar Proceso</>}
-                      </button>
+                        <Icons.Check className="w-4 h-4" /> Restaurar Proceso
+                      </Button>
                     </div>
                   )}
                 </div>
+
                 <Tabs
                   activeTab={activeTab}
                   onChange={setActiveTab}
@@ -713,7 +702,7 @@ export default function App() {
                           <InfoRow label="Nombre" value={userData.name} />
                           <InfoRow label="Email" value={userData.email || "N/A"} />
                           <InfoRow label="Código" value={userData.code} copyable />
-                          <InfoRow label="Requisito" value={<Badge>{userData.requirements}</Badge>} />
+                          <InfoRow label="Requisito" value={<Badge variant="primary">{userData.requirements}</Badge>} />
                           <InfoRow label="Etapa" value={userData.step} />
                           {userData.retry_count !== undefined && (
                             <InfoRow label="Reintentos" value={userData.retry_count} />
@@ -742,10 +731,10 @@ export default function App() {
                       {/* ADMINISTRATIVE ACTIONS CARD */}
                       <Card title="Acciones" icon={<Icons.Plus className="w-5 h-5" />}>
                         <div className="space-y-4">
-                          <button
+                          <Button
                             onClick={async () => {
                               if (userData.step !== 'pre-screening') {
-                                alert("Los recordatorios solo están disponibles para la etapa de pre-screening.");
+                                toast.error("Los recordatorios solo están disponibles para la etapa de pre-screening.");
                                 return;
                               }
                               try {
@@ -755,24 +744,25 @@ export default function App() {
                                   body: JSON.stringify({ candidateCode: userData.code }),
                                 });
                                 if (!res.ok) throw new Error(await res.text());
-                                alert("Recordatorio enviado correctamente");
+                                toast.success("Recordatorio enviado correctamente");
                                 fetchCandidate(userData.code, userData.requirements);
                               } catch (e: any) {
-                                alert("Error al enviar recordatorio: " + e.message);
+                                toast.error("Error al enviar recordatorio: " + e.message);
                               }
                             }}
                             disabled={userData.step !== 'pre-screening'}
-                            className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition shadow-sm disabled:bg-gray-300 disabled:cursor-not-allowed"
+                            className="w-full gap-2 py-6"
                           >
                             <Icons.Bell className="w-5 h-5" /> Enviar Recordatorio
-                          </button>
+                          </Button>
 
-                          <button
+                          <Button
+                            variant="ghost"
                             onClick={() => setIsDeleteModalOpen(true)}
-                            className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-red-50 text-red-600 border border-red-200 rounded-xl font-bold hover:bg-red-100 transition shadow-sm active:scale-95"
+                            className="w-full gap-2 py-6 text-sofka-blue hover:bg-red-50 hover:text-sofka-light-blue border border-red-100"
                           >
                             <Icons.Trash className="w-5 h-5" /> Eliminar Candidato
-                          </button>
+                          </Button>
                         </div>
                       </Card>
                     </div>
@@ -851,17 +841,17 @@ export default function App() {
 
             if (!res.ok) throw new Error(await res.text());
 
-            alert("Candidato eliminado y notificado exitosamente.");
+            toast.success("Candidato eliminado y notificado exitosamente.");
             window.location.reload();
           } catch (e: any) {
-            alert("Error al eliminar candidato: " + e.message);
+            toast.error("Error al eliminar candidato: " + e.message);
           } finally {
             setIsDeleting(false);
             setIsDeleteModalOpen(false);
           }
         }}
       />
-    </div>
+    </div >
   );
 };
 
@@ -891,7 +881,7 @@ const CreateUserForm: FC<{ onClose: () => void }> = ({ onClose }) => {
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    if (selectedReqs.length === 0) return alert("Selecciona al menos un perfil");
+    if (selectedReqs.length === 0) return toast.error("Selecciona al menos un perfil");
 
     setLoading(true);
 
@@ -921,7 +911,7 @@ const CreateUserForm: FC<{ onClose: () => void }> = ({ onClose }) => {
 
       setSuccess(code);
     } catch (e: any) {
-      alert("Error al crear candidato: " + e.message);
+      toast.error("Error al crear candidato: " + e.message);
     } finally {
       setLoading(false);
     }
@@ -950,12 +940,12 @@ const CreateUserForm: FC<{ onClose: () => void }> = ({ onClose }) => {
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">Nombre</label>
-        <input required className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-teal-500 outline-none"
+        <input required className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-sofka-light-blue outline-none"
           value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} />
       </div>
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-        <input required type="email" className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-teal-500 outline-none"
+        <input required type="email" className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-sofka-light-blue outline-none"
           value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} />
       </div>
       <div>
@@ -965,7 +955,7 @@ const CreateUserForm: FC<{ onClose: () => void }> = ({ onClose }) => {
           <input
             type="text"
             placeholder="Buscar perfil (ej: angular, sr, backend)..."
-            className="w-full pl-9 pr-4 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-teal-500 outline-none bg-gray-50"
+            className="w-full pl-9 pr-4 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-sofka-light-blue outline-none bg-gray-50"
             value={profileSearch}
             onChange={(e) => setProfileSearch(e.target.value)}
           />
@@ -975,9 +965,9 @@ const CreateUserForm: FC<{ onClose: () => void }> = ({ onClose }) => {
             const isSelected = selectedReqs.includes(req);
             return (
               <button type="button" key={req} onClick={() => toggleReq(req)}
-                className={`px-4 py-3 rounded-lg border text-left text-sm font-medium transition flex justify-between items-center ${isSelected ? "border-teal-500 bg-teal-50 text-teal-700 ring-1 ring-teal-500" : "border-gray-200 hover:bg-gray-50"}`}>
+                className={`px-4 py-3 rounded-lg border text-left text-sm font-medium transition flex justify-between items-center ${isSelected ? "border-sofka-light-blue/20 bg-sofka-gray/10 text-sofka-light-blue ring-1 ring-teal-500" : "border-gray-200 hover:bg-gray-50"}`}>
                 <span>{req.toUpperCase().replaceAll("-", " ").replace(":", " => ")}</span>
-                {isSelected && <Icons.Check className="w-4 h-4 text-teal-600" />}
+                {isSelected && <Icons.Check className="w-4 h-4 text-sofka-blue" />}
               </button>
             );
           })}
@@ -990,7 +980,7 @@ const CreateUserForm: FC<{ onClose: () => void }> = ({ onClose }) => {
         </p>
       </div>
       <div className="pt-4">
-        <button disabled={loading} className="w-full bg-teal-600 text-white py-3 rounded-xl font-bold hover:bg-teal-700 transition flex justify-center">
+        <button disabled={loading} className="w-full bg-sofka-blue text-white py-3 rounded-xl font-bold hover:bg-teal-700 transition flex justify-center">
           {loading ? <Spinner /> : "Crear Candidato (Multi-Perfil)"}
         </button>
       </div>
@@ -1092,7 +1082,7 @@ const InterviewWizard: FC<{
           <div>
             <h2 className="text-xl font-bold text-gray-800">Modo Entrevista Interactiva</h2>
             <div className="flex items-center gap-2 text-sm text-gray-500 mt-1">
-              <span className="font-semibold text-indigo-600 uppercase tracking-wider">{currentSection.topic}</span>
+              <span className="font-semibold text-sofka-blue uppercase tracking-wider">{currentSection.topic}</span>
               <span>•</span>
               <span>Pregunta {currentQuestionIndex + 1} de {currentSection.questions.length}</span>
             </div>
@@ -1105,9 +1095,9 @@ const InterviewWizard: FC<{
         {/* Content */}
         <div className="p-8 flex-1 overflow-y-auto">
           {/* Progress Bar within Section */}
-          <div className="w-full bg-gray-200 rounded-full h-1.5 mb-6">
+          <div className="w-full bg-gray-100 rounded-full h-2 mb-8 overflow-hidden">
             <div
-              className="bg-indigo-600 h-1.5 rounded-full transition-all duration-300"
+              className="bg-sofka-light-blue h-full transition-all duration-700 ease-out shadow-[0_0_8px_rgba(0,172,236,0.4)]"
               style={{ width: `${((currentQuestionIndex + 1) / currentSection.questions.length) * 100}%` }}
             ></div>
           </div>
@@ -1121,39 +1111,39 @@ const InterviewWizard: FC<{
             </p>
           </div>
 
-          <div className="bg-indigo-50 p-5 rounded-xl border border-indigo-100">
-            <h4 className="text-xs font-bold text-indigo-800 uppercase mb-2">Guía para el Entrevistador</h4>
-            <p className="text-sm text-indigo-900 leading-relaxed">{currentQuestion.guide}</p>
+          <div className="bg-sofka-gray/10 p-5 rounded-xl border border-sofka-light-blue/20">
+            <h4 className="text-xs font-bold text-sofka-blue uppercase mb-2">Guía para el Entrevistador</h4>
+            <p className="text-sm text-gray-700 leading-relaxed">{currentQuestion.guide}</p>
           </div>
         </div>
 
         {/* Footer / Controls */}
-        <div className="p-6 border-t bg-gray-50 flex gap-4">
+        <div className="p-6 border-t bg-sofka-blue/10 flex gap-4">
           <button
             onClick={() => handleDecision("incorrect")}
-            className="flex-1 py-4 bg-white border-2 border-red-100 hover:border-red-400 hover:bg-red-50 text-red-700 font-bold rounded-xl transition flex flex-col items-center gap-1 group shadow-sm hover:shadow-md"
+            className="flex-1 py-4 bg-white border border-gray-100 hover:border-sofka-error/30 hover:bg-sofka-error/5 text-sofka-error font-extrabold rounded-2xl transition-all flex flex-col items-center gap-1 group shadow-sm hover:shadow-md"
           >
             <span className="text-2xl mb-1">❌</span>
-            <span className="text-sm">Incorrecto / No Sabe</span>
-            <span className="text-xs text-red-400 font-normal group-hover:text-red-600">(Salta al siguiente tema)</span>
+            <span className="text-xs uppercase tracking-wider">Incorrecto</span>
+            <span className="text-[10px] text-gray-400 font-medium group-hover:text-sofka-error/60">(Siguiente tema)</span>
           </button>
 
           <button
             onClick={() => handleDecision("intermediate")}
-            className="flex-1 py-4 bg-white border-2 border-yellow-100 hover:border-yellow-400 hover:bg-yellow-50 text-yellow-700 font-bold rounded-xl transition flex flex-col items-center gap-1 group shadow-sm hover:shadow-md"
+            className="flex-1 py-4 bg-white border border-gray-100 hover:border-sofka-orange/30 hover:bg-sofka-orange/5 text-sofka-orange font-extrabold rounded-2xl transition-all flex flex-col items-center gap-1 group shadow-sm hover:shadow-md"
           >
             <span className="text-2xl mb-1">⚠️</span>
-            <span className="text-sm">Intermedio / Parcial</span>
-            <span className="text-xs text-yellow-500 font-normal group-hover:text-yellow-600">(Siguiente pregunta)</span>
+            <span className="text-xs uppercase tracking-wider">Parcial</span>
+            <span className="text-[10px] text-gray-400 font-medium group-hover:text-sofka-orange/60">(Siguiente pregunta)</span>
           </button>
 
           <button
             onClick={() => handleDecision("correct")}
-            className="flex-1 py-4 bg-white border-2 border-green-100 hover:border-green-400 hover:bg-green-50 text-green-700 font-bold rounded-xl transition flex flex-col items-center gap-1 group shadow-sm hover:shadow-md"
+            className="flex-1 py-4 bg-white border border-gray-100 hover:border-sofka-success/30 hover:bg-sofka-success/5 text-sofka-success font-extrabold rounded-2xl transition-all flex flex-col items-center gap-1 group shadow-sm hover:shadow-md"
           >
             <span className="text-2xl mb-1">✅</span>
-            <span className="text-sm">Correcto / Satisfactorio</span>
-            <span className="text-xs text-green-400 font-normal group-hover:text-green-600">(Profundizar en tema)</span>
+            <span className="text-xs uppercase tracking-wider">Correcto</span>
+            <span className="text-[10px] text-gray-400 font-medium group-hover:text-sofka-success/60">(Siguiente pregunta)</span>
           </button>
         </div>
       </div>
@@ -1180,13 +1170,17 @@ const CertificationAnalysisCard: FC<{
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ result: { ...result, gaps } }),
       });
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Error al analizar");
+      }
       const data = await response.json();
       if (data.analysis) {
         setAnalysis(data.analysis);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error analyzing certification:", error);
-      alert("Error generando el análisis.");
+      toast.error(error.message || "Error generando el análisis.");
     } finally {
       setAnalyzing(false);
     }
@@ -1194,47 +1188,52 @@ const CertificationAnalysisCard: FC<{
 
   return (
     <>
-      <Card title="Certificación Técnica" icon={<Icons.Target className="w-5 h-5 text-indigo-500" />} className="border-t-4 border-t-indigo-500">
+      <Card title="Certificación Técnica" icon={<Icons.Target className="w-5 h-5" />} className="border-t-4 border-t-sofka-light-blue shadow-lg">
         <div className="flex flex-col md:flex-row gap-8 items-center justify-between mb-6">
           <div className="text-center md:text-left">
-            <p className="text-gray-500 text-sm font-bold uppercase tracking-wide">Puntaje Final</p>
-            <p className="text-5xl font-black text-indigo-600 my-2">
-              {result.score} <span className="text-2xl text-gray-300 font-normal">/ {result.total}</span>
+            <p className="text-gray-400 text-xs font-bold uppercase tracking-widest">Puntaje Final</p>
+            <p className="text-5xl font-black text-sofka-blue my-2">
+              {result.score} <span className="text-2xl text-gray-200 font-normal">/ {result.total}</span>
             </p>
           </div>
-          <div className="flex-1 bg-indigo-50 p-4 rounded-lg text-indigo-900 text-sm leading-relaxed border border-indigo-100">
+          <div className="flex-1 bg-sofka-gray/10 p-5 rounded-2xl text-gray-700 text-sm leading-relaxed border border-gray-100">
             {result.analysis || "Sin análisis preliminar automático."}
           </div>
         </div>
 
         {/* Actions & Analysis */}
-        <div className="flex flex-col gap-2 border-t pt-4">
+        <div className="flex flex-col gap-2 border-t border-gray-100 pt-6">
           <div className="flex justify-between items-center">
-            <h4 className="font-bold text-gray-700">Análisis y Detalles</h4>
-            <div className="flex gap-2">
-              <button
+            <h4 className="font-extrabold text-sofka-blue">Análisis y Detalles</h4>
+            <div className="flex gap-3">
+              <Button
+                variant="ghost"
+                size="sm"
                 onClick={() => setShowDetails(true)}
-                className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors shadow-sm"
+                className="gap-2"
               >
                 <Icons.Search className="w-4 h-4" /> Ver Detalles
-              </button>
+              </Button>
 
               {!analysis && (
-                <button
+                <Button
+                  variant="primary"
+                  size="sm"
                   onClick={handleAnalyze}
                   disabled={analyzing}
-                  className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 disabled:opacity-50 transition-colors shadow-sm"
+                  isLoading={analyzing}
+                  className="gap-2 shadow-md shadow-sofka-blue/20"
                 >
-                  {analyzing ? <Spinner /> : <><Icons.Sparkles className="w-4 h-4" /> Analizar Brechas</>}
-                </button>
+                  <Icons.Sparkles className="w-4 h-4" /> Analizar Brechas
+                </Button>
               )}
             </div>
           </div>
 
           {analysis && (
-            <div className="mt-4 bg-slate-50 p-4 rounded-xl border border-slate-200 animate-in fade-in">
+            <div className="mt-4 bg-sofka-gray/10 p-4 rounded-xl border border-slate-200 animate-in fade-in">
               <div className="flex items-center gap-2 mb-2">
-                <Icons.Sparkles className="text-indigo-600 w-4 h-4" />
+                <Icons.Sparkles className="text-sofka-blue w-4 h-4" />
                 <h5 className="font-bold text-gray-800 text-sm">Resumen Ejecutivo de Brechas</h5>
               </div>
               <div className="prose prose-sm max-w-none text-gray-700">
@@ -1311,27 +1310,34 @@ const ChallengeResultCard: FC<{
           certification: certificationResult,
         }),
       });
-      if (!response.ok) throw new Error("Error fetching AI data");
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Error al consultar la IA");
+      }
       const data = await response.json();
       setAiData(data);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Failed to fetch AI assistant data", error);
+      toast.error(error.message || "Error consultando a la IA");
     } finally {
       setAiLoading(false);
     }
   };
 
   return (
-    <Card title="Reto (Question Challenge)" icon={<Icons.Sparkles className="w-5 h-5 text-purple-500" />}
+    <Card title="Reto (Question Challenge)" icon={<Icons.Trophy className="w-5 h-5 text-sofka-orange" />}
       action={
         !aiData && (
-          <button
+          <Button
+            variant="accent"
+            size="sm"
             onClick={handleAskAI}
             disabled={aiLoading}
-            className="bg-purple-600 text-white text-xs font-bold px-3 py-2 rounded hover:bg-purple-700 transition disabled:bg-purple-300 flex items-center gap-2 shadow-sm"
+            isLoading={aiLoading}
+            className="gap-2 shadow-md shadow-sofka-orange/20"
           >
-            {aiLoading ? <Spinner /> : "Analizar Contexto"}
-          </button>
+            <Icons.Sparkles className="w-4 h-4" /> Analizar Contexto
+          </Button>
         )
       }
     >
@@ -1354,8 +1360,8 @@ const ChallengeResultCard: FC<{
 
           {challenge.coverageQuestions && challenge.coverageQuestions.length > 0 && (
             <>
-              <h4 className="font-bold text-xs uppercase text-indigo-500 mb-2">Preguntas Sugeridas (IA)</h4>
-              <ul className="list-disc list-inside text-sm text-indigo-900 space-y-1 bg-indigo-50 p-3 rounded-lg border border-indigo-100">
+              <h4 className="font-bold text-xs uppercase text-sofka-light-blue mb-2">Preguntas Sugeridas (IA)</h4>
+              <ul className="list-disc list-inside text-sm text-indigo-900 space-y-1 bg-sofka-gray/10 p-3 rounded-lg border border-sofka-light-blue/20">
                 {challenge.coverageQuestions.map((q, i) => <li key={i}>{q}</li>)}
               </ul>
             </>
@@ -1488,12 +1494,15 @@ const InterviewFeedbackCard: FC<{
         }),
       });
 
-      if (!response.ok) throw new Error("Failed to generate plan");
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || errorData.message || "Failed to generate plan");
+      }
       const plan = await response.json();
       setInterviewPlan(plan);
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
-      alert("Error iniciando el modo entrevista.");
+      toast.error(error.message || "Error iniciando el modo entrevista.");
     } finally {
       setGeneratingPlan(false);
     }
@@ -1533,22 +1542,27 @@ const InterviewFeedbackCard: FC<{
     <>
       <Card title="Evaluación del Entrevistador" icon={<Icons.MessageSquare className="w-5 h-5" />}>
         {/* AI Controls Header */}
-        <div className="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-100 flex flex-col md:flex-row justify-between items-center gap-4">
-          <div className="flex items-center gap-2">
-            <span className="text-2xl">🤖</span>
+        <div className="mb-8 p-6 bg-sofka-gray/10 rounded-2xl border border-gray-100 flex flex-col md:flex-row justify-between items-center gap-6">
+          <div className="flex items-center gap-4">
+            <div className="p-3 bg-white rounded-2xl shadow-sm">
+              <span className="text-2xl">🤖</span>
+            </div>
             <div>
-              <h4 className="font-bold text-gray-800 text-sm">Asistente de Entrevista</h4>
-              <p className="text-xs text-gray-500">Herramientas de IA para el reclutador</p>
+              <h4 className="font-extrabold text-sofka-blue">Asistente de Entrevista</h4>
+              <p className="text-xs text-gray-500 font-bold uppercase tracking-wider">Herramientas de IA Sofka</p>
             </div>
           </div>
           <div className="flex gap-2">
-            <button
+            <Button
+              variant="success"
+              size="sm"
               onClick={handleStartInterview}
               disabled={generatingPlan || loading || !challenge}
-              className="bg-teal-600 text-white text-xs font-bold px-3 py-2 rounded hover:bg-teal-700 transition disabled:bg-teal-300 flex items-center gap-2 shadow-sm"
+              isLoading={generatingPlan}
+              className="gap-2 shadow-md shadow-sofka-success/20"
             >
-              {generatingPlan ? <Spinner /> : <><Icons.Sparkles className="w-3 h-3" /> Modo Guía (Wizard)</>}
-            </button>
+              <Icons.Sparkles className="w-4 h-4" /> Modo Guía (Wizard)
+            </Button>
           </div>
         </div>
 
@@ -1585,7 +1599,7 @@ const InterviewFeedbackCard: FC<{
             <textarea
               value={feedback}
               onChange={(e) => setFeedback(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 min-h-[120px] text-sm font-mono"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-sofka-light-blue focus:border-indigo-500 min-h-[120px] text-sm font-mono"
               placeholder="Escribe el feedback detallado o usa el Asistente de Entrevista para generarlo..."
               required
             />
@@ -1597,7 +1611,7 @@ const InterviewFeedbackCard: FC<{
               <select
                 value={status}
                 onChange={(e) => setStatus(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 text-sm"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-sofka-light-blue focus:border-indigo-500 text-sm"
                 required
               >
                 <option value="">-- Selecciona --</option>
@@ -1611,7 +1625,7 @@ const InterviewFeedbackCard: FC<{
               <select
                 value={technicalLevel}
                 onChange={(e) => setTechnicalLevel(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 text-sm"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-sofka-light-blue focus:border-indigo-500 text-sm"
                 required
               >
                 <option value="">-- Selecciona --</option>
@@ -1630,13 +1644,14 @@ const InterviewFeedbackCard: FC<{
                 {message.text}
               </div>
             )}
-            <button
+            <Button
               type="submit"
               disabled={loading}
-              className="bg-indigo-600 text-white font-bold px-6 py-2 rounded-lg hover:bg-indigo-700 transition disabled:bg-indigo-300 flex items-center shadow-md ml-auto"
+              isLoading={loading}
+              className="px-8 shadow-lg shadow-sofka-blue/20 ml-auto"
             >
-              {loading ? <Spinner /> : "Guardar y Archivar"}
-            </button>
+              Guardar y Archivar
+            </Button>
           </div>
         </form>
       </Card>

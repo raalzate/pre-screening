@@ -26,7 +26,7 @@ export type SpecResult = z.infer<typeof SpecResultSchema>;
 
 class SpecGenerator extends BaseGenerator<typeof SpecInputSchema, typeof SpecResultSchema> {
     constructor() {
-        super('gemini-2.5-flash');
+        super('gemini-2.0-flash');
     }
 
     get name() {

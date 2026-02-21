@@ -112,10 +112,12 @@ export async function initDb() {
     { name: "reminder_count", type: "INTEGER DEFAULT 0" },
     { name: "last_reminder_at", type: "TEXT NULL" },
     { name: "retry_count", type: "INTEGER DEFAULT 0" },
-    { name: "created_by", type: "TEXT NULL" }
+    { name: "created_by", type: "TEXT NULL" },
+    { name: "job_description", type: "TEXT NULL" },
+    { name: "source_url", type: "TEXT NULL" }
   ];
 
-  const tables = ["users", "history_candidates"];
+  const tables = ["users", "history_candidates", "studio_requirements"];
 
   for (const table of tables) {
     for (const col of optionalColumns) {
@@ -142,16 +144,37 @@ export async function initDb() {
     );
   `);
 
-  // Admin notifications table
+  // Studio Requirements table
   await db.execute(`
-    CREATE TABLE IF NOT EXISTS admin_notifications (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      type TEXT NOT NULL,
-      candidate_name TEXT NULL,
-      candidate_code TEXT NULL,
-      message TEXT NOT NULL,
-      is_read INTEGER DEFAULT 0,
+    CREATE TABLE IF NOT EXISTS studio_requirements (
+      id TEXT PRIMARY KEY,
+      title TEXT NOT NULL,
+      content TEXT NOT NULL,
+      metadata TEXT NULL,
+      job_description TEXT NULL,
+      source_url TEXT NULL,
       created_at TEXT DEFAULT CURRENT_TIMESTAMP
+    );
+  `);
+
+  // Studio Forms table
+  await db.execute(`
+    CREATE TABLE IF NOT EXISTS studio_forms (
+      id TEXT PRIMARY KEY,
+      requirement_id TEXT REFERENCES studio_requirements(id),
+      title TEXT NOT NULL,
+      content TEXT NOT NULL,
+      metadata TEXT NULL,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP
+    );
+  `);
+
+  // AI Rate Limits table
+  await db.execute(`
+    CREATE TABLE IF NOT EXISTS ai_rate_limits (
+      user_id TEXT PRIMARY KEY,
+      request_count INTEGER DEFAULT 0,
+      window_start TEXT DEFAULT CURRENT_TIMESTAMP
     );
   `);
 }
@@ -256,4 +279,82 @@ export async function deleteCandidatePermanently(code: string, requirements: str
       args: [code, requirements]
     }
   ], "write");
+}
+
+// Helper functions for Studio Designer
+export async function saveStudioRequirement(data: {
+  id: string;
+  title: string;
+  content: string;
+  metadata?: string;
+  job_description?: string;
+  source_url?: string;
+}) {
+  return await db.execute({
+    sql: `INSERT OR REPLACE INTO studio_requirements (id, title, content, metadata, job_description, source_url) VALUES (?, ?, ?, ?, ?, ?)`,
+    args: [data.id, data.title, data.content, data.metadata || null, data.job_description || null, data.source_url || null]
+  });
+}
+
+export async function getStudioRequirements() {
+  const result = await db.execute("SELECT * FROM studio_requirements ORDER BY created_at DESC");
+  return result.rows;
+}
+
+export async function getStudioRequirementById(id: string) {
+  const result = await db.execute({
+    sql: "SELECT * FROM studio_requirements WHERE id = ?",
+    args: [id]
+  });
+  return result.rows[0];
+}
+
+export async function saveStudioForm(data: {
+  id: string;
+  requirement_id: string;
+  title: string;
+  content: string;
+  metadata?: string;
+}) {
+  return await db.execute({
+    sql: `INSERT OR REPLACE INTO studio_forms (id, requirement_id, title, content, metadata) VALUES (?, ?, ?, ?, ?)`,
+    args: [data.id, data.requirement_id, data.title, data.content, data.metadata || null]
+  });
+}
+
+export async function getStudioForms() {
+  const result = await db.execute("SELECT * FROM studio_forms ORDER BY created_at DESC");
+  return result.rows;
+}
+
+export async function getStudioFormById(id: string) {
+  const result = await db.execute({
+    sql: "SELECT * FROM studio_forms WHERE id = ?",
+    args: [id]
+  });
+  return result.rows[0];
+}
+
+// AI Rate Limiting Helpers
+export async function getAIRateLimit(userId: string) {
+  const result = await db.execute({
+    sql: "SELECT request_count, window_start FROM ai_rate_limits WHERE user_id = ?",
+    args: [userId]
+  });
+  return result.rows[0];
+}
+
+export async function upsertAIRateLimit(userId: string, count: number, windowStart: string) {
+  return await db.execute({
+    sql: `INSERT OR REPLACE INTO ai_rate_limits (user_id, request_count, window_start)
+          VALUES (?, ?, ?)`,
+    args: [userId, count, windowStart]
+  });
+}
+
+export async function incrementAIRateLimit(userId: string) {
+  return await db.execute({
+    sql: "UPDATE ai_rate_limits SET request_count = request_count + 1 WHERE user_id = ?",
+    args: [userId]
+  });
 }

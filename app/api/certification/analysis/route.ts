@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { certificationAnalysisGenerator } from "@/lib/ia/certificationAnalysisGenerator";
+import { RateLimitError, UnauthorizedError } from "@/lib/ia/baseGenerator";
 
 export async function POST(req: NextRequest) {
     try {
@@ -20,8 +21,17 @@ export async function POST(req: NextRequest) {
         });
 
         return NextResponse.json({ analysis });
-    } catch (error) {
+    } catch (error: any) {
         console.error("Error generating certification analysis:", error);
+
+        if (error instanceof RateLimitError) {
+            return NextResponse.json({ error: error.message }, { status: 429 });
+        }
+
+        if (error instanceof UnauthorizedError) {
+            return NextResponse.json({ error: error.message }, { status: 401 });
+        }
+
         return NextResponse.json(
             { error: "Failed to generate analysis" },
             { status: 500 }

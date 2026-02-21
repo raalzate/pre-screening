@@ -28,7 +28,7 @@ export type EvaluationResult = z.infer<typeof EvaluationResultSchema>;
 
 class EvaluationGenerator extends BaseGenerator<typeof EvaluationInputSchema, typeof EvaluationResultSchema> {
   constructor() {
-    super('gemini-2.5-flash');
+    super('gemini-2.0-flash');
   }
 
   get name() {

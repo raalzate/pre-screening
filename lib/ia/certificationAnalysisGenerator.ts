@@ -17,7 +17,7 @@ export type CertificationAnalysisInput = z.infer<typeof CertificationAnalysisInp
 
 class CertificationAnalysisGenerator extends BaseGenerator<typeof CertificationAnalysisInputSchema, z.ZodString> {
     constructor() {
-        super('gemini-2.5-flash');
+        super('gemini-2.0-flash');
     }
 
     get name() {

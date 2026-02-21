@@ -2,6 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import FormHistoryModal from './FormHistoryModal';
+import Button from '@/components/ui/Button';
+import Card from '@/components/ui/Card';
 
 interface FormHeader {
     id: string;
@@ -50,45 +52,49 @@ const AdminFormsView: React.FC<AdminFormsViewProps> = ({ onSelectForm }) => {
         });
     };
 
-    if (loading) return <div className="p-8 text-center text-gray-500">Cargando formularios...</div>;
-    if (error) return <div className="p-8 text-center text-red-500">Error: {error}</div>;
+    if (loading) return <div className="p-20 text-center text-gray-400 font-medium">Cargando formularios...</div>;
+    if (error) return <div className="p-20 text-center text-red-500 font-bold">Error: {error}</div>;
 
     return (
         <>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
                 {forms.map((form) => (
-                    <div
+                    <Card
                         key={form.id}
                         onClick={() => onSelectForm(form.id)}
-                        className="group bg-white p-6 rounded-2xl border border-gray-200 shadow-sm hover:shadow-md hover:border-blue-300 transition-all cursor-pointer flex flex-col justify-between"
-                    >
-                        <div>
-                            <div className="flex justify-between items-start">
-                                <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center mb-4 group-hover:bg-blue-100 transition-colors">
-                                    <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        className="group hover:border-sofka-light-blue transition-all cursor-pointer flex flex-col justify-between h-full"
+                        header={
+                            <div className="flex justify-between items-start w-full">
+                                <div className="w-12 h-12 bg-sofka-gray/30 rounded-xl flex items-center justify-center group-hover:bg-sofka-light-blue/10 transition-colors">
+                                    <svg className="w-6 h-6 text-sofka-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                     </svg>
                                 </div>
-                                <button
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
                                     onClick={(e) => openHistory(e, form)}
-                                    className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors border border-transparent hover:border-blue-100"
+                                    className="text-gray-400 hover:text-sofka-blue hover:bg-sofka-gray/50"
                                     title="Ver Historial de Análisis"
                                 >
                                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                                     </svg>
-                                </button>
+                                </Button>
                             </div>
-                            <h3 className="text-lg font-bold text-gray-900 group-hover:text-blue-600 transition-colors">{form.title}</h3>
-                            <p className="text-sm text-gray-500 mt-2">ID: {form.id}</p>
+                        }
+                    >
+                        <div className="flex-1">
+                            <h3 className="text-lg font-extrabold text-sofka-blue group-hover:text-sofka-light-blue transition-colors leading-tight">{form.title}</h3>
+                            <p className="text-xs font-mono text-gray-400 mt-2">ID: {form.id}</p>
                         </div>
-                        <div className="mt-6 flex items-center text-blue-600 font-medium text-sm">
+                        <div className="mt-6 flex items-center text-sofka-light-blue font-bold text-sm group-hover:translate-x-1 transition-transform">
                             Ver Estructura
-                            <svg className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
                             </svg>
                         </div>
-                    </div>
+                    </Card>
                 ))}
                 {forms.length === 0 && (
                     <div className="col-span-full py-20 text-center text-gray-400">

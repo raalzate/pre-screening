@@ -2,6 +2,8 @@
 
 import { useSession, signOut } from "next-auth/react";
 import Image from "next/image";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useEffect, useState, useCallback } from "react";
 
 interface AdminNotification {
@@ -21,6 +23,7 @@ const Icons = {
 };
 
 export const Header = () => {
+  const pathname = usePathname();
   const { data: session, status } = useSession();
   const [notifications, setNotifications] = useState<AdminNotification[]>([]);
   const [showDropdown, setShowDropdown] = useState(false);
@@ -81,6 +84,23 @@ export const Header = () => {
               height={30}
               priority
             />
+
+            {isAdmin && (
+              <div className="hidden md:flex items-center ml-10 gap-6">
+                <Link
+                  href="/admin"
+                  className={`text-sm font-bold transition-colors ${pathname === '/admin' ? 'text-[#002C5E]' : 'text-gray-400 hover:text-[#002C5E]'}`}
+                >
+                  Dashboard
+                </Link>
+                <Link
+                  href="/admin/studio"
+                  className={`text-sm font-bold transition-colors ${pathname?.startsWith('/admin/studio') ? 'text-[#002C5E]' : 'text-gray-400 hover:text-[#002C5E]'}`}
+                >
+                  Studio
+                </Link>
+              </div>
+            )}
           </div>
 
           <div className="flex items-center gap-4">
@@ -171,7 +191,7 @@ export const Header = () => {
                 )}
 
                 <button
-                  onClick={() => signOut({ callbackUrl: "/" })}
+                  onClick={() => signOut({ callbackUrl: "/login" })}
                   className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-3 text-sm rounded-lg transition-colors"
                 >
                   Cerrar Sesión

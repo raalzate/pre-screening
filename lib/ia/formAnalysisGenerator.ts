@@ -26,7 +26,7 @@ export type FormAnalysisInput = z.infer<typeof FormAnalysisInputSchema>;
 
 class FormAnalysisGenerator extends BaseGenerator<typeof FormAnalysisInputSchema, typeof FormAnalysisResultSchema> {
     constructor() {
-        super('gemini-2.5-flash');
+        super('gemini-2.0-flash');
     }
 
     get name() {

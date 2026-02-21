@@ -1,76 +1,90 @@
 'use client';
 
-/**
- * (protected)/layout.tsx
- *
- * This layout wraps both:
- * 1. The candidate home page (/page.tsx) — uses AuthContext (custom code-based login via next-auth credentials)
- * 2. The admin Studio pages — use AdminHeader + next-auth session
- *
- * AuthContext.AuthProvider already contains SessionProvider internally, so we
- * don't need a separate AuthProvider from components/AuthProvider.tsx here.
- */
-
-import { AuthProvider as AuthContextProvider } from '@/context/AuthContext';
-import { Header } from '@/components/AdminHeader';
-import { useSession } from 'next-auth/react';
-import { usePathname, useRouter } from 'next/navigation';
+import { useAuth } from '@/context/AuthContext';
+import { useRouter } from 'next/navigation';
 import { useEffect, ReactNode } from 'react';
+import Link from 'next/link';
+import Image from 'next/image';
 
-function AdminGuard({ children }: { children: ReactNode }) {
-  const { status } = useSession();
+// Colores basados en el estilo de Sofka Technologies
+const sofkaColors = {
+  blue: '#002C5E', // Azul oscuro principal
+  lightBlue: '#0083B3', // Azul claro para acentos
+  orange: '#FF5C00', // Naranja vibrante para acentos
+  gray: '#F3F4F6', // Fondo neutro
+  darkGray: '#4B5563', // Texto oscuro
+};
+
+const Header = ({ onLogout }: { onLogout: () => void }) => (
+  <header className="bg-white shadow-sm sticky top-0 z-50">
+    <div className="container mx-auto px-4 py-4 flex justify-between items-center">
+      {/* Nuevo logo de Sofka */}
+      <Link href="/">
+        <Image
+          src="https://sofka.com.co/static/logo.svg"
+          alt="Sofka Technologies Logo"
+          className="h-10"
+          width={200}
+          height={100}
+        />
+      </Link>
+      <button
+        onClick={onLogout}
+        className="text-sm font-semibold px-4 py-2 rounded-lg transition-colors duration-300"
+        style={{ color: sofkaColors.lightBlue, borderColor: sofkaColors.lightBlue, borderWidth: '1px' }}
+      >
+        Cerrar sesión
+      </button>
+    </div>
+  </header>
+);
+
+const Footer = () => (
+  <footer className="bg-white border-t border-gray-200 py-4 text-sm" style={{ color: sofkaColors.darkGray }}>
+    <div className="container mx-auto px-4 text-center">
+      &copy; {new Date().getFullYear()} Sofka Technologies. All Rights Reserved.
+    </div>
+  </footer>
+);
+
+const ProtectedLayout = ({ children }: { children: ReactNode }) => {
+  const { user, isLoading, logout } = useAuth();
   const router = useRouter();
-  const pathname = usePathname();
-
-  const isAdminPath = pathname?.startsWith('/admin/studio') ||
-    pathname?.startsWith('/admin/candidates');
 
   useEffect(() => {
-    // Only enforce redirect for protected admin paths, not candidate home
-    if (isAdminPath && status === 'unauthenticated') {
-      router.push('/admin/sign-in');
+    if (!isLoading && !user) {
+      router.push('/login');
     }
-  }, [status, isAdminPath, router]);
+  }, [isLoading, user, router]);
 
-  // Show spinner only when loading admin paths
-  if (isAdminPath && (status === 'loading' || (status === 'unauthenticated'))) {
+  if (isLoading || !user) {
     return (
-      <div className="flex justify-center items-center min-h-screen bg-sofka-gray">
+      <div
+        className="flex flex-col justify-center items-center min-h-screen"
+        style={{ backgroundColor: sofkaColors.gray }}
+      >
         <div className="text-center">
-          <div className="w-12 h-12 border-4 border-sofka-light-blue/30 border-t-sofka-light-blue rounded-full animate-spin mx-auto" />
-          <p className="mt-4 font-medium text-sofka-dark-gray text-sm">Cargando...</p>
+          <div
+            className="animate-spin rounded-full h-16 w-16 border-t-4 border-solid mx-auto"
+            style={{ borderColor: sofkaColors.lightBlue, borderTopColor: sofkaColors.orange }}
+          ></div>
+          <p className="mt-6 font-medium" style={{ color: sofkaColors.darkGray }}>
+            Cargando...
+          </p>
         </div>
       </div>
     );
   }
 
-  // For admin paths: show AdminHeader + main content
-  if (isAdminPath) {
-    return (
-      <div className="flex flex-col min-h-screen bg-sofka-gray">
-        <Header />
-        <main className="flex-grow container mx-auto px-4 md:px-8 py-8">
-          {children}
-        </main>
-        <footer className="bg-white border-t border-gray-100 py-4 text-sm text-gray-400">
-          <div className="container mx-auto px-4 text-center">
-            © {new Date().getFullYear()} Sofka Technologies. All Rights Reserved.
-          </div>
-        </footer>
-      </div>
-    );
-  }
-
-  // For candidate home (/) — render children directly, no admin header
-  return <>{children}</>;
-}
-
-export default function ProtectedLayout({ children }: { children: ReactNode }) {
   return (
-    <AuthContextProvider>
-      <AdminGuard>
+    <div className="flex flex-col min-h-screen" style={{ backgroundColor: sofkaColors.gray }}>
+      <Header onLogout={logout} />
+      <main className="flex-grow container mx-auto p-4 md:p-8">
         {children}
-      </AdminGuard>
-    </AuthContextProvider>
+      </main>
+      <Footer />
+    </div>
   );
-}
+};
+
+export default ProtectedLayout;

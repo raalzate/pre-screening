@@ -44,7 +44,7 @@ export type AssistantOutput = z.infer<typeof AssistantOutputSchema>;
 
 class ChallengeAssistant extends BaseGenerator<typeof AssistantInputSchema, typeof AssistantOutputSchema> {
     constructor() {
-        super('gemini-2.5-flash');
+        super('gemini-2.0-flash');
     }
 
     get name() {

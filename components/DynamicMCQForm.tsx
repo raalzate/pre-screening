@@ -4,6 +4,7 @@ import { useAuth } from "@/context/AuthContext";
 import createApiClient from "@/lib/apiClient";
 import { FormJson } from "@/types/outputConfig";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { toast } from "react-hot-toast";
 import QuestionCanvas from "./QuestionCanvas";
 import useDisableShortcuts from "./hooks/useDisableShortcuts";
 
@@ -89,7 +90,7 @@ export default function DynamicMCQForm({
       setResult(response.data);
     } catch (error) {
       console.error("Error saving result", error);
-      alert("Hubo un error al enviar tus respuestas. Por favor intenta de nuevo.");
+      toast.error("Hubo un error al enviar tus respuestas. Por favor intenta de nuevo.");
     }
   }, [form, api, answers, currentIndex]);
 

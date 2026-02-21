@@ -28,13 +28,16 @@ const config = {
           'orange': '#FF5C00',
           'gray': '#F3F4F6',
           'dark-gray': '#4B5563',
+          'success': '#22c55e',
+          'warning': '#f59e0b',
+          'error': '#ef4444',
         },
         // Colores base de la aplicación mapeados a la paleta de Sofka
-        border: "#E5E7EB", // Un gris muy claro para bordes sutiles
-        input: "#E5E7EB",
-        ring: "#0083B3", // Azul claro de Sofka
-        background: "#F3F4F6", // Gris de Sofka para fondos
-        foreground: "#4B5563", // Gris oscuro de Sofka para texto
+        border: "hsl(var(--border))",
+        input: "hsl(var(--input))",
+        ring: "hsl(var(--ring))",
+        background: "hsl(var(--background))",
+        foreground: "hsl(var(--foreground))",
         primary: {
           DEFAULT: "#002C5E", // Azul de Sofka
           foreground: "#FFFFFF",
@@ -44,25 +47,33 @@ const config = {
           foreground: "#FFFFFF",
         },
         destructive: {
-          DEFAULT: "#ef4444", // Rojo estándar de Tailwind para destructivo
-          foreground: "#ffffff",
+          DEFAULT: "hsl(var(--destructive))",
+          foreground: "hsl(var(--destructive-foreground))",
         },
         muted: {
-          DEFAULT: "#d1d5db",
-          foreground: "#6b7280",
+          DEFAULT: "hsl(var(--muted))",
+          foreground: "hsl(var(--muted-foreground))",
         },
         accent: {
           DEFAULT: "#0083B3", // Azul claro de Sofka
           foreground: "#FFFFFF",
         },
         popover: {
-          DEFAULT: "#ffffff",
-          foreground: "#4b5563",
+          DEFAULT: "hsl(var(--popover))",
+          foreground: "hsl(var(--popover-foreground))",
         },
         card: {
-          DEFAULT: "#ffffff",
-          foreground: "#4b5563",
+          DEFAULT: "hsl(var(--card))",
+          foreground: "hsl(var(--card-foreground))",
         },
+        success: {
+          DEFAULT: "#22c55e",
+          foreground: "#FFFFFF",
+        },
+        warning: {
+          DEFAULT: "#f59e0b",
+          foreground: "#FFFFFF",
+        }
       },
       borderRadius: {
         lg: "var(--radius)",

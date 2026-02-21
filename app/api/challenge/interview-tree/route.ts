@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { interviewTreeGenerator } from "@/lib/ia/interviewTreeGenerator";
+import { RateLimitError, UnauthorizedError } from "@/lib/ia/baseGenerator";
 
 export async function POST(req: Request) {
     try {
@@ -21,6 +22,15 @@ export async function POST(req: Request) {
         return NextResponse.json(tree);
     } catch (error: any) {
         console.error("Error generating interview tree:", error);
+
+        if (error instanceof RateLimitError) {
+            return NextResponse.json({ error: error.message }, { status: 429 });
+        }
+
+        if (error instanceof UnauthorizedError) {
+            return NextResponse.json({ error: error.message }, { status: 401 });
+        }
+
         return NextResponse.json(
             { message: error.message || "Error generating tree" },
             { status: 500 }

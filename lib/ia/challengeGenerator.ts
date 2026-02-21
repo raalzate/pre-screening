@@ -32,7 +32,7 @@ type OutputSchemaType = typeof ChallengeResultSchemaRaw;
 
 class ChallengeGenerator extends BaseGenerator<InputSchemaType, OutputSchemaType> {
   constructor() {
-    super('gemini-2.5-flash');
+    super('gemini-2.0-flash');
   }
 
   get name() {

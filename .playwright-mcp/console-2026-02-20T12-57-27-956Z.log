@@ -1,0 +1,13 @@
+[     826ms] [ERROR] Failed to load resource: the server responded with a status of 410 () @ https://oportunidades.sofka.com.co/jobs/6238128-desarrollador-backend-junior-java-quito/423e62bf-9b5c-4aec-8f05-318de9b297b1:0
+[    1158ms] Error: Missing target element "floatingButton" for "careersite--jobs--form-overlay" controller
+    at t.get (https://assets-aws.teamtailor-cdn.com/assets/packs/js/601-7d3383e7a375dc1aaa1b.js:1:43397)
+    at t.setFloatingButtonVisibility (https://assets-aws.teamtailor-cdn.com/assets/packs/js/1339-b04aba7e8c70303524e6.js:1:262754)
+    at t.setElementVisibilities (https://assets-aws.teamtailor-cdn.com/assets/packs/js/1339-b04aba7e8c70303524e6.js:1:262248)
+    at t.coverVisibleValueChanged (https://assets-aws.teamtailor-cdn.com/assets/packs/js/1339-b04aba7e8c70303524e6.js:1:262337)
+    at T.invokeChangedCallback (https://assets-aws.teamtailor-cdn.com/assets/packs/js/601-7d3383e7a375dc1aaa1b.js:1:20357)
+    at T.invokeChangedCallbacksForDefaultValues (https://assets-aws.teamtailor-cdn.com/assets/packs/js/601-7d3383e7a375dc1aaa1b.js:1:20133)
+    at T.start (https://assets-aws.teamtailor-cdn.com/assets/packs/js/601-7d3383e7a375dc1aaa1b.js:1:19195)
+    at I.connect (https://assets-aws.teamtailor-cdn.com/assets/packs/js/601-7d3383e7a375dc1aaa1b.js:1:27027)
+    at P.connectContextForScope (https://assets-aws.teamtailor-cdn.com/assets/packs/js/601-7d3383e7a375dc1aaa1b.js:1:29907)
+    at G.scopeConnected (https://assets-aws.teamtailor-cdn.com/assets/packs/js/601-7d3383e7a375dc1aaa1b.js:1:37170)
+[    2591ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://images.teamtailor-cdn.com/images/s3/teamtailor-production/favicon-v3/image_uploads/e341dea3-3760-4b4d-ac4e-4efab34f00ba/original.gif:0

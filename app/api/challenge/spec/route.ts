@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { specGenerator } from '@/lib/ia/specGenerator';
+import { RateLimitError, UnauthorizedError } from '@/lib/ia/baseGenerator';
 
 export async function POST(req: Request) {
     try {
@@ -18,6 +19,15 @@ export async function POST(req: Request) {
         return NextResponse.json(spec);
     } catch (error: any) {
         console.error('Spec Route Error:', error);
+
+        if (error instanceof RateLimitError) {
+            return NextResponse.json({ error: error.message }, { status: 429 });
+        }
+
+        if (error instanceof UnauthorizedError) {
+            return NextResponse.json({ error: error.message }, { status: 401 });
+        }
+
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 }

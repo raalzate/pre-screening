@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { formAnalysisGenerator } from '@/lib/ia/formAnalysisGenerator';
 import { initDb, saveFormAnalysis } from '@/lib/db';
+import { RateLimitError, UnauthorizedError } from '@/lib/ia/baseGenerator';
 
 export async function POST(req: Request) {
     try {
@@ -38,8 +39,17 @@ export async function POST(req: Request) {
         });
 
         return NextResponse.json({ analysis });
-    } catch (error) {
+    } catch (error: any) {
         console.error('Error generating AI form analysis:', error);
+
+        if (error instanceof RateLimitError) {
+            return NextResponse.json({ error: error.message }, { status: 429 });
+        }
+
+        if (error instanceof UnauthorizedError) {
+            return NextResponse.json({ error: error.message }, { status: 401 });
+        }
+
         return NextResponse.json({ error: 'Failed to generate analysis' }, { status: 500 });
     }
 }

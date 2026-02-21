@@ -19,7 +19,7 @@ export type FeedbackInput = z.infer<typeof FeedbackInputSchema>;
 
 class InterviewFeedbackGenerator extends BaseGenerator<typeof FeedbackInputSchema, z.ZodString> {
     constructor() {
-        super('gemini-2.5-flash');
+        super('gemini-2.0-flash');
     }
 
     get name() {

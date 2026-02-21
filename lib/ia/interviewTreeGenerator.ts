@@ -27,7 +27,7 @@ export type InterviewPlan = z.infer<typeof InterviewPlanSchema>;
 
 class InterviewTreeGenerator extends BaseGenerator<typeof InterviewPlanInputSchema, typeof InterviewPlanSchema> {
     constructor() {
-        super('gemini-2.5-flash');
+        super('gemini-2.0-flash');
     }
 
     get name() {

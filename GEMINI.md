@@ -18,6 +18,10 @@ Auto-generated from all feature plans. Last updated: 2026-01-22
 - TypeScript / Next.js 15 (App Router) + `@libsql/client` (Turso), `zod`, `next-auth` (019-candidate-retry-system)
 - Turso (SQLite/LibSQL) (021-admin-interview-notification)
 - TypeScript / Next.js 15 (App Router) + `@genkit-ai/googleai`, `genkit`, `zod`, `@libsql/client` (Turso) (022-ai-rejection-feedback)
+- TypeScript / Next.js 15 (App Router) + React 19 + `@libsql/client` (Turso), `genkit`, `@genkit-ai/googleai`, `zod`, `react-markdown` (023-admin-studio-designer)
+- Turso (SQLite/LibSQL) - Two new tables: `studio_requirements` and `studio_forms`. (023-admin-studio-designer)
+- TypeScript / Next.js 15 (App Router) + `next-auth`, `zod`, `genkit`, `upstash/ratelimit` (candidate for Redis-backed RL) or simple in-memory LRU (024-ai-rate-limiting)
+- Turso (SQLite/LibSQL) for persistent configs, Memory/Redis for transient RL buckets (024-ai-rate-limiting)
 
 - TypeScript / Next.js (App Router) + React, Tailwind CSS (for UI) (001-admin-tech-tab-visibility)
 
@@ -37,9 +41,9 @@ npm test && npm run lint
 TypeScript / Next.js (App Router): Follow standard conventions
 
 ## Recent Changes
+- 024-ai-rate-limiting: Added TypeScript / Next.js 15 (App Router) + `next-auth`, `zod`, `genkit`, `upstash/ratelimit` (candidate for Redis-backed RL) or simple in-memory LRU
+- 023-admin-studio-designer: Added TypeScript / Next.js 15 (App Router) + React 19 + `@libsql/client` (Turso), `genkit`, `@genkit-ai/googleai`, `zod`, `react-markdown`
 - 022-ai-rejection-feedback: Added TypeScript / Next.js 15 (App Router) + `@genkit-ai/googleai`, `genkit`, `zod`, `@libsql/client` (Turso)
-- 022-ai-rejection-feedback: Added [if applicable, e.g., PostgreSQL, CoreData, files or N/A]
-- 021-admin-interview-notification: Added TypeScript / Next.js 15 (App Router) + `@libsql/client` (Turso), `next-auth`
 
 
 <!-- MANUAL ADDITIONS START -->

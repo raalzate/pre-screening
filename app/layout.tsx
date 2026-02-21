@@ -2,6 +2,7 @@
 
 import { AuthProvider } from '@/context/AuthContext';
 import { SessionProvider } from "next-auth/react";
+import { Toaster } from 'react-hot-toast';
 import "./globals.css";
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -9,7 +10,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <body>
         <SessionProvider>
-          <AuthProvider>{children}</AuthProvider>
+          <AuthProvider>
+            {children}
+            <Toaster position="top-right" />
+          </AuthProvider>
         </SessionProvider>
       </body>
     </html>

@@ -21,7 +21,13 @@ export async function POST(request: Request) {
     }
 
     const session = await getServerSession(authOptions);
-    const createdBy = (session?.user as any)?.email || config.DEFAULT_RECRUITER_EMAIL;
+    const userRole = (session?.user as any)?.role;
+
+    if (!session || userRole !== 'admin') {
+      return NextResponse.json({ message: "No autorizado. Se require cuenta de administrador." }, { status: 401 });
+    }
+
+    const createdBy = session.user?.email || config.DEFAULT_RECRUITER_EMAIL;
 
     await db.execute(`
       INSERT INTO users (name, email, code, requirements, step, form_id, created_by)
@@ -110,7 +116,12 @@ export async function GET(request: Request) {
       const user = { ...result.rows[0] };
       return NextResponse.json(user);
     } else {
-      // Listar todos los usuarios
+      // Listar todos los usuarios - REQUIERE ADMIN
+      const session = await getServerSession(authOptions);
+      if (!session || (session.user as any)?.role !== 'admin') {
+        return NextResponse.json({ message: "No autorizado" }, { status: 401 });
+      }
+
       const result = await db.execute("SELECT * FROM users");
       const users = result.rows.map(row => ({ ...row }));
 

@@ -12,7 +12,10 @@ import React, {
 import Markdown from 'react-markdown'
 import { GapAnalysisRechart } from "@/components/GapAnalysisChart";
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import AdminLayout from "@/src/components/admin/AdminLayout";
+import AdminPageHeader from "@/src/components/admin/AdminPageHeader";
+import AdminViewWrapper from "@/src/components/admin/AdminViewWrapper";
 import AdminFormsView from "@/components/admin/AdminFormsView";
 import FormPreview from "@/components/admin/FormPreview";
 import { toast } from "react-hot-toast";
@@ -285,7 +288,15 @@ export default function App() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("profile");
   const [searchQuery, setSearchQuery] = useState("");
-  const [view, setView] = useState<AdminView>("candidates");
+  const searchParams = useSearchParams();
+  const queryView = searchParams.get("view") as AdminView;
+  const [view, setView] = useState<AdminView>(queryView || "candidates");
+
+  useEffect(() => {
+    if (queryView && queryView !== view) {
+      setView(queryView);
+    }
+  }, [queryView, view]);
   const [selectedFormId, setSelectedFormId] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<CandidateStatusFilter>("all");
   const [stepFilter, setStepFilter] = useState<CandidateStepFilter>("challenge");
@@ -425,53 +436,49 @@ export default function App() {
 
   if (status === "loading") return <div className="min-h-screen bg-gray-50 flex items-center justify-center"><Spinner size="md" /></div>;
   console.log(userData);
+  const getPageTitle = () => {
+    switch (view) {
+      case "candidates": return "Dashboard de Candidatos";
+      case "history": return "Historial de Procesos";
+      case "forms": return "Plantillas de Formularios";
+      default: return "Administración";
+    }
+  };
+
+  const getPageDescription = () => {
+    switch (view) {
+      case "candidates": return "Gestión y seguimiento de candidatos activos.";
+      case "history": return "Revisión de candidatos que han finalizado o han sido rechazados.";
+      case "forms": return "Visualización y gestión de formularios de pre-screening.";
+      default: return "";
+    }
+  };
+
   return (
-    <div className="bg-gray-50 min-h-screen pb-20">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <>
+      <AdminPageHeader
+        title={getPageTitle()}
+        description={getPageDescription()}
+        actions={
+          view === "candidates" && (
+            <div className="flex gap-2">
+              <Button variant="secondary" size="sm" onClick={() => router.push("/admin/studio/requirements/new")} className="gap-2">
+                <Icons.Plus className="w-4 h-4" /> Nuevo Perfil
+              </Button>
+              <Button
+                onClick={() => setIsModalOpen(true)}
+                variant="accent"
+                className="gap-2 shadow-md"
+              >
+                <Icons.Plus className="w-5 h-5" /> Nuevo Candidato
+              </Button>
+            </div>
+          )
+        }
+      />
 
-        {/* --- VIEW TOGGLE --- */}
-        <div className="flex bg-white p-1.5 rounded-xl shadow-sm border border-gray-200 mb-8 w-fit gap-1">
-          <Button
-            variant={view === "candidates" ? "primary" : "ghost"}
-            size="sm"
-            onClick={() => {
-              setView("candidates");
-              setSelectedFormId(null);
-              setSelectedCode("");
-              setData(null);
-            }}
-            className="px-6 font-bold"
-          >
-            Candidatos
-          </Button>
-          <Button
-            variant={view === "history" ? "primary" : "ghost"}
-            size="sm"
-            onClick={() => {
-              setView("history");
-              setSelectedFormId(null);
-              setSelectedCode("");
-              setData(null);
-            }}
-            className="px-6 font-bold"
-          >
-            Historial
-          </Button>
-          <Button
-            variant={view === "forms" ? "primary" : "ghost"}
-            size="sm"
-            onClick={() => {
-              setView("forms");
-              setSelectedFormId(null);
-              setSelectedCode("");
-              setData(null);
-            }}
-            className="px-6 font-bold"
-          >
-            Formularios
-          </Button>
-
-        </div>
+      {/* Spacing replaced AdminViewWrapper */}
+      <div className="space-y-6">
 
         {/* --- STATUS FILTER --- */}
         {view === "candidates" && (
@@ -528,15 +535,9 @@ export default function App() {
           </div>
         )}
 
-        {/* --- TOP BAR: SEARCH & ACTIONS --- */}
+        {/* --- TOP BAR: SEARCH & FILTERS --- */}
         {(view === "candidates" || view === "history") && (
-          <Card className="mb-8" action={
-            view === "candidates" && (
-              <Button variant="secondary" size="sm" onClick={() => router.push("/admin/studio/requirements/new")} className="gap-2">
-                <Icons.Plus className="w-4 h-4" /> Nuevo Perfil
-              </Button>
-            )
-          }>
+          <div className="mb-8">
             <div className="flex flex-col md:flex-row gap-4 items-end">
               <div className="flex-1 w-full space-y-4 md:space-y-0 md:grid md:grid-cols-3 md:gap-4">
                 <div className="relative">
@@ -574,20 +575,9 @@ export default function App() {
                 </Button>
               </div>
             </div>
-          </Card>
-        )}
-
-        {view === "candidates" && (
-          <div className="mb-8 flex justify-end">
-            <Button
-              onClick={() => setIsModalOpen(true)}
-              variant="accent"
-              className="gap-2 shadow-md"
-            >
-              <Icons.Plus className="w-5 h-5" /> Nuevo Candidato
-            </Button>
           </div>
         )}
+
 
         {/* Advanced Filters (Date range for History) */}
         {view === "history" && (
@@ -817,47 +807,47 @@ export default function App() {
             )}
           </div>
         )}
+
+        <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Crear Nuevo Candidato">
+          <CreateUserForm onClose={() => setIsModalOpen(false)} />
+        </Modal>
+
+        <DeleteCandidateDialog
+          isOpen={isDeleteModalOpen}
+          onClose={() => setIsDeleteModalOpen(false)}
+          candidateName={userData?.name || ""}
+          isDeleting={isDeleting}
+          onConfirm={async (reason: string, customReason?: string) => {
+            setIsDeleting(true);
+            try {
+              const res = await fetch("/api/admin/candidates/delete", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  candidateCode: userData?.code,
+                  requirements: userData?.requirements,
+                  formId: userData?.form_id,
+                  reason,
+                  customReason
+                }),
+              });
+
+              if (!res.ok) throw new Error(await res.text());
+
+              toast.success("Candidato eliminado y notificado exitosamente.");
+              window.location.reload();
+            } catch (e: any) {
+              toast.error("Error al eliminar candidato: " + e.message);
+            } finally {
+              setIsDeleting(false);
+              setIsDeleteModalOpen(false);
+            }
+          }}
+        />
       </div>
-
-      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Crear Nuevo Candidato">
-        <CreateUserForm onClose={() => setIsModalOpen(false)} />
-      </Modal>
-
-      <DeleteCandidateDialog
-        isOpen={isDeleteModalOpen}
-        onClose={() => setIsDeleteModalOpen(false)}
-        candidateName={userData?.name || ""}
-        isDeleting={isDeleting}
-        onConfirm={async (reason: string, customReason?: string) => {
-          setIsDeleting(true);
-          try {
-            const res = await fetch("/api/admin/candidates/delete", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                candidateCode: userData?.code,
-                requirements: userData?.requirements,
-                formId: userData?.form_id,
-                reason,
-                customReason
-              }),
-            });
-
-            if (!res.ok) throw new Error(await res.text());
-
-            toast.success("Candidato eliminado y notificado exitosamente.");
-            window.location.reload();
-          } catch (e: any) {
-            toast.error("Error al eliminar candidato: " + e.message);
-          } finally {
-            setIsDeleting(false);
-            setIsDeleteModalOpen(false);
-          }
-        }}
-      />
-    </div >
+    </>
   );
-};
+}
 
 // --- 6. FEATURE COMPONENTS (Extracted for cleaner Main Page) ---
 

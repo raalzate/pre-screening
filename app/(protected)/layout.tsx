@@ -1,7 +1,7 @@
 'use client';
 
 import { useAuth } from '@/context/AuthContext';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { useEffect, ReactNode } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -50,6 +50,8 @@ const Footer = () => (
 const ProtectedLayout = ({ children }: { children: ReactNode }) => {
   const { user, isLoading, logout } = useAuth();
   const router = useRouter();
+  const pathname = usePathname();
+  const isAdminPath = pathname.startsWith('/admin');
 
   useEffect(() => {
     if (!isLoading && !user) {
@@ -78,11 +80,11 @@ const ProtectedLayout = ({ children }: { children: ReactNode }) => {
 
   return (
     <div className="flex flex-col min-h-screen" style={{ backgroundColor: sofkaColors.gray }}>
-      <Header onLogout={logout} />
-      <main className="flex-grow container mx-auto p-4 md:p-8">
+      {!isAdminPath && <Header onLogout={logout} />}
+      <main className={`flex-grow ${!isAdminPath ? 'container mx-auto p-4 md:p-8' : ''}`}>
         {children}
       </main>
-      <Footer />
+      {!isAdminPath && <Footer />}
     </div>
   );
 };

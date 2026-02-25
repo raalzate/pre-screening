@@ -25,7 +25,7 @@ async function verify() {
         console.log("✅ Candidate found in history");
 
         console.log("Restoring candidate...");
-        await restoreCandidate(testCode);
+        await restoreCandidate(testCode, testReq, "test-form");
 
         console.log("Verifying restoration...");
         const active = await db.execute({

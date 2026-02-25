@@ -1,8 +1,5 @@
 import { NextResponse } from 'next/server';
 import { jdScraper } from '@/lib/ia/jdScraper';
-import { RateLimitError, UnauthorizedError } from '@/lib/ia/baseGenerator';
-import { getServerSession } from 'next-auth';
-// Import authOptions if needed or check session directly
 
 export async function POST(req: Request) {
     try {

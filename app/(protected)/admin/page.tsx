@@ -13,9 +13,7 @@ import Markdown from 'react-markdown'
 import { GapAnalysisRechart } from "@/components/GapAnalysisChart";
 import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
-import AdminLayout from "@/src/components/admin/AdminLayout";
 import AdminPageHeader from "@/src/components/admin/AdminPageHeader";
-import AdminViewWrapper from "@/src/components/admin/AdminViewWrapper";
 import AdminFormsView from "@/components/admin/AdminFormsView";
 import FormPreview from "@/components/admin/FormPreview";
 import { toast } from "react-hot-toast";
@@ -279,7 +277,7 @@ export default function App() {
   // Hooks
   const { users } = useUserList();
   const { users: historyUsers } = useHistoryList();
-  const { data: userData, loading: userLoading, error: userError, fetchCandidate, setData } = useCandidate();
+  const { data: userData, loading: userLoading, error: userError, fetchCandidate } = useCandidate();
 
   // State
   const [selectedCode, setSelectedCode] = useState("");

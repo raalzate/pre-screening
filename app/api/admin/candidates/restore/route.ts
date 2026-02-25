@@ -11,14 +11,14 @@ export async function POST(req: Request) {
             return NextResponse.json({ message: "No autorizado" }, { status: 401 });
         }
 
-        const { code } = await req.json();
+        const { code, requirements, formId } = await req.json();
 
-        if (!code) {
-            return NextResponse.json({ message: "Falta el código del candidato" }, { status: 400 });
+        if (!code || !requirements || !formId) {
+            return NextResponse.json({ message: "Faltan datos del candidato (code/requirements/formId)" }, { status: 400 });
         }
 
         await initDb();
-        await restoreCandidate(code);
+        await restoreCandidate(code, requirements, formId);
 
         return NextResponse.json({ message: "Candidato restaurado correctamente" });
     } catch (error: any) {

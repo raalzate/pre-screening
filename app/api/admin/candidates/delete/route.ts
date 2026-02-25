@@ -12,9 +12,9 @@ export async function POST(req: NextRequest) {
     }
 
     try {
-        const { candidateCode, requirements, reason, customReason } = await req.json();
+        const { candidateCode, requirements, formId, reason, customReason } = await req.json();
 
-        if (!candidateCode || !requirements || !reason) {
+        if (!candidateCode || !requirements || !formId || !reason) {
             return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
         }
 
@@ -27,11 +27,11 @@ export async function POST(req: NextRequest) {
         // 1. Fetch candidate details for notification (Check both tables)
         const stmt = await db.execute({
             sql: `
-                SELECT name, email FROM users WHERE code = ? AND requirements = ?
+                SELECT name, email FROM users WHERE code = ? AND requirements = ? AND form_id = ?
                 UNION
-                SELECT name, email FROM history_candidates WHERE code = ? AND requirements = ?
+                SELECT name, email FROM history_candidates WHERE code = ? AND requirements = ? AND form_id = ?
             `,
-            args: [candidateCode, requirements, candidateCode, requirements]
+            args: [candidateCode, requirements, formId, candidateCode, requirements, formId]
         });
 
         const candidate = stmt.rows.length ? stmt.rows[0] : null;
@@ -48,7 +48,7 @@ export async function POST(req: NextRequest) {
         );
 
         // 3. Delete candidate permanently
-        await deleteCandidatePermanently(candidateCode, requirements);
+        await deleteCandidatePermanently(candidateCode, requirements, formId);
 
         // 4. Log the action
         await createAdminNotification({

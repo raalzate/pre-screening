@@ -116,7 +116,7 @@ export default function FormPage({
         </Link>
       </nav>
 
-      <h1 className="text-3xl font-bold mb-6 text-gray-900">{form.title}</h1>
+      <h1 className="text-3xl font-bold mb-4 text-gray-900">{form.title}</h1>
 
       {/* --- ETAPA 1: PRE-SCREENING --- */}
       {defaultStep === "pre-screening" && (

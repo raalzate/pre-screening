@@ -10,8 +10,9 @@ export async function GET() {
     const session = await getServerSession(authOptions);
     const code = (session?.user as any)?.code;
     const requirements = (session?.user as any)?.requirements;
+    const formId = (session?.user as any)?.form_id;
 
-    const user = (await db.execute('SELECT questions, certification_started_at FROM users WHERE code = ? AND requirements = ?', [code, requirements])).rows[0];
+    const user = (await db.execute('SELECT questions, certification_started_at FROM users WHERE code = ? AND requirements = ? AND form_id = ?', [code, requirements, formId])).rows[0];
 
     if (!user) {
       return NextResponse.json({ message: 'Invalid code' }, { status: 401 });
@@ -19,7 +20,8 @@ export async function GET() {
 
     // Set start time if not already set
     if (!user.certification_started_at) {
-      await db.execute('UPDATE users SET certification_started_at = datetime("now") WHERE code = ? AND requirements = ?', [code, requirements]);
+      console.log(`Setting certification_started_at for user ${code} - ${requirements} - ${formId}`);
+      await db.execute('UPDATE users SET certification_started_at = datetime("now") WHERE code = ? AND requirements = ? AND form_id = ?', [code, requirements, formId]);
     }
     // Filtrar solo el formulario asignado al usuario
     const questionsStr = user.questions ? user.questions : null;
@@ -31,8 +33,8 @@ export async function GET() {
 
     // US1: Stripping correct answers and rationales
     const sanitizedQuestions = fullForm.questions?.map((q: any) => {
-      const { correctAnswer, rationale, ...sanitized } = q;
-      return sanitized;
+      const { id, question, options } = q;
+      return { id, question, options };
     }) ?? [];
 
     return NextResponse.json({
@@ -57,13 +59,14 @@ export async function POST(req: Request) {
     const session = await getServerSession(authOptions);
     const userCode = (session?.user as any)?.code;
     const requirements = (session?.user as any)?.requirements;
+    const formId = (session?.user as any)?.form_id;
 
     if (!userCode) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     // Fetch full questions from DB for validation
-    const userStmt = await db.execute('SELECT questions, name, email, certification_started_at FROM users WHERE code = ? AND requirements = ?', [userCode, requirements]);
+    const userStmt = await db.execute('SELECT questions, name, email, certification_started_at FROM users WHERE code = ? AND requirements = ? AND form_id = ?', [userCode, requirements, formId]);
     const userData = userStmt.rows[0];
 
     if (!userData || !userData.questions) {
@@ -92,8 +95,8 @@ export async function POST(req: Request) {
     await db.execute(`
                 UPDATE users
                 SET certification_result = ?, step = ?
-                WHERE code = ? AND requirements = ?
-            `, [JSON.stringify(result), 'challenge', userCode, requirements]);
+                WHERE code = ? AND requirements = ? AND form_id = ?
+            `, [JSON.stringify(result), 'challenge', userCode, requirements, formId]);
 
     // Enviar correo de notificación de fin de certificación
     try {

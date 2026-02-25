@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { initDb, withdrawCandidate, createAdminNotification } from "@/lib/db";
 
-export async function POST(req: Request) {
+export async function POST() {
     try {
         const session = await getServerSession(authOptions);
 
@@ -13,12 +13,14 @@ export async function POST(req: Request) {
 
         const user = session.user as any;
         const candidateCode = user.code;
+        const requirements = user.requirements;
+        const formId = user.form_id;
         const candidateName = user.name || "Candidato";
 
         await initDb();
 
         // 1. Move to history and delete from active users
-        await withdrawCandidate(candidateCode);
+        await withdrawCandidate(candidateCode, requirements, formId);
 
         // 2. Create admin notification
         await createAdminNotification({

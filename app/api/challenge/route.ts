@@ -16,6 +16,7 @@ export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
   const userCode = (session?.user as any)?.code;
   const requirements = (session?.user as any)?.requirements;
+  const formId = (session?.user as any)?.form_id;
 
   const challenge = await challengeGenerator.generate({
     ...body.evaluationResult,
@@ -27,8 +28,8 @@ export async function POST(req: Request) {
     await db.execute(`
                 UPDATE users
                 SET challenge_result = ?, step = ?
-                WHERE code = ? AND requirements = ?
-            `, [JSON.stringify(challenge), "interview", userCode, requirements]);
+                WHERE code = ? AND requirements = ? AND form_id = ?
+            `, [JSON.stringify(challenge), "interview", userCode, requirements, formId]);
 
     // Registrar notificación para el administrador
     try {

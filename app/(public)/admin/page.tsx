@@ -49,7 +49,7 @@ const ALL_REQUIREMENTS = [
 
 type AdminView = "candidates" | "forms" | "history";
 type CandidateStatusFilter = "all" | "in-progress" | "rejected";
-type CandidateStepFilter = "all" | "pre-screening" | "technical" | "interview";
+type CandidateStepFilter = "all" | "pre-screening" | "challenge" | "interview";
 
 interface EvaluationGap {
   skill: string;
@@ -89,16 +89,15 @@ const useCandidate = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchCandidate = useCallback(async (code: string, requirements?: string) => {
+  const fetchCandidate = useCallback(async (code: string, requirements?: string, formId?: string) => {
     if (!code) return;
     setLoading(true);
     setError(null);
     setData(null);
     try {
       let url = `/api/user?code=${encodeURIComponent(code.trim())}`;
-      if (requirements) {
-        url += `&requirements=${encodeURIComponent(requirements)}`;
-      }
+      if (requirements) url += `&requirements=${encodeURIComponent(requirements)}`;
+      if (formId) url += `&formId=${encodeURIComponent(formId)}`;
       const res = await fetch(url);
       if (!res.ok) throw new Error("No se pudo cargar el candidato");
       const rawData = await res.json();
@@ -289,7 +288,7 @@ export default function App() {
   const [view, setView] = useState<AdminView>("candidates");
   const [selectedFormId, setSelectedFormId] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<CandidateStatusFilter>("all");
-  const [stepFilter, setStepFilter] = useState<CandidateStepFilter>("technical");
+  const [stepFilter, setStepFilter] = useState<CandidateStepFilter>("challenge");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [restoring, setRestoring] = useState(false);
@@ -349,7 +348,7 @@ export default function App() {
       // Fetch the first profile's data
       const firstProfile = group.profiles[0];
       if (firstProfile) {
-        fetchCandidate(firstProfile.code, firstProfile.requirements);
+        fetchCandidate(firstProfile.code, firstProfile.requirements, firstProfile.form_id);
       }
     }
   };
@@ -359,7 +358,7 @@ export default function App() {
     if (selectedGroupedCandidate && selectedGroupedCandidate.profiles[index]) {
       setSelectedProfileIndex(index);
       const profile = selectedGroupedCandidate.profiles[index];
-      fetchCandidate(profile.code, profile.requirements);
+      fetchCandidate(profile.code, profile.requirements, profile.form_id);
       setActiveTab("profile"); // Reset to profile tab when switching
     }
   };
@@ -373,7 +372,11 @@ export default function App() {
       const res = await fetch("/api/admin/candidates/restore", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code: userData.code }),
+        body: JSON.stringify({
+          code: userData.code,
+          requirements: userData.requirements,
+          formId: userData.form_id
+        }),
       });
 
       if (!res.ok) throw new Error("Error al restaurar");
@@ -395,7 +398,7 @@ export default function App() {
       rejected: 0,
       steps: {
         "pre-screening": 0,
-        technical: 0,
+        challenge: 0,
         interview: 0,
       },
     };
@@ -411,7 +414,7 @@ export default function App() {
         // Count unique steps per active candidate
         const steps = new Set(u.profiles.map((p: any) => p.step));
         if (steps.has("pre-screening")) acc.steps["pre-screening"]++;
-        if (steps.has("technical")) acc.steps.technical++;
+        if (steps.has("challenge")) acc.steps.challenge++;
         if (steps.has("interview")) acc.steps.interview++;
       }
       acc.all++;
@@ -484,7 +487,7 @@ export default function App() {
                 size="sm"
                 onClick={() => {
                   setStatusFilter(filter.id as CandidateStatusFilter);
-                  if (filter.id === "in-progress") setStepFilter("technical");
+                  if (filter.id === "in-progress") setStepFilter("challenge");
                 }}
                 className={`flex items-center gap-2 px-4 py-2.5 rounded-xl transition-all border-2 whitespace-nowrap ${statusFilter === filter.id ? "border-sofka-blue" : "border-gray-100"
                   }`}
@@ -505,7 +508,7 @@ export default function App() {
             {[
               { id: "all", label: "Todos", count: statusCounts.inProgress },
               { id: "pre-screening", label: "Pre-Screening", count: statusCounts.steps["pre-screening"] },
-              { id: "technical", label: "Validación Técnica", count: statusCounts.steps.technical },
+              { id: "challenge", label: "Validación Técnica", count: statusCounts.steps.challenge },
               { id: "interview", label: "Entrevista", count: statusCounts.steps.interview },
             ].map((tag) => (
               <Button
@@ -687,7 +690,7 @@ export default function App() {
                   tabs={[
                     { id: "profile", label: "Perfil & Pre-Screening", icon: <Icons.User className="w-4 h-4" /> },
                     ...(userData.certification_result || userData.challenge_result ? [
-                      { id: "technical", label: "Validación Técnica", icon: <Icons.Target className="w-4 h-4" /> }
+                      { id: "challenge", label: "Validación Técnica", icon: <Icons.Target className="w-4 h-4" /> }
                     ] : []),
                     { id: "interview", label: "Entrevista & Feedback", icon: <Icons.MessageSquare className="w-4 h-4" /> }
                   ]}
@@ -769,7 +772,7 @@ export default function App() {
                   )}
 
                   {/* TAB 2: TECHNICAL */}
-                  {activeTab === "technical" && (
+                  {activeTab === "challenge" && (
                     <div className="space-y-8">
                       {userData.certification_result && (
                         <CertificationAnalysisCard
@@ -834,6 +837,7 @@ export default function App() {
               body: JSON.stringify({
                 candidateCode: userData?.code,
                 requirements: userData?.requirements,
+                formId: userData?.form_id,
                 reason,
                 customReason
               }),

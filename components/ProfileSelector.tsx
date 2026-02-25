@@ -12,7 +12,7 @@ interface Profile {
 
 interface ProfileSelectorProps {
     profiles: Profile[];
-    onSelect: (requirements: string) => void;
+    onSelect: (requirements: string, formId: string) => void;
 }
 
 const NIVELS = {
@@ -34,8 +34,8 @@ export default function ProfileSelector({ profiles, onSelect }: ProfileSelectorP
             <div className="space-y-4">
                 {profiles.map((profile) => (
                     <button
-                        key={profile.requirements}
-                        onClick={() => onSelect(profile.requirements)}
+                        key={`${profile.requirements}-${profile.form_id}`}
+                        onClick={() => onSelect(profile.requirements, profile.form_id)}
                         className="w-full flex items-center justify-between p-4 bg-white border border-gray-200 rounded-xl hover:border-blue-500 hover:shadow-md transition-all group text-left"
                     >
                         <div>

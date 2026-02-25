@@ -26,18 +26,19 @@ export async function initDb() {
     interview_feedback TEXT NULL,
     interview_status TEXT NULL,
     technical_level TEXT NULL,
-    interviewer_name TEXT NULL
+    interviewer_name TEXT NULL,
+    certification_started_at TEXT NULL
   `;
 
   const usersTableSchema = `
     ${commonColumns},
-    PRIMARY KEY (code, requirements)
+    PRIMARY KEY (code, requirements, form_id)
   `;
 
   const historySchema = `
     ${commonColumns},
     moved_at TEXT DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (code, requirements, moved_at)
+    PRIMARY KEY (code, requirements, form_id, moved_at)
   `;
 
   // Migration Check: Inspect if 'users' uses composite key
@@ -49,7 +50,8 @@ export async function initDb() {
 
     const tableExists = tableInfo.rows.length > 0;
     if (tableExists) {
-      if (codeCol && codeCol.pk === 1 && reqCol && reqCol.pk === 0) {
+      const formCol = tableInfo.rows.find(row => row.name === 'form_id');
+      if (codeCol && codeCol.pk === 1 && reqCol && reqCol.pk === 2 && formCol && formCol.pk === 0) {
         needsMigration = true;
       }
     }
@@ -57,7 +59,7 @@ export async function initDb() {
     console.error("Error inspecting table:", e);
   }
 
-  const coreColumns = "name, code, requirements, step, form_id, evaluation_result, questions, certification_result, challenge_result";
+  const coreColumns = "name, email, code, requirements, step, form_id, evaluation_result, questions, certification_result, challenge_result, certification_started_at";
 
   if (needsMigration) {
     console.log("Migrating 'users' table to composite primary key...");
@@ -80,7 +82,8 @@ export async function initDb() {
     const reqCol = tableInfo.rows.find(row => row.name === 'requirements');
 
     if (tableInfo.rows.length > 0) {
-      if (codeCol && codeCol.pk === 1 && reqCol && reqCol.pk === 0) {
+      const formCol = tableInfo.rows.find(row => row.name === 'form_id');
+      if (codeCol && codeCol.pk === 1 && reqCol && reqCol.pk === 2 && formCol && formCol.pk === 0) {
         historyNeedsMigration = true;
       }
     }
@@ -109,6 +112,7 @@ export async function initDb() {
     { name: "interview_status", type: "TEXT NULL" },
     { name: "technical_level", type: "TEXT NULL" },
     { name: "interviewer_name", type: "TEXT NULL" },
+    { name: "certification_started_at", type: "TEXT NULL" },
     { name: "reminder_count", type: "INTEGER DEFAULT 0" },
     { name: "last_reminder_at", type: "TEXT NULL" },
     { name: "retry_count", type: "INTEGER DEFAULT 0" },
@@ -237,46 +241,46 @@ export async function getHistoryCandidates() {
   return result.rows;
 }
 
-export async function restoreCandidate(code: string) {
-  const columns = "name, email, code, requirements, step, form_id, evaluation_result, questions, certification_result, challenge_result, interview_feedback, interview_status, technical_level, interviewer_name, created_by";
+export async function restoreCandidate(code: string, requirements: string, formId: string) {
+  const columns = "name, email, code, requirements, step, form_id, evaluation_result, questions, certification_result, challenge_result, interview_feedback, interview_status, technical_level, interviewer_name, created_by, certification_started_at";
 
   return await db.batch([
     {
-      sql: `INSERT INTO users (${columns}) SELECT ${columns} FROM history_candidates WHERE code = ?`,
-      args: [code]
+      sql: `INSERT INTO users (${columns}) SELECT ${columns} FROM history_candidates WHERE code = ? AND requirements = ? AND form_id = ?`,
+      args: [code, requirements, formId]
     },
     {
-      sql: "DELETE FROM history_candidates WHERE code = ?",
-      args: [code]
+      sql: "DELETE FROM history_candidates WHERE code = ? AND requirements = ? AND form_id = ?",
+      args: [code, requirements, formId]
     }
   ], "write");
 }
 
-export async function withdrawCandidate(code: string) {
-  const columns = "name, email, code, requirements, step, form_id, evaluation_result, questions, certification_result, challenge_result, interview_feedback, interview_status, technical_level, interviewer_name, created_by";
+export async function withdrawCandidate(code: string, requirements: string, formId: string) {
+  const columns = "name, email, code, requirements, step, form_id, evaluation_result, questions, certification_result, challenge_result, interview_feedback, interview_status, technical_level, interviewer_name, created_by, certification_started_at";
 
   return await db.batch([
     {
-      sql: `INSERT INTO history_candidates (${columns}, moved_at) 
-            SELECT name, email, code, requirements, 'feedback', form_id, evaluation_result, questions, certification_result, challenge_result, interview_feedback, 'withdrawn', technical_level, interviewer_name, created_by, CURRENT_TIMESTAMP 
-            FROM users WHERE code = ?`,
-      args: [code]
+      sql: `INSERT INTO history_candidates (${columns}, moved_at)
+            SELECT name, email, code, requirements, 'feedback', form_id, evaluation_result, questions, certification_result, challenge_result, interview_feedback, 'withdrawn', technical_level, interviewer_name, created_by, certification_started_at, CURRENT_TIMESTAMP
+            FROM users WHERE code = ? AND requirements = ? AND form_id = ?`,
+      args: [code, requirements, formId]
     },
     {
-      sql: "DELETE FROM users WHERE code = ?",
-      args: [code]
+      sql: "DELETE FROM users WHERE code = ? AND requirements = ? AND form_id = ?",
+      args: [code, requirements, formId]
     }
   ], "write");
 }
-export async function deleteCandidatePermanently(code: string, requirements: string) {
+export async function deleteCandidatePermanently(code: string, requirements: string, formId: string) {
   return await db.batch([
     {
-      sql: "DELETE FROM users WHERE code = ? AND requirements = ?",
-      args: [code, requirements]
+      sql: "DELETE FROM users WHERE code = ? AND requirements = ? AND form_id = ?",
+      args: [code, requirements, formId]
     },
     {
-      sql: "DELETE FROM history_candidates WHERE code = ? AND requirements = ?",
-      args: [code, requirements]
+      sql: "DELETE FROM history_candidates WHERE code = ? AND requirements = ? AND form_id = ?",
+      args: [code, requirements, formId]
     }
   ], "write");
 }

@@ -56,7 +56,7 @@ function DynamicForm({
   if (result) {
     if (!result.valid) {
       return (
-        <div className="min-h-screen flex flex-col justify-center items-center">
+        <div className="flex flex-col justify-center items-center">
           <div className="w-full max-w-2xl bg-white rounded-lg shadow-lg space-y-6 p-8 text-center border-t-4 border-red-500">
             <div className="flex justify-center">
               <div className="p-3 bg-red-100 rounded-full">
@@ -91,7 +91,7 @@ function DynamicForm({
     }
 
     return (
-      <div className="min-h-screen flex flex-col justify-center items-center">
+      <div className="flex flex-col justify-center items-center">
         <div className="w-full  bg-white rounded-lg shadow-lg  space-y-6 text-center p-6">
           <ResultChart
             opportunityTitle={"Gráfica de oportunidad"}
@@ -117,7 +117,7 @@ function DynamicForm({
   const currentCategory = form.categories[step];
 
   return (
-    <div className="min-h-screen  flex flex-col justify-center items-center ">
+    <div className="flex flex-col justify-center items-center ">
       <div className="w-full bg-white rounded-lg shadow-lg p-8 space-y-6">
         {message && (
           <div

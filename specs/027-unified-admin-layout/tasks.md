@@ -78,7 +78,8 @@
 - [x] T017 [P] Implement Bottom Navigation for mobile screens in `AdminLayout.tsx` (Edge Case)
 - [x] T018 Update `app/(public)/admin/sign-in/page.tsx` (or equivalent) redirect logic to point to the new `/admin` location
 - [x] T019 [P] Remove any redundant local auth checks in the newly protected pages
-- [x] T020 Final verification sweep of all success criteria (SC-001 to SC-003)
+- [x] T021 [P] Update `app/(protected)/layout.tsx` to redirect to `/admin/sign-in` for admin paths when unauthenticated
+- [x] T022 Update `context/AuthContext.tsx` logout logic to choose `callbackUrl` dynamically based on pathname
 
 ---
 

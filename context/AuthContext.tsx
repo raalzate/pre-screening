@@ -9,6 +9,7 @@ import {
   useCallback,
 } from "react";
 import { useSession, signIn, signOut } from "next-auth/react";
+import { usePathname } from "next/navigation";
 
 interface User {
   name: string;
@@ -38,6 +39,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const { data: session, status } = useSession();
   const [user, setUser] = useState<User | null>(null);
+  const pathname = usePathname();
   const isLoading = status === "loading";
 
   useEffect(() => {
@@ -78,8 +80,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const logout = useCallback(() => {
-    signOut({ redirect: true, callbackUrl: "/login" });
-  }, []);
+    const callbackUrl = pathname.startsWith('/admin') ? '/admin/sign-in' : '/login';
+    signOut({ redirect: true, callbackUrl });
+  }, [pathname]);
 
   return (
     <AuthContext.Provider value={{ user, isLoading, login, logout }}>

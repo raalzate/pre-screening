@@ -55,9 +55,10 @@ const ProtectedLayout = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     if (!isLoading && !user) {
-      router.push('/login');
+      const target = pathname.startsWith('/admin') ? '/admin/sign-in' : '/login';
+      router.push(target);
     }
-  }, [isLoading, user, router]);
+  }, [isLoading, user, router, pathname]);
 
   if (isLoading || !user) {
     return (

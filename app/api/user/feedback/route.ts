@@ -13,51 +13,32 @@ export async function POST(request: Request) {
 
         await initDb();
 
-        const { code, feedback, status, technicalLevel, requirement } = await request.json();
+        const { code, feedback, status, technicalLevel, requirement, formId } = await request.json();
 
-        if (!code || !feedback || !status || !technicalLevel || !requirement) {
-            console.error("Faltan campos:", { code, feedback, status, technicalLevel, requirement });
+        if (!code || !feedback || !status || !technicalLevel || !requirement || !formId) {
+            console.error("Faltan campos:", { code, feedback, status, technicalLevel, requirement, formId });
             return NextResponse.json({ message: "Faltan campos obligatorios" }, { status: 400 });
         }
 
         const interviewerName = session.user.name || session.user.email || "Admin";
 
-        // 1. Fetch current user to get all requirements
-        // NOTE: Since PK is (code, requirements), we fetch by code and find the row containing the target requirement
-        // Ideally, we should receive the full 'requirements' string from frontend to identify the exact row,
-        // but for now we search by code and filter in memory if needed.
+        // 1. Fetch current profile row
         const userResult = await db.execute({
-            sql: "SELECT * FROM users WHERE code = ?",
-            args: [code]
+            sql: "SELECT * FROM users WHERE code = ? AND requirements = ? AND form_id = ?",
+            args: [code, requirement, formId]
         });
 
         if (userResult.rows.length === 0) {
-            return NextResponse.json({ message: "Candidato no encontrado" }, { status: 404 });
+            return NextResponse.json({ message: "Perfil de candidato no encontrado" }, { status: 404 });
         }
 
-        // Find the specific row that contains the target requirement
-        const targetRow = userResult.rows.find((row: any) => {
-            const reqs = (row.requirements as string).split(',').map(r => r.trim());
-            return reqs.includes(requirement);
-        });
-
-        if (!targetRow) {
-            return NextResponse.json({ message: "El candidato no tiene asignado ese requerimiento" }, { status: 404 });
-        }
-
-        const currentReqsString = targetRow.requirements as string;
-        const currentReqsList = currentReqsString.split(',').map(r => r.trim());
-
-        // 2. Logic to Split
-        // New requirements list for the active row (remove the target one)
-        const newReqsList = currentReqsList.filter(r => r !== requirement);
-        const newReqsString = newReqsList.join(',');
+        const targetRow = userResult.rows[0] as any;
 
         const timestamp = new Date().toISOString();
 
         const operations = [];
 
-        // Operation A: Insert into History (for the target requirement)
+        // Operation A: Insert into History
         operations.push({
             sql: `
                 INSERT INTO history_candidates (
@@ -75,25 +56,11 @@ export async function POST(request: Request) {
             ]
         });
 
-        // Operation B: Update or Delete the Active Row
-        if (newReqsList.length > 0) {
-            // Update the existing row with the remaining requirements
-            // WE MUST BE CAREFUL WITH PRIMARY KEY UPDATE.
-            // PK is (code, requirements). We cannot simply update 'requirements' if it's part of PK in some SQL dialects without issues,
-            // but in SQLite/LibSQL it usually works if no conflict.
-            // However, it's safer to DELETE and INSERT, or just UPDATE if we are sure.
-            // Let's try UPDATE 'requirements' = newReqsString WHERE code = ? AND requirements = currentReqsString
-            operations.push({
-                sql: "UPDATE users SET requirements = ? WHERE code = ? AND requirements = ?",
-                args: [newReqsString, code, currentReqsString]
-            });
-        } else {
-            // No requirements left, delete the row entirely
-            operations.push({
-                sql: "DELETE FROM users WHERE code = ? AND requirements = ?",
-                args: [code, currentReqsString]
-            });
-        }
+        // Operation B: Delete the row from active users
+        operations.push({
+            sql: "DELETE FROM users WHERE code = ? AND requirements = ? AND form_id = ?",
+            args: [code, requirement, formId]
+        });
 
         await db.batch(operations, "write");
 

@@ -12,7 +12,8 @@ import React, {
 import Markdown from 'react-markdown'
 import { GapAnalysisRechart } from "@/components/GapAnalysisChart";
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import AdminPageHeader from "@/src/components/admin/AdminPageHeader";
 import AdminFormsView from "@/components/admin/AdminFormsView";
 import FormPreview from "@/components/admin/FormPreview";
 import { toast } from "react-hot-toast";
@@ -49,7 +50,7 @@ const ALL_REQUIREMENTS = [
 
 type AdminView = "candidates" | "forms" | "history";
 type CandidateStatusFilter = "all" | "in-progress" | "rejected";
-type CandidateStepFilter = "all" | "pre-screening" | "technical" | "interview";
+type CandidateStepFilter = "all" | "pre-screening" | "challenge" | "interview";
 
 interface EvaluationGap {
   skill: string;
@@ -89,16 +90,15 @@ const useCandidate = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchCandidate = useCallback(async (code: string, requirements?: string) => {
+  const fetchCandidate = useCallback(async (code: string, requirements?: string, formId?: string) => {
     if (!code) return;
     setLoading(true);
     setError(null);
     setData(null);
     try {
       let url = `/api/user?code=${encodeURIComponent(code.trim())}`;
-      if (requirements) {
-        url += `&requirements=${encodeURIComponent(requirements)}`;
-      }
+      if (requirements) url += `&requirements=${encodeURIComponent(requirements)}`;
+      if (formId) url += `&formId=${encodeURIComponent(formId)}`;
       const res = await fetch(url);
       if (!res.ok) throw new Error("No se pudo cargar el candidato");
       const rawData = await res.json();
@@ -277,7 +277,7 @@ export default function App() {
   // Hooks
   const { users } = useUserList();
   const { users: historyUsers } = useHistoryList();
-  const { data: userData, loading: userLoading, error: userError, fetchCandidate, setData } = useCandidate();
+  const { data: userData, loading: userLoading, error: userError, fetchCandidate } = useCandidate();
 
   // State
   const [selectedCode, setSelectedCode] = useState("");
@@ -286,10 +286,18 @@ export default function App() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("profile");
   const [searchQuery, setSearchQuery] = useState("");
-  const [view, setView] = useState<AdminView>("candidates");
+  const searchParams = useSearchParams();
+  const queryView = searchParams.get("view") as AdminView;
+  const [view, setView] = useState<AdminView>(queryView || "candidates");
+
+  useEffect(() => {
+    if (queryView && queryView !== view) {
+      setView(queryView);
+    }
+  }, [queryView, view]);
   const [selectedFormId, setSelectedFormId] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<CandidateStatusFilter>("all");
-  const [stepFilter, setStepFilter] = useState<CandidateStepFilter>("technical");
+  const [stepFilter, setStepFilter] = useState<CandidateStepFilter>("challenge");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [restoring, setRestoring] = useState(false);
@@ -349,7 +357,7 @@ export default function App() {
       // Fetch the first profile's data
       const firstProfile = group.profiles[0];
       if (firstProfile) {
-        fetchCandidate(firstProfile.code, firstProfile.requirements);
+        fetchCandidate(firstProfile.code, firstProfile.requirements, firstProfile.form_id);
       }
     }
   };
@@ -359,7 +367,7 @@ export default function App() {
     if (selectedGroupedCandidate && selectedGroupedCandidate.profiles[index]) {
       setSelectedProfileIndex(index);
       const profile = selectedGroupedCandidate.profiles[index];
-      fetchCandidate(profile.code, profile.requirements);
+      fetchCandidate(profile.code, profile.requirements, profile.form_id);
       setActiveTab("profile"); // Reset to profile tab when switching
     }
   };
@@ -373,7 +381,11 @@ export default function App() {
       const res = await fetch("/api/admin/candidates/restore", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code: userData.code }),
+        body: JSON.stringify({
+          code: userData.code,
+          requirements: userData.requirements,
+          formId: userData.form_id
+        }),
       });
 
       if (!res.ok) throw new Error("Error al restaurar");
@@ -395,7 +407,7 @@ export default function App() {
       rejected: 0,
       steps: {
         "pre-screening": 0,
-        technical: 0,
+        challenge: 0,
         interview: 0,
       },
     };
@@ -411,7 +423,7 @@ export default function App() {
         // Count unique steps per active candidate
         const steps = new Set(u.profiles.map((p: any) => p.step));
         if (steps.has("pre-screening")) acc.steps["pre-screening"]++;
-        if (steps.has("technical")) acc.steps.technical++;
+        if (steps.has("challenge")) acc.steps.challenge++;
         if (steps.has("interview")) acc.steps.interview++;
       }
       acc.all++;
@@ -422,53 +434,49 @@ export default function App() {
 
   if (status === "loading") return <div className="min-h-screen bg-gray-50 flex items-center justify-center"><Spinner size="md" /></div>;
   console.log(userData);
+  const getPageTitle = () => {
+    switch (view) {
+      case "candidates": return "Dashboard de Candidatos";
+      case "history": return "Historial de Procesos";
+      case "forms": return "Plantillas de Formularios";
+      default: return "Administración";
+    }
+  };
+
+  const getPageDescription = () => {
+    switch (view) {
+      case "candidates": return "Gestión y seguimiento de candidatos activos.";
+      case "history": return "Revisión de candidatos que han finalizado o han sido rechazados.";
+      case "forms": return "Visualización y gestión de formularios de pre-screening.";
+      default: return "";
+    }
+  };
+
   return (
-    <div className="bg-gray-50 min-h-screen pb-20">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <>
+      <AdminPageHeader
+        title={getPageTitle()}
+        description={getPageDescription()}
+        actions={
+          view === "candidates" && (
+            <div className="flex gap-2">
+              <Button variant="secondary" size="sm" onClick={() => router.push("/admin/studio/requirements/new")} className="gap-2">
+                <Icons.Plus className="w-4 h-4" /> Nuevo Perfil
+              </Button>
+              <Button
+                onClick={() => setIsModalOpen(true)}
+                variant="accent"
+                className="gap-2 shadow-md"
+              >
+                <Icons.Plus className="w-5 h-5" /> Nuevo Candidato
+              </Button>
+            </div>
+          )
+        }
+      />
 
-        {/* --- VIEW TOGGLE --- */}
-        <div className="flex bg-white p-1.5 rounded-xl shadow-sm border border-gray-200 mb-8 w-fit gap-1">
-          <Button
-            variant={view === "candidates" ? "primary" : "ghost"}
-            size="sm"
-            onClick={() => {
-              setView("candidates");
-              setSelectedFormId(null);
-              setSelectedCode("");
-              setData(null);
-            }}
-            className="px-6 font-bold"
-          >
-            Candidatos
-          </Button>
-          <Button
-            variant={view === "history" ? "primary" : "ghost"}
-            size="sm"
-            onClick={() => {
-              setView("history");
-              setSelectedFormId(null);
-              setSelectedCode("");
-              setData(null);
-            }}
-            className="px-6 font-bold"
-          >
-            Historial
-          </Button>
-          <Button
-            variant={view === "forms" ? "primary" : "ghost"}
-            size="sm"
-            onClick={() => {
-              setView("forms");
-              setSelectedFormId(null);
-              setSelectedCode("");
-              setData(null);
-            }}
-            className="px-6 font-bold"
-          >
-            Formularios
-          </Button>
-
-        </div>
+      {/* Spacing replaced AdminViewWrapper */}
+      <div className="space-y-6">
 
         {/* --- STATUS FILTER --- */}
         {view === "candidates" && (
@@ -484,7 +492,7 @@ export default function App() {
                 size="sm"
                 onClick={() => {
                   setStatusFilter(filter.id as CandidateStatusFilter);
-                  if (filter.id === "in-progress") setStepFilter("technical");
+                  if (filter.id === "in-progress") setStepFilter("challenge");
                 }}
                 className={`flex items-center gap-2 px-4 py-2.5 rounded-xl transition-all border-2 whitespace-nowrap ${statusFilter === filter.id ? "border-sofka-blue" : "border-gray-100"
                   }`}
@@ -505,7 +513,7 @@ export default function App() {
             {[
               { id: "all", label: "Todos", count: statusCounts.inProgress },
               { id: "pre-screening", label: "Pre-Screening", count: statusCounts.steps["pre-screening"] },
-              { id: "technical", label: "Validación Técnica", count: statusCounts.steps.technical },
+              { id: "challenge", label: "Validación Técnica", count: statusCounts.steps.challenge },
               { id: "interview", label: "Entrevista", count: statusCounts.steps.interview },
             ].map((tag) => (
               <Button
@@ -525,15 +533,9 @@ export default function App() {
           </div>
         )}
 
-        {/* --- TOP BAR: SEARCH & ACTIONS --- */}
+        {/* --- TOP BAR: SEARCH & FILTERS --- */}
         {(view === "candidates" || view === "history") && (
-          <Card className="mb-8" action={
-            view === "candidates" && (
-              <Button variant="secondary" size="sm" onClick={() => router.push("/admin/studio/requirements/new")} className="gap-2">
-                <Icons.Plus className="w-4 h-4" /> Nuevo Perfil
-              </Button>
-            )
-          }>
+          <div className="mb-8">
             <div className="flex flex-col md:flex-row gap-4 items-end">
               <div className="flex-1 w-full space-y-4 md:space-y-0 md:grid md:grid-cols-3 md:gap-4">
                 <div className="relative">
@@ -571,20 +573,9 @@ export default function App() {
                 </Button>
               </div>
             </div>
-          </Card>
-        )}
-
-        {view === "candidates" && (
-          <div className="mb-8 flex justify-end">
-            <Button
-              onClick={() => setIsModalOpen(true)}
-              variant="accent"
-              className="gap-2 shadow-md"
-            >
-              <Icons.Plus className="w-5 h-5" /> Nuevo Candidato
-            </Button>
           </div>
         )}
+
 
         {/* Advanced Filters (Date range for History) */}
         {view === "history" && (
@@ -687,7 +678,7 @@ export default function App() {
                   tabs={[
                     { id: "profile", label: "Perfil & Pre-Screening", icon: <Icons.User className="w-4 h-4" /> },
                     ...(userData.certification_result || userData.challenge_result ? [
-                      { id: "technical", label: "Validación Técnica", icon: <Icons.Target className="w-4 h-4" /> }
+                      { id: "challenge", label: "Validación Técnica", icon: <Icons.Target className="w-4 h-4" /> }
                     ] : []),
                     { id: "interview", label: "Entrevista & Feedback", icon: <Icons.MessageSquare className="w-4 h-4" /> }
                   ]}
@@ -769,7 +760,7 @@ export default function App() {
                   )}
 
                   {/* TAB 2: TECHNICAL */}
-                  {activeTab === "technical" && (
+                  {activeTab === "challenge" && (
                     <div className="space-y-8">
                       {userData.certification_result && (
                         <CertificationAnalysisCard
@@ -814,46 +805,47 @@ export default function App() {
             )}
           </div>
         )}
+
+        <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Crear Nuevo Candidato">
+          <CreateUserForm onClose={() => setIsModalOpen(false)} />
+        </Modal>
+
+        <DeleteCandidateDialog
+          isOpen={isDeleteModalOpen}
+          onClose={() => setIsDeleteModalOpen(false)}
+          candidateName={userData?.name || ""}
+          isDeleting={isDeleting}
+          onConfirm={async (reason: string, customReason?: string) => {
+            setIsDeleting(true);
+            try {
+              const res = await fetch("/api/admin/candidates/delete", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  candidateCode: userData?.code,
+                  requirements: userData?.requirements,
+                  formId: userData?.form_id,
+                  reason,
+                  customReason
+                }),
+              });
+
+              if (!res.ok) throw new Error(await res.text());
+
+              toast.success("Candidato eliminado y notificado exitosamente.");
+              window.location.reload();
+            } catch (e: any) {
+              toast.error("Error al eliminar candidato: " + e.message);
+            } finally {
+              setIsDeleting(false);
+              setIsDeleteModalOpen(false);
+            }
+          }}
+        />
       </div>
-
-      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Crear Nuevo Candidato">
-        <CreateUserForm onClose={() => setIsModalOpen(false)} />
-      </Modal>
-
-      <DeleteCandidateDialog
-        isOpen={isDeleteModalOpen}
-        onClose={() => setIsDeleteModalOpen(false)}
-        candidateName={userData?.name || ""}
-        isDeleting={isDeleting}
-        onConfirm={async (reason: string, customReason?: string) => {
-          setIsDeleting(true);
-          try {
-            const res = await fetch("/api/admin/candidates/delete", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                candidateCode: userData?.code,
-                requirements: userData?.requirements,
-                reason,
-                customReason
-              }),
-            });
-
-            if (!res.ok) throw new Error(await res.text());
-
-            toast.success("Candidato eliminado y notificado exitosamente.");
-            window.location.reload();
-          } catch (e: any) {
-            toast.error("Error al eliminar candidato: " + e.message);
-          } finally {
-            setIsDeleting(false);
-            setIsDeleteModalOpen(false);
-          }
-        }}
-      />
-    </div >
+    </>
   );
-};
+}
 
 // --- 6. FEATURE COMPONENTS (Extracted for cleaner Main Page) ---
 

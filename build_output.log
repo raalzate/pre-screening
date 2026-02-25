@@ -1,0 +1,41 @@
+npm warn Unknown user config "Sprint". This will stop working in the next major version of npm.
+
+> dev-prescreening@0.1.0 build
+> next build
+
+   ▲ Next.js 15.5.9
+   - Environments: .env.local
+
+   Creating an optimized production build ...
+ ✓ Compiled successfully in 8.3s
+   Linting and checking validity of types ...
+(node:21404) ESLintIgnoreWarning: The ".eslintignore" file is no longer supported. Switch to using the "ignores" property in "eslint.config.js": https://eslint.org/docs/latest/use/configure/migration-guide#ignoring-files
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+./app/(protected)/admin/page.tsx
+16:8  Warning: 'AdminLayout' is defined but never used.  @typescript-eslint/no-unused-vars
+18:8  Warning: 'AdminViewWrapper' is defined but never used.  @typescript-eslint/no-unused-vars
+282:83  Warning: 'setData' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+
+./app/api/admin/studio/jd-extract/route.ts
+3:10  Warning: 'RateLimitError' is defined but never used.  @typescript-eslint/no-unused-vars
+3:26  Warning: 'UnauthorizedError' is defined but never used.  @typescript-eslint/no-unused-vars
+4:10  Warning: 'getServerSession' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./components/admin/FormHistoryModal.tsx
+42:8  Warning: React Hook useEffect has a missing dependency: 'fetchHistory'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+info  - Need to disable some ESLint rules? Learn more here: https://nextjs.org/docs/app/api-reference/config/eslint#disabling-rules
+Failed to compile.
+
+./scripts/verify_candidate_history.ts:28:15
+Type error: Expected 3 arguments, but got 1.
+
+[0m [90m 26 |[39m
+ [90m 27 |[39m         console[33m.[39mlog([32m"Restoring candidate..."[39m)[33m;[39m
+[31m[1m>[22m[39m[90m 28 |[39m         [36mawait[39m restoreCandidate(testCode)[33m;[39m
+ [90m    |[39m               [31m[1m^[22m[39m
+ [90m 29 |[39m
+ [90m 30 |[39m         console[33m.[39mlog([32m"Verifying restoration..."[39m)[33m;[39m
+ [90m 31 |[39m         [36mconst[39m active [33m=[39m [36mawait[39m db[33m.[39mexecute({[0m
+Next.js build worker exited with code: 1 and signal: null

@@ -5,23 +5,23 @@ import { authOptions } from "@/lib/auth";
 import { sendRecruiterNotification } from "@/lib/email";
 import { config } from "@/lib/config";
 
-export async function POST(_req: Request) {
+export async function POST() {
     try {
         const session = await getServerSession(authOptions);
         if (!session || !session.user) {
             return NextResponse.json({ message: "No autorizado" }, { status: 401 });
         }
 
-        const { code, requirements } = session.user as any;
+        const { code, requirements, form_id: formId } = session.user as any;
 
-        if (!code || !requirements) {
+        if (!code || !requirements || !formId) {
             return NextResponse.json({ message: "Sesión inválida" }, { status: 400 });
         }
 
         // 1. Obtener estado actual del usuario
         const userResult = await db.execute({
-            sql: "SELECT name, retry_count, step, created_by FROM users WHERE code = ? AND requirements = ?",
-            args: [code, requirements]
+            sql: "SELECT name, retry_count, step, created_by FROM users WHERE code = ? AND requirements = ? AND form_id = ?",
+            args: [code, requirements, formId]
         });
 
         if (userResult.rows.length === 0) {
@@ -48,8 +48,8 @@ export async function POST(_req: Request) {
                 interview_feedback = NULL,
                 interviewer_name = NULL,
                 retry_count = ?
-            WHERE code = ? AND requirements = ?`,
-            args: [retryCount + 1, code, requirements]
+            WHERE code = ? AND requirements = ? AND form_id = ?`,
+            args: [retryCount + 1, code, requirements, formId]
         });
 
         // 4. Notificar al reclutador (non-blocking)

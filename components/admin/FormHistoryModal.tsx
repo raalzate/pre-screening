@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Markdown from 'react-markdown';
 
 // Icons system matching the project's style
@@ -35,13 +35,7 @@ const FormHistoryModal: React.FC<FormHistoryModalProps> = ({ isOpen, onClose, fo
     const [loading, setLoading] = useState(false);
     const [selectedAnalysis, setSelectedAnalysis] = useState<AnalysisRecord | null>(null);
 
-    useEffect(() => {
-        if (isOpen && formId) {
-            fetchHistory();
-        }
-    }, [isOpen, formId]);
-
-    const fetchHistory = async () => {
+    const fetchHistory = useCallback(async () => {
         try {
             setLoading(true);
             const res = await fetch(`/api/admin/forms/history/${formId}`);
@@ -53,7 +47,13 @@ const FormHistoryModal: React.FC<FormHistoryModalProps> = ({ isOpen, onClose, fo
         } finally {
             setLoading(false);
         }
-    };
+    }, [formId]);
+
+    useEffect(() => {
+        if (isOpen && formId) {
+            fetchHistory();
+        }
+    }, [isOpen, formId, fetchHistory]);
 
     if (!isOpen) return null;
 

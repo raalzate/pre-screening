@@ -15,16 +15,17 @@ export const authOptions: NextAuthOptions = {
       credentials: {
         code: { label: "Code", type: "text" },
         requirements: { label: "Requirements", type: "text" },
+        formId: { label: "Form ID", type: "text" },
       },
       async authorize(credentials) {
         if (!credentials?.code) return null;
 
         try {
           let stmt;
-          if (credentials.requirements) {
+          if (credentials.requirements && credentials.formId) {
             stmt = await db.execute(
-              'SELECT name, code, email, requirements, step, evaluation_result, form_id, certification_result, challenge_result, interview_feedback, interview_status, technical_level, interviewer_name FROM users WHERE code = ? AND requirements = ?',
-              [credentials.code, credentials.requirements]
+              'SELECT name, code, email, requirements, step, evaluation_result, form_id, certification_result, challenge_result, interview_feedback, interview_status, technical_level, interviewer_name FROM users WHERE code = ? AND requirements = ? AND form_id = ?',
+              [credentials.code, credentials.requirements, credentials.formId]
             );
           } else {
             // Fallback for single profile or auto-select first (legacy behavior safety)
@@ -52,6 +53,7 @@ export const authOptions: NextAuthOptions = {
               interview_status: user.interview_status as string,
               technical_level: user.technical_level as string,
               interviewer_name: user.interviewer_name as string,
+              form_id: user.form_id as string,
             };
           }
           return null;
@@ -101,6 +103,7 @@ export const authOptions: NextAuthOptions = {
         token.name = user.name;
         // Persist the specific requirements chosen
         token.requirements = (user as any).requirements;
+        token.formId = (user as any).form_id;
 
         // Role assignment
         if (account?.provider === "google") {
@@ -119,29 +122,33 @@ export const authOptions: NextAuthOptions = {
 
       // Cuando se solicita la sesión, recuperamos los datos completos de la DB
       // usando el código guardado en el JWT.
-      if (token.code) {
+      if (token.code && typeof token.code === 'string') {
         try {
           let stmt;
-          if (token.requirements) {
-            // Query with requirements if available (multi-profile case)
+          const code = token.code;
+          const reqs = token.requirements as string | undefined;
+          const fId = token.formId as string | undefined;
+
+          if (reqs && fId && typeof reqs === 'string' && typeof fId === 'string') {
+            // Query with requirements and formId if available (multi-profile case)
             stmt = await db.execute(
-              'SELECT name, code, email, requirements, step, evaluation_result, form_id, certification_result, challenge_result, interview_feedback, interview_status, technical_level, interviewer_name FROM users WHERE code = ? AND requirements = ?',
-              [token.code as string, token.requirements as string]
+              'SELECT name, code, email, requirements, step, evaluation_result, form_id, certification_result, challenge_result, interview_feedback, interview_status, technical_level, interviewer_name FROM users WHERE code = ? AND requirements = ? AND form_id = ?',
+              [code, reqs, fId]
             );
           } else {
-            // Fallback to first profile if requirements not in token (shouldn't happen but safety)
+            // Fallback for sessions without full keys or during transition
             stmt = await db.execute(
               'SELECT name, code, email, requirements, step, evaluation_result, form_id, certification_result, challenge_result, interview_feedback, interview_status, technical_level, interviewer_name FROM users WHERE code = ? LIMIT 1',
-              [token.code as string]
+              [code]
             );
           }
 
-          const user = stmt.rows.length ? stmt.rows[0] : null;
+          const userFromDb = stmt.rows.length ? stmt.rows[0] : null;
 
-          if (user) {
+          if (userFromDb) {
             session.user = {
               ...session.user,
-              ...user,
+              ...userFromDb,
               role: token.role as string
             } as any;
           }

@@ -7,7 +7,7 @@ export interface RateLimitResult {
 }
 
 export class RateLimiter {
-    private readonly limit: number = 5;
+    private readonly limit: number = 3;
     private readonly windowSeconds: number = 60;
 
     constructor(limit: number = 5, windowSeconds: number = 60) {

@@ -63,14 +63,14 @@ export async function POST(req: Request) {
             await db.execute(
               `UPDATE users
                SET evaluation_result = ?, step = ?, interview_status = ?, interview_feedback = ?, interviewer_name = ?
-               WHERE code = ? AND requirements = ?`,
-              [JSON.stringify(rejectedResult), 'feedback', 'no_pasa', feedback, 'IA Assistant', userCode, requirements]
+               WHERE code = ? AND requirements = ? AND form_id = ?`,
+              [JSON.stringify(rejectedResult), 'feedback', 'no_pasa', feedback, 'IA Assistant', userCode, requirements, formId]
             );
             console.log("❌ Candidato rechazado automáticamente con feedback de IA:", userCode, requirements);
 
             // Enviar correo de rechazo
             try {
-              const userStmt = await db.execute("SELECT name, email, created_by FROM users WHERE code = ? AND requirements = ?", [userCode, requirements]);
+              const userStmt = await db.execute("SELECT name, email, created_by FROM users WHERE code = ? AND requirements = ? AND form_id = ?", [userCode, requirements, formId]);
               const user = userStmt.rows[0];
               if (user && user.email) {
                 await sendRejectionEmail(user.name as string, user.email as string);
@@ -98,14 +98,14 @@ export async function POST(req: Request) {
           await db.execute(
             `UPDATE users
              SET evaluation_result = ?, questions = ?, step = ?
-             WHERE code = ? AND requirements = ?`,
-            [JSON.stringify(result), JSON.stringify(questions), 'certified', userCode, requirements]
+             WHERE code = ? AND requirements = ? AND form_id = ?`,
+            [JSON.stringify(result), JSON.stringify(questions), 'certified', userCode, requirements, formId]
           );
           console.log("✅ Datos guardados en la base de datos del codigo:", userCode, requirements);
 
           // Enviar correo de notificación de fin de evaluación
           try {
-            const userStmt = await db.execute("SELECT name, email FROM users WHERE code = ? AND requirements = ?", [userCode, requirements]);
+            const userStmt = await db.execute("SELECT name, email FROM users WHERE code = ? AND requirements = ? AND form_id = ?", [userCode, requirements, formId]);
             const user = userStmt.rows[0];
             if (user && user.email) {
               await sendEvaluationCompleteEmail(user.name as string, user.email as string, userCode);
@@ -113,8 +113,11 @@ export async function POST(req: Request) {
           } catch (emailErr) {
             console.error("❌ Error enviando correo de fin de evaluación:", emailErr);
           }
-        } catch (err) {
-          console.error("❌ Error guardando con waitUntil():", err);
+        } catch (err: any) {
+          console.error(`❌ Error in background evaluation for ${userCode}:`, err?.message || err);
+          if (err?.status === 429) {
+            console.error("Critical: AI Quota exhausted even after retries.");
+          }
         }
       })());
     }

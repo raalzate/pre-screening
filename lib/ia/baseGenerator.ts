@@ -24,7 +24,7 @@ export abstract class BaseGenerator<I extends z.ZodTypeAny, O extends z.ZodTypeA
 
     constructor(modelName: string = 'gemini-2.0-flash') {
         this.ai = genkit({
-            plugins: [googleAI({ apiKey: process.env.GEMINI_API_KEY || process.env.GOOGLE_GENAI_API_KEY })],
+            plugins: [googleAI({ apiKey: process.env.GEMINI_API_KEY })],
             model: googleAI.model(modelName),
         });
     }
@@ -62,7 +62,29 @@ export abstract class BaseGenerator<I extends z.ZodTypeAny, O extends z.ZodTypeA
     protected async generateRaw(input: z.infer<I>): Promise<z.infer<O>> {
         const validatedInput = this.inputSchema.parse(input);
         const flow = this.defineFlow();
-        return await flow(validatedInput);
+
+        let lastError: any;
+        const maxRetries = 3;
+        const baseDelay = 2000;
+
+        for (let attempt = 0; attempt <= maxRetries; attempt++) {
+            try {
+                return await flow(validatedInput);
+            } catch (error: any) {
+                lastError = error;
+                // 429: Too Many Requests
+                if (error?.status === 429 || error?.message?.includes('429')) {
+                    if (attempt < maxRetries) {
+                        const delay = baseDelay * Math.pow(2, attempt);
+                        console.warn(`[${this.name}] AI rate limit (429) hit. Retrying in ${delay}ms... (Attempt ${attempt + 1}/${maxRetries})`);
+                        await new Promise(resolve => setTimeout(resolve, delay));
+                        continue;
+                    }
+                }
+                throw error;
+            }
+        }
+        throw lastError;
     }
 
     async generate(input: z.infer<I>): Promise<R> {

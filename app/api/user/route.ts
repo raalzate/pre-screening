@@ -26,11 +26,10 @@ export async function POST(request: Request) {
     await db.execute(`
       INSERT INTO users (name, email, code, requirements, step, form_id, created_by)
       VALUES (?, ?, ?, ?, ?, ?, ?)
-      ON CONFLICT(code, requirements) DO UPDATE SET
+      ON CONFLICT(code, requirements, form_id) DO UPDATE SET
         name=excluded.name,
         email=excluded.email,
         step=excluded.step,
-        form_id=excluded.form_id,
         created_by=excluded.created_by
     `, [name, email, code, requirements, step, form_id, createdBy]);
 
@@ -60,15 +59,21 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url, "http://n");
     const code = searchParams.get("code")?.trim();
     const requirements = searchParams.get("requirements")?.trim();
+    const formId = searchParams.get("formId")?.trim();
 
     if (code) {
-      // Buscar usuario por code y optional requirements
+      // Buscar usuario por code y optional requirements/formId
       let query = "SELECT * FROM users WHERE code = ?";
       const args = [code];
 
       if (requirements) {
         query += " AND requirements = ?";
         args.push(requirements);
+      }
+
+      if (formId) {
+        query += " AND form_id = ?";
+        args.push(formId);
       }
 
       const result = await db.execute(query, args);
@@ -81,6 +86,11 @@ export async function GET(request: Request) {
         if (requirements) {
           historyQuery += " AND requirements = ?";
           historyArgs.push(requirements);
+        }
+
+        if (formId) {
+          historyQuery += " AND form_id = ?";
+          historyArgs.push(formId);
         }
 
         // Ordenar por fecha de movimiento descendente para obtener el más reciente si hay varios

@@ -45,10 +45,10 @@ function LoginContent() {
   const [profiles, setProfiles] = useState<any[]>([]);
 
   // --- Login Real ---
-  const performLogin = useCallback(async (loginCode: string, requirements?: string) => {
+  const performLogin = useCallback(async (loginCode: string, requirements?: string, formId?: string) => {
     try {
       setLoading(true);
-      const loginResponse = await login(loginCode, requirements);
+      const loginResponse = await login(loginCode, requirements, formId);
 
       // Parsear respuesta (similar logic)
       let userData;
@@ -121,8 +121,7 @@ function LoginContent() {
       }
 
       // 3. Si es usuario único, proceder login directo
-      // verifyData es el usuario único
-      await performLogin(loginCode, verifyData.requirements);
+      await performLogin(loginCode, verifyData.requirements, verifyData.form_id);
 
     } catch (err) {
       console.error(err);
@@ -131,8 +130,8 @@ function LoginContent() {
     }
   }, [performLogin]);
 
-  const handleProfileSelect = (reqs: string) => {
-    performLogin(code, reqs);
+  const handleProfileSelect = (reqs: string, fId: string) => {
+    performLogin(code, reqs, fId);
   };
 
   // --- ... (Rest of existing functions) ... ---
